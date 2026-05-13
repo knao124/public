@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>knao124 public</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe6;
+        --panel: rgba(255, 252, 246, 0.92);
+        --text: #1f2937;
+        --muted: #5b6470;
+        --accent: #0f766e;
+        --border: #e7dcc9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(180, 83, 9, 0.1), transparent 24%),
+          linear-gradient(180deg, #efe4d2 0%, var(--bg) 100%);
+      }
+
+      main {
+        width: min(720px, 100%);
+        padding: 40px 32px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: 0 20px 48px rgba(31, 41, 55, 0.1);
+      }
+
+      p {
+        line-height: 1.7;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(2rem, 5vw, 3.25rem);
+        line-height: 1.1;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .box {
+        margin-top: 24px;
+        padding: 16px 18px;
+        border-left: 4px solid var(--accent);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      code {
+        padding: 0.15em 0.45em;
+        border-radius: 8px;
+        background: rgba(15, 118, 110, 0.09);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">GitHub Pages</p>
+      <h1>knao124 public</h1>
+      <p>
+        この repository は、静的 HTML をそのまま公開するための公開用サイトです。
+      </p>
+      <p class="muted">
+        まずは最小の <code>index.html</code> を配置しています。今後ここに HTML/CSS/JavaScript を追加して、
+        GitHub Pages からそのまま配信できます。
+      </p>
+      <div class="box">
+        公開時は repository の <code>Settings</code> → <code>Pages</code> で
+        <code>Deploy from a branch</code> を選び、<code>main</code> と <code>/(root)</code> を指定すると公開できます。
+      </div>
+    </main>
+  </body>
+</html>
