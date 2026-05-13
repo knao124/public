@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>静的HTMLをさっと公開する方法</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe6;
+        --panel: #fffdf8;
+        --text: #1f2937;
+        --muted: #5b6470;
+        --accent: #0f766e;
+        --accent-2: #b45309;
+        --border: #e8dcc9;
+        --code-bg: #f4eadb;
+        --shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 32%),
+          radial-gradient(circle at top right, rgba(180, 83, 9, 0.1), transparent 28%),
+          linear-gradient(180deg, #f3e8d7 0%, var(--bg) 100%);
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 40px 20px 72px;
+      }
+
+      header,
+      section,
+      footer {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      p,
+      li {
+        line-height: 1.7;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .lead {
+        font-size: 1.05rem;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #eef7f5;
+        border: 1px solid #d4ece7;
+        color: #115e59;
+        font-size: 0.95rem;
+      }
+
+      .decision {
+        border-left: 5px solid var(--accent);
+        padding-left: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      code,
+      pre {
+        background: var(--code-bg);
+        border-radius: 10px;
+      }
+
+      code {
+        padding: 0.15em 0.4em;
+      }
+
+      pre {
+        padding: 16px;
+        overflow-x: auto;
+      }
+
+      a {
+        color: #0f5db8;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        background: #fffaf2;
+      }
+
+      .card h3 {
+        font-size: 1rem;
+      }
+
+      ul {
+        padding-left: 20px;
+        margin: 0;
+      }
+
+      footer ul {
+        margin-top: 10px;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 24px 14px 56px;
+        }
+
+        header,
+        section,
+        footer {
+          padding: 18px;
+          border-radius: 16px;
+        }
+
+        th,
+        td {
+          padding: 10px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Generated: 2026-05-13 09:27:09 JST</p>
+        <h1>静的HTMLをさっと public 化するなら何が一番いいか</h1>
+        <p class="lead">
+          前提が「HTML 内の情報は公開してよい」「S3 や IAM 的な管理は重い」「local で見えているものを他人にもすぐ見せたい」なら、
+          いちばん筋が良い既定解は <strong>Netlify Drop</strong> です。
+        </p>
+        <div class="pill-row">
+          <span class="pill">最有力: Netlify Drop</span>
+          <span class="pill">瞬間共有: TryCloudflare</span>
+          <span class="pill">Git前提: GitHub Pages</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>結論</h2>
+        <div class="decision">
+          <p>
+            常用の既定解としては <strong>Netlify Drop</strong> を勧めます。ローカルの
+            <code>public</code> / <code>dist</code> / <code>build</code> フォルダを
+            そのままドラッグして数秒で <code>*.netlify.app</code> の URL が出るので、
+            「local では見えるが、良いものを人に見せるときだけ公開したい」という用途に最も素直です。
+          </p>
+          <p>
+            ただし、もし「アップロードすらしたくない。今このローカルサーバーをそのまま誰かに見せたい」なら、
+            <strong>TryCloudflare</strong> のようなトンネルの方がさらに軽いです。代わりに、
+            これは継続公開向きではなく、テストやデモ向きです。
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>使い分け早見表</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>手段</th>
+              <th>向いている場面</th>
+              <th>良い点</th>
+              <th>注意点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Netlify Drop</strong></td>
+              <td>ローカルの静的 HTML 一式をそのまま公開したい</td>
+              <td>ドラッグ&amp;ドロップだけで公開、更新も同じ操作でよい</td>
+              <td><code>index.html</code> をルートに置くのが基本。ブラウザ経由の大きなアップロードは不向き</td>
+            </tr>
+            <tr>
+              <td><strong>TryCloudflare</strong></td>
+              <td>その場で一時的に共有、デモ、レビュー</td>
+              <td>デプロイ不要。ローカルサーバーを即 public URL 化</td>
+              <td>Cloudflare 公式に「testing/development only」。PC を止めると見えなくなる</td>
+            </tr>
+            <tr>
+              <td><strong>GitHub Pages</strong></td>
+              <td>HTML を GitHub に置いていて、更新履歴も Git で持ちたい</td>
+              <td>単純、安定、<code>github.io</code> URL がすぐ使える</td>
+              <td>push 前提。単発の共有にはやや一手間</td>
+            </tr>
+            <tr>
+              <td><strong>Cloudflare Pages Direct Upload</strong></td>
+              <td>ドラッグ&amp;ドロップで継続公開したい、将来 custom domain も視野</td>
+              <td><code>*.pages.dev</code> で公開、ローカル資産のアップロードが可能</td>
+              <td>Direct Upload プロジェクトは後から Git integration に切り替え不可</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>一番おすすめ: Netlify Drop</h2>
+        <p>
+          Netlify の公式ドキュメントは、Netlify Drop を「ローカルのフォルダにある Web project を最速で公開する方法」と位置づけています。
+          フォルダを drop zone に置くだけで <code>netlify.app</code> の共有 URL が払い出され、
+          更新時も新しいフォルダをもう一度ドラッグすれば差し替えられます。
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>向いている理由</h3>
+            <ul>
+              <li><code>public</code> フォルダをそのまま投げられる</li>
+              <li>viewer 側の認証管理が要らない</li>
+              <li>単発公開にも継続公開にも使いやすい</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>実運用の感覚</h3>
+            <ul>
+              <li>公開 URL が安定していて、人に送りやすい</li>
+              <li>ローカル PC を起動し続ける必要がない</li>
+              <li>S3 のようなバケット設定を考えなくてよい</li>
+            </ul>
+          </div>
+        </div>
+        <pre><code>1. 公開したい HTML/CSS/JS 一式を 1 フォルダにまとめる
+2. ルートに index.html があることを確認する
+3. https://app.netlify.com/drop にドラッグ
+4. 出てきた *.netlify.app を共有する</code></pre>
+        <p class="muted">
+          CLI 派なら <code>netlify deploy --allow-anonymous</code> で live URL を出す方法もあります。
+          これは一時的な匿名 deploy で、1 時間以内に claim しないと消えます。
+        </p>
+      </section>
+
+      <section>
+        <h2>もっと軽い一時共有: TryCloudflare</h2>
+        <p>
+          すでにローカルで HTML を見せられているなら、トンネル系は「その状態を public URL に変換する」だけです。
+          Cloudflare の Quick Tunnels は <code>cloudflared tunnel --url http://localhost:8080</code> で起動でき、
+          ランダムな <code>trycloudflare.com</code> の URL を返します。
+        </p>
+        <pre><code>python3 -m http.server 8080
+cloudflared tunnel --url http://localhost:8080</code></pre>
+        <p>
+          これは最短ですが、Cloudflare 自身が testing / development 用と明記しています。
+          継続公開の本番置き場にはしない方がよいです。
+        </p>
+      </section>
+
+      <section>
+        <h2>Git が前提なら GitHub Pages</h2>
+        <p>
+          GitHub Pages は、GitHub 上の repository にある HTML / CSS / JS をそのまま静的サイトとして公開する仕組みです。
+          repository の branch と folder を Pages の公開元に選ぶだけでよく、URL も
+          <code>https://&lt;owner&gt;.github.io</code> または
+          <code>https://&lt;owner&gt;.github.io/&lt;repository&gt;</code> になります。
+        </p>
+        <p>
+          すでに GitHub に載せているものを公開するならかなり素直ですが、
+          「できたものをその場でポンと公開したい」用途では Drop 系より一手多いです。
+        </p>
+      </section>
+
+      <section>
+        <h2>Cloudflare Pages Direct Upload はどうか</h2>
+        <p>
+          これも drag and drop で静的ファイルを公開できるので悪くありません。
+          ただし公式ドキュメントには、Direct Upload を選ぶと後から Git integration に切り替えられないこと、
+          dashboard の drag and drop では <code>functions</code> フォルダをコンパイルしないことが明記されています。
+        </p>
+        <p>
+          なので「Cloudflare を強く使いたい理由がある」なら候補ですが、
+          プレーンな静的 HTML を手早く見せるだけなら、まずは Netlify Drop の方が素直です。
+        </p>
+      </section>
+
+      <section>
+        <h2>実務向けの判断</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>普段の既定解</h3>
+            <p><strong>Netlify Drop</strong>。迷ったらこれでよいです。</p>
+          </div>
+          <div class="card">
+            <h3>5分だけ見せたい</h3>
+            <p><strong>TryCloudflare</strong>。アップロードすら不要です。</p>
+          </div>
+          <div class="card">
+            <h3>Git で残したい</h3>
+            <p><strong>GitHub Pages</strong>。push と公開を一体化できます。</p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <h2>参照した公式情報</h2>
+        <ul>
+          <li><a href="https://docs.netlify.com/start/get-started-with-drop/">Netlify Drop</a></li>
+          <li><a href="https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/">Netlify CLI</a></li>
+          <li><a href="https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/">Cloudflare Quick Tunnels / TryCloudflare</a></li>
+          <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages">GitHub Pages</a></li>
+          <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site">GitHub Pages publishing source</a></li>
+          <li><a href="https://developers.cloudflare.com/pages/get-started/direct-upload/">Cloudflare Pages Direct Upload</a></li>
+          <li><a href="https://ngrok.com/docs/guides/share-localhost/overview">ngrok Share Localhost Overview</a></li>
+        </ul>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -73,6 +73,21 @@
         background: rgba(255, 255, 255, 0.6);
       }
 
+      .links {
+        margin-top: 24px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .links li + li {
+        margin-top: 12px;
+      }
+
+      .links a {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
       code {
         padding: 0.15em 0.45em;
         border-radius: 8px;
@@ -95,6 +110,11 @@
         公開時は repository の <code>Settings</code> → <code>Pages</code> で
         <code>Deploy from a branch</code> を選び、<code>main</code> と <code>/(root)</code> を指定すると公開できます。
       </div>
+      <ul class="links">
+        <li>
+          <a href="./static-html-publishing-guide.html">静的HTMLの公開手段まとめ</a>
+        </li>
+      </ul>
     </main>
   </body>
 </html>
