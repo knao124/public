@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JAHIS CSV 行別解説</title>
+<style>
+:root {
+  --bg: #f4f4f1;
+  --paper: #ffffff;
+  --ink: #182028;
+  --muted: #5e6872;
+  --line: #d5d8d0;
+  --line-strong: #a9b0a4;
+  --soft: #f8f9f6;
+  --code: #eef0ea;
+  --accent: #265b69;
+  --accent-soft: #e8f1f2;
+  --warn: #7b4b36;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+}
+header {
+  background: #202a31;
+  color: #fff;
+  padding: 22px 24px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; }
+h1 { font-size: clamp(22px, 3vw, 34px); line-height: 1.2; margin: 0; letter-spacing: 0; }
+h2 { font-size: 18px; margin: 0 0 10px; }
+h3 { font-size: 16px; margin: 0 0 8px; }
+p { margin: 8px 0; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+.sub { color: #d6e0e2; margin: 8px 0 0; max-width: 860px; }
+main.wrap { padding: 18px; }
+.layout {
+  display: grid;
+  grid-template-columns: minmax(390px, .96fr) minmax(420px, 1.04fr);
+  gap: 14px;
+  height: calc(100vh - 126px);
+  min-height: 620px;
+}
+.component {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+.format-component {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.analysis-component {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.component-label {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.hint { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.select-label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 2px 0 4px;
+}
+.scenario-select {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px 10px;
+  margin-bottom: 6px;
+}
+.scenario-description {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+.coverage-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  padding: 0;
+  margin: 0 0 10px;
+}
+.coverage-box summary {
+  cursor: pointer;
+  padding: 10px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+.coverage-title {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 10px 6px;
+}
+.coverage-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+.coverage-metric {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  padding: 7px 9px;
+}
+.coverage-metric strong {
+  display: block;
+  color: var(--accent);
+  font-size: 17px;
+}
+.coverage-metric span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.coverage-breakdown {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding: 8px 10px 10px;
+}
+.coverage-breakdown summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.breakdown-item strong { color: var(--ink); }
+.record-breakdown {
+  margin-top: 8px;
+  max-height: 190px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+}
+.record-breakdown-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 48px;
+  gap: 8px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.record-breakdown-row:last-child { border-bottom: 0; }
+.record-breakdown-row strong { color: var(--accent); }
+.format-lines {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #fbfcfa;
+  flex: 1;
+  min-height: 0;
+}
+.format-line {
+  display: grid;
+  grid-template-columns: 42px 58px 1fr;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 9px 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  align-items: start;
+}
+.format-line:last-child { border-bottom: 0; }
+.format-line:hover { background: #f1f6f6; }
+.format-line.active {
+  background: var(--accent-soft);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.line-index { color: var(--muted); font-size: 12px; padding-top: 2px; }
+.line-no {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+}
+.line-text {
+  overflow: hidden;
+  word-break: break-all;
+}
+.line-text code {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.record-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+.record-badge {
+  display: inline-grid;
+  min-width: 62px;
+  place-items: center;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #23323a;
+  color: #fff;
+  font-weight: 800;
+}
+.record-name { font-size: 22px; font-weight: 800; margin: 0; line-height: 1.25; }
+.meta { color: var(--muted); font-size: 13px; margin-top: 3px; }
+.meaning {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  padding: 13px;
+  font-size: 16px;
+}
+.raw-line {
+  margin-top: 12px;
+  background: #202a31;
+  color: #f6f8f8;
+  border-radius: 8px;
+  padding: 11px 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.context-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.context-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 4px 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.context-chip strong { color: var(--ink); }
+.detail-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+.analysis-section {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+.analysis-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+.legend {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--muted);
+  background: #fff;
+}
+.pill.must { color: #236246; border-color: #9ebfae; background: #edf6f1; }
+.pill.either { color: #7a5a16; border-color: #d3bb7c; background: #fbf3d9; }
+.table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: auto;
+  max-height: 52vh;
+}
+table { width: 100%; border-collapse: collapse; min-width: 820px; }
+th, td { padding: 8px 9px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { position: sticky; top: 0; background: #e8ebe5; color: #45515a; font-size: 12px; z-index: 1; }
+td.value {
+  background: var(--code);
+  word-break: break-all;
+}
+td.empty { color: #808890; font-style: italic; }
+.csv-col {
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.field-note { color: var(--muted); font-size: 13px; }
+.type-guide {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  padding: 9px 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.type-guide strong { color: var(--ink); }
+.choice-box {
+  border: 1px solid #d3bb7c;
+  background: #fff8e6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  color: #60480f;
+}
+.source-ref {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.warning {
+  border-left: 4px solid var(--warn);
+  background: #fff5ef;
+  color: var(--warn);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+.footer { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  .format-component { grid-row: auto; }
+  .format-lines { max-height: 360px; min-height: 260px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>JAHIS Ver.1.11フォーマットを「1行ずつ」読む</h1>
+    <p class="sub">左の複数行CSVから1行を選ぶと、右上にその行の意味、右下に列ごとの詳細が出ます。Ver.1.11の先頭行は <code>JAHIS11</code> です。</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="layout">
+    <aside class="component format-component">
+      <span class="component-label">Component 1</span>
+      <h2>JAHISフォーマット文字列</h2>
+      <p class="hint">表の「No」はCSV列番号ではなく、各行の1列目に入るレコード種別です。サンプルを選んでから行をクリックしてください。</p>
+      <label class="select-label" for="scenarioSelect">処方箋サンプル</label>
+      <select id="scenarioSelect" class="scenario-select"></select>
+      <p id="scenarioDescription" class="scenario-description"></p>
+      <details id="coverageBox" class="coverage-box"></details>
+      <div class="format-lines" id="formatLines"></div>
+    </aside>
+
+    <section class="component analysis-component">
+      <span class="component-label">Component 2</span>
+      <section class="analysis-section">
+        <h2>選択行の意味</h2>
+        <div id="lineSummary"></div>
+      </section>
+
+      <section class="analysis-section">
+        <div class="detail-top">
+          <h2>その行の詳細解説</h2>
+          <div class="legend">
+            <span class="pill must">◎ 必須</span>
+            <span class="pill either">● グループ内のどれか必須</span>
+            <span class="pill">省略可</span>
+          </div>
+        </div>
+        <div class="type-guide">
+          <strong>型:</strong>
+          <span><code>9</code> 数値</span>
+          <span><code>X</code> 英数字・ピリオド・ハイフン。項目により半角カナ指定あり</span>
+          <span><code>N</code> 文字列（全角半角混在可）</span>
+        </div>
+        <div id="lineDetail"></div>
+      </section>
+    </section>
+  </section>
+  <p class="footer">生成日時: 2026-05-13 09:55 / 出典: <a href="https://www.jahis.jp/standard/detail/id=1233">JAHIS技術文書26-101 詳細ページ</a> / <a href="https://www.jahis.jp/files/user/04_JAHIS%20standard/26-101_JAHIS%E9%99%A2%E5%A4%96%E5%87%A6%E6%96%B9%E7%AE%8B%EF%BC%92%E6%AC%A1%E5%85%83%E3%82%B7%E3%83%B3%E3%83%9C%E3%83%AB%E8%A8%98%E9%8C%B2%E6%9D%A1%E4%BB%B6%E8%A6%8F%E7%B4%84Ver.1.11.pdf">Ver.1.11 PDF</a></p>
+</main>
+<script>
+const records = [{"no": "VER", "name": "バージョンレコード", "group": "先頭行", "condition": "必須出力", "repeat": "×", "sample": "JAHIS11", "fields": [{"csv_pos": "1", "name": "バージョン情報", "type": "X", "digits": "7", "bytes": "7", "req": "◎", "note": "Ver.1.11では JAHIS11。JAHIS + バージョン番号を半角で記録。"}], "source": {"table": "表3-7", "pdf_page": 10, "document_page": 7}}, {"no": "1", "name": "医療機関レコード", "group": "医療機関/医師情報", "condition": "必須出力", "repeat": "×", "sample": "1,1,1234567,13,医療法人 工業会病院", "fields": [{"csv_pos": "2", "name": "医療機関コード種別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=医科、3=歯科、6=訪問。省略時は医科扱い。"}, {"csv_pos": "3", "name": "医療機関コード", "type": "X", "digits": "7", "bytes": "7", "req": "◎", "note": "レセプト提出用コード。"}, {"csv_pos": "4", "name": "医療機関都道府県コード", "type": "X", "digits": "2", "bytes": "2", "req": "◎", "note": "別表1の都道府県コード。"}, {"csv_pos": "5", "name": "医療機関名称", "type": "N", "digits": "60", "bytes": "120", "req": "", "note": "漢字・半角混在可。"}], "source": {"table": "表3-8", "pdf_page": 10, "document_page": 7}}, {"no": "2", "name": "医療機関所在地レコード", "group": "医療機関/医師情報", "condition": "未出力可", "repeat": "×", "sample": "2,105-0004,東京都港区新橋1丁目...", "fields": [{"csv_pos": "2", "name": "医療機関郵便番号", "type": "X", "digits": "8", "bytes": "8", "req": "●", "note": "3桁-4桁形式。所在地とのどちらか必須。"}, {"csv_pos": "3", "name": "医療機関所在地", "type": "N", "digits": "50", "bytes": "100", "req": "●", "note": "住所。郵便番号とのどちらか必須。"}], "source": {"table": "表3-9", "pdf_page": 10, "document_page": 7}}, {"no": "3", "name": "医療機関電話レコード", "group": "医療機関/医師情報", "condition": "未出力可", "repeat": "×", "sample": "3,03-0000-0000,,", "fields": [{"csv_pos": "2", "name": "医療機関電話番号", "type": "X", "digits": "13", "bytes": "13", "req": "◎", "note": "電話番号。"}, {"csv_pos": "3", "name": "FAX番号", "type": "X", "digits": "13", "bytes": "13", "req": "", "note": "分割指示に係る処方箋の別紙連絡先。通常時も記録可。"}, {"csv_pos": "4", "name": "その他連絡先", "type": "N", "digits": "50", "bytes": "100", "req": "", "note": "メール等の補足連絡先。漢字・半角混在可。"}], "source": {"table": "表3-10", "pdf_page": 10, "document_page": 7}}, {"no": "4", "name": "診療科レコード", "group": "医療機関/医師情報", "condition": "診療所・単科病院は未出力可、それ以外は必須", "repeat": "×", "sample": "4,2,01,内科", "fields": [{"csv_pos": "2", "name": "診療科コード種別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=コードなし、2=診療科コード、3～8=将来用。省略時はコードなし。"}, {"csv_pos": "3", "name": "診療科コード", "type": "X", "digits": "6", "bytes": "6", "req": "", "note": "別表3の診療科コード。"}, {"csv_pos": "4", "name": "診療科名", "type": "N", "digits": "40", "bytes": "80", "req": "◎", "note": "診療科名。コード利用時は省略可能なケースあり。"}], "source": {"table": "表3-11", "pdf_page": 11, "document_page": 8}}, {"no": "5", "name": "医師レコード", "group": "医療機関/医師情報", "condition": "必須出力", "repeat": "×", "sample": "5,,コウギョウカイ ジロウ,工業会 次郎", "fields": [{"csv_pos": "2", "name": "医師コード", "type": "X", "digits": "15", "bytes": "15", "req": "", "note": "医師のコード。"}, {"csv_pos": "3", "name": "医師カナ氏名", "type": "X", "digits": "40", "bytes": "40", "req": "", "note": "半角カナ。姓・名の間だけ空白を残す運用。"}, {"csv_pos": "4", "name": "医師漢字氏名", "type": "N", "digits": "20", "bytes": "40", "req": "◎", "note": "漢字氏名。姓・名の間だけ空白を残す運用。"}], "source": {"table": "表3-12", "pdf_page": 11, "document_page": 8}}, {"no": "11", "name": "患者氏名レコード", "group": "患者情報", "condition": "必須出力", "repeat": "×", "sample": "11,,日薬 太郎,ニチヤク タロウ", "fields": [{"csv_pos": "2", "name": "患者コード", "type": "X", "digits": "15", "bytes": "15", "req": "", "note": "患者識別コード。"}, {"csv_pos": "3", "name": "患者漢字氏名", "type": "N", "digits": "20", "bytes": "40", "req": "●", "note": "患者氏名。カナ氏名とのどちらか必須。"}, {"csv_pos": "4", "name": "患者カナ氏名", "type": "X", "digits": "40", "bytes": "40", "req": "●", "note": "半角カナ。漢字氏名とのどちらか必須。"}], "source": {"table": "表3-13", "pdf_page": 11, "document_page": 8}}, {"no": "12", "name": "患者性別レコード", "group": "患者情報", "condition": "必須出力", "repeat": "×", "sample": "12,1", "fields": [{"csv_pos": "2", "name": "患者性別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=男、2=女。"}], "source": {"table": "表3-14", "pdf_page": 11, "document_page": 8}}, {"no": "13", "name": "患者生年月日レコード", "group": "患者情報", "condition": "必須出力", "repeat": "×", "sample": "13,19600606", "fields": [{"csv_pos": "2", "name": "患者生年月日", "type": "9", "digits": "8", "bytes": "8", "req": "◎", "note": "西暦YYYYMMDD/YYMM等、または和暦GYYMMDD等。年号Gは別表2。"}], "source": {"table": "表3-15", "pdf_page": 12, "document_page": 9}}, {"no": "14", "name": "患者一部負担区分レコード", "group": "患者情報", "condition": "高齢者一般・高齢者7割・6歳未満・後期高齢者8割は必須、それ以外は未出力可", "repeat": "×", "sample": "14,3", "fields": [{"csv_pos": "2", "name": "一部負担金区分", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=高齢者一般、2=高齢者7割、3=6歳未満、4=高齢者一般同義、5=後期高齢者8割。"}], "source": {"table": "表3-16", "pdf_page": 12, "document_page": 9}}, {"no": "21", "name": "保険種別レコード", "group": "保険/公費情報", "condition": "未出力可", "repeat": "×", "sample": "21,1", "fields": [{"csv_pos": "2", "name": "保険種別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=医保/公費、2=国保、3=労災、4=自賠、5=公害、6=自費、7=後期高齢者。"}], "source": {"table": "表3-17", "pdf_page": 12, "document_page": 9}}, {"no": "22", "name": "保険者番号レコード", "group": "保険/公費情報", "condition": "必須出力", "repeat": "×", "sample": "22,06012345", "fields": [{"csv_pos": "2", "name": "保険者番号", "type": "X", "digits": "14", "bytes": "14", "req": "", "note": "有効桁だけ記録。番号なしの場合は空。"}], "source": {"table": "表3-18", "pdf_page": 13, "document_page": 10}}, {"no": "23", "name": "記号番号レコード", "group": "保険/公費情報", "condition": "必須出力", "repeat": "×", "sample": "23,０１－２３,１２３４,2,05", "fields": [{"csv_pos": "2", "name": "被保険者資格記号", "type": "N", "digits": "20", "bytes": "40", "req": "", "note": "漢字・半角混在可。"}, {"csv_pos": "3", "name": "被保険者資格番号", "type": "N", "digits": "20", "bytes": "40", "req": "", "note": "漢字・半角混在可。"}, {"csv_pos": "4", "name": "被保険者／被扶養者", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=被保険者、2=被扶養者。"}, {"csv_pos": "5", "name": "被保険者資格枝番", "type": "X", "digits": "2", "bytes": "2", "req": "", "note": "英数字。2桁未満は先頭0で2桁化。"}], "source": {"table": "表3-19", "pdf_page": 13, "document_page": 10}}, {"no": "24", "name": "負担・給付率レコード", "group": "保険/公費情報", "condition": "未出力可", "repeat": "×", "sample": "24,30,70", "fields": [{"csv_pos": "2", "name": "患者負担率", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "患者の窓口負担率%。複数ある場合は最小値。"}, {"csv_pos": "3", "name": "保険給付率", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "主保険の給付率%。軽減特例時の扱いあり。"}], "source": {"table": "表3-20", "pdf_page": 13, "document_page": 10}}, {"no": "25", "name": "職務上の事由レコード", "group": "保険/公費情報", "condition": "該当時は必須、それ以外は未出力可", "repeat": "×", "sample": "25,1", "fields": [{"csv_pos": "2", "name": "職務上の事由", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=職務上、2=下船後3ヶ月以内、3=通勤災害。"}], "source": {"table": "表3-21", "pdf_page": 13, "document_page": 10}}, {"no": "27", "name": "第一公費レコード", "group": "保険/公費情報", "condition": "該当時は必須、それ以外は未出力可", "repeat": "×", "sample": "27,51123456,1234567", "fields": [{"csv_pos": "2", "name": "第一公費負担者番号", "type": "9", "digits": "8", "bytes": "8", "req": "◎", "note": "第一公費の負担者番号。"}, {"csv_pos": "3", "name": "第一公費受給者番号", "type": "9", "digits": "7", "bytes": "7", "req": "", "note": "第一公費の受給者番号。"}], "source": {"table": "表3-22", "pdf_page": 14, "document_page": 11}}, {"no": "28", "name": "第二公費レコード", "group": "保険/公費情報", "condition": "該当時は必須、それ以外は未出力可", "repeat": "×", "sample": "28,51123456,1234567", "fields": [{"csv_pos": "2", "name": "第二公費負担者番号", "type": "9", "digits": "8", "bytes": "8", "req": "◎", "note": "第二公費の負担者番号。"}, {"csv_pos": "3", "name": "第二公費受給者番号", "type": "9", "digits": "7", "bytes": "7", "req": "", "note": "第二公費の受給者番号。"}], "source": {"table": "表3-23", "pdf_page": 14, "document_page": 11}}, {"no": "29", "name": "第三公費レコード", "group": "保険/公費情報", "condition": "該当時は必須、それ以外は未出力可", "repeat": "×", "sample": "29,51123456,1234567", "fields": [{"csv_pos": "2", "name": "第三公費負担者番号", "type": "9", "digits": "8", "bytes": "8", "req": "◎", "note": "第三公費の負担者番号。"}, {"csv_pos": "3", "name": "第三公費受給者番号", "type": "9", "digits": "7", "bytes": "7", "req": "", "note": "第三公費の受給者番号。"}], "source": {"table": "表3-24", "pdf_page": 14, "document_page": 11}}, {"no": "30", "name": "特殊公費レコード", "group": "保険/公費情報", "condition": "該当時は必須、それ以外は未出力可。備考レコード代用可", "repeat": "×", "sample": "30,特－１２,１２３４５６７", "fields": [{"csv_pos": "2", "name": "特殊公費負担者番号", "type": "N", "digits": "20", "bytes": "40", "req": "◎", "note": "8桁・7桁超または数字以外を含む公費番号向け。"}, {"csv_pos": "3", "name": "特殊公費受給者番号", "type": "N", "digits": "20", "bytes": "40", "req": "", "note": "特殊公費の受給者番号。"}], "source": {"table": "表3-25", "pdf_page": 14, "document_page": 11}}, {"no": "31", "name": "レセプト種別レコード", "group": "保険/公費情報", "condition": "未出力可", "repeat": "×", "sample": "31,1112", "fields": [{"csv_pos": "2", "name": "レセプト種別コード", "type": "9", "digits": "4", "bytes": "4", "req": "◎", "note": "別表4のレセプト種別コード。"}], "source": {"table": "表3-26", "pdf_page": 14, "document_page": 11}}, {"no": "51", "name": "処方箋交付年月日レコード", "group": "処方箋情報", "condition": "必須出力", "repeat": "×", "sample": "51,20040119", "fields": [{"csv_pos": "2", "name": "処方箋交付年月日", "type": "9", "digits": "8", "bytes": "8", "req": "◎", "note": "西暦YYYYMMDDまたは和暦GYYMMDD。"}], "source": {"table": "表3-27", "pdf_page": 14, "document_page": 11}}, {"no": "52", "name": "使用期限年月日レコード", "group": "処方箋情報", "condition": "該当時は必須、それ以外は未出力可", "repeat": "×", "sample": "52,20040126", "fields": [{"csv_pos": "2", "name": "使用期限年月日", "type": "9", "digits": "8", "bytes": "8", "req": "◎", "note": "西暦YYYYMMDDまたは和暦GYYMMDD。"}], "source": {"table": "表3-28", "pdf_page": 15, "document_page": 12}}, {"no": "61", "name": "麻薬施用レコード", "group": "処方箋情報", "condition": "該当時は必須、それ以外は未出力可。備考レコード代用可", "repeat": "×", "sample": "61,,東京都港区新橋...,03-0000-0000", "fields": [{"csv_pos": "2", "name": "麻薬施用者免許番号", "type": "X", "digits": "15", "bytes": "15", "req": "", "note": "省略可。"}, {"csv_pos": "3", "name": "麻薬施用患者住所", "type": "N", "digits": "50", "bytes": "100", "req": "◎", "note": "該当時に住所を記録。漢字・半角混在可。"}, {"csv_pos": "4", "name": "麻薬施用患者電話番号", "type": "X", "digits": "13", "bytes": "13", "req": "◎", "note": "該当時に電話番号を記録。"}], "source": {"table": "表3-29", "pdf_page": 15, "document_page": 12}}, {"no": "62", "name": "残薬確認欄レコード", "group": "処方箋情報", "condition": "未出力可", "repeat": "×", "sample": "62,2", "fields": [{"csv_pos": "2", "name": "残薬確認対応フラグ", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=保険医療機関へ疑義照会した上で調剤、2=調剤する薬剤を減量した上で保険医療機関に情報提供。"}], "source": {"table": "表3-30", "pdf_page": 15, "document_page": 12}}, {"no": "63", "name": "分割指示レコード", "group": "処方箋情報", "condition": "未出力可", "repeat": "×", "sample": "63,3,2", "fields": [{"csv_pos": "2", "name": "分割回数", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "処方箋の全分割回数。"}, {"csv_pos": "3", "name": "分割回", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "当該処方箋が何回目か。"}], "source": {"table": "表3-31", "pdf_page": 15, "document_page": 12}}, {"no": "64", "name": "リフィル処方箋情報レコード", "group": "処方箋情報", "condition": "リフィル処方箋時のみ出力。非リフィルでは出力しない", "repeat": "×", "sample": "64,3", "fields": [{"csv_pos": "2", "name": "総使用回数", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "リフィル処方箋の総使用回数。"}], "source": {"table": "表3-32", "pdf_page": 15, "document_page": 12}}, {"no": "81", "name": "備考レコード", "group": "処方箋情報", "condition": "未出力可", "repeat": "○", "sample": "81,2,1,一包化", "fields": [{"csv_pos": "2", "name": "備考連番", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "1～999。"}, {"csv_pos": "3", "name": "備考種別", "type": "9", "digits": "2", "bytes": "2", "req": "", "note": "1=一包化、2=粉砕、3=分割、4～99=予備。省略時は不明。"}, {"csv_pos": "4", "name": "備考", "type": "N", "digits": "50", "bytes": "100", "req": "◎", "note": "処方箋全体にかかる補足情報。"}], "source": {"table": "表3-33", "pdf_page": 16, "document_page": 13}}, {"no": "82", "name": "処方箋番号レコード", "group": "処方箋情報", "condition": "未出力可。電子処方箋管理サービスへ送信しない場合は記載しない", "repeat": "×", "sample": "82,1,1234567890123456", "fields": [{"csv_pos": "2", "name": "処方箋番号種別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=引換番号、2～9=予備。"}, {"csv_pos": "3", "name": "処方箋番号", "type": "9", "digits": "16", "bytes": "16", "req": "◎", "note": "電子処方箋では引換番号を記録。"}], "source": {"table": "表3-34", "pdf_page": 16, "document_page": 13}}, {"no": "101", "name": "剤形レコード", "group": "RP剤情報", "condition": "必須出力", "repeat": "1RPに1レコード", "sample": "101,1,1,,14", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "処方箋内の剤番号。1から開始。"}, {"csv_pos": "3", "name": "剤形区分", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=内服、2=頓服、3=外用、4=内服滴剤、5=注射、6=医療材料、9=不明。"}, {"csv_pos": "4", "name": "剤形名称", "type": "N", "digits": "2", "bytes": "4", "req": "", "note": "剤形区分が不明の場合に任意記録。"}, {"csv_pos": "5", "name": "調剤数量", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "内服は投与日数、頓服は投与回数、その他は日数または回数。分割指示でも総調剤数量。"}], "source": {"table": "表3-35", "pdf_page": 16, "document_page": 13}}, {"no": "102", "name": "分割指示調剤数量レコード", "group": "RP剤情報", "condition": "未出力可", "repeat": "1RPに1レコード", "sample": "102,1,30,90", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "分割回ごと調剤数量", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "分割回ごとの数量。内服は日数、頓服は回数。"}, {"csv_pos": "4", "name": "総調剤数量", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "分割指示の総数量。No.101の調剤数量と同じ値。"}], "source": {"table": "表3-36", "pdf_page": 17, "document_page": 14}}, {"no": "111", "name": "用法レコード", "group": "RP剤情報", "condition": "必須出力", "repeat": "1RPに1レコード", "sample": "111,1,2,1013044400000000,1日3回朝昼夕食後,3", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "用法コード種別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=コードなし、2=JAMI用法コード、3～8=将来用。"}, {"csv_pos": "4", "name": "用法コード", "type": "X", "digits": "16", "bytes": "16", "req": "", "note": "コード種別に応じた用法コード。"}, {"csv_pos": "5", "name": "用法名称", "type": "N", "digits": "50", "bytes": "100", "req": "◎", "note": "用法の名称。"}, {"csv_pos": "6", "name": "1日回数", "type": "9", "digits": "2", "bytes": "2", "req": "", "note": "省略時は不明。"}], "source": {"table": "表3-37", "pdf_page": 17, "document_page": 14}}, {"no": "181", "name": "用法補足レコード", "group": "RP剤情報", "condition": "未出力可", "repeat": "1RPに1レコード以上可", "sample": "181,1,1,8,1日おき,I1100000,", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP補足連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "1～999。"}, {"csv_pos": "4", "name": "用法補足区分", "type": "9", "digits": "2", "bytes": "2", "req": "", "note": "1=漸減、2=一包化、3=隔日、4=粉砕、5=用法続き、6=部位、7=1回使用量、8=JAMI補足用法、9=JAMI部位。"}, {"csv_pos": "5", "name": "用法補足情報", "type": "N", "digits": "50", "bytes": "100", "req": "◎", "note": "RP全体にかかる補足情報。"}, {"csv_pos": "6", "name": "補足用法コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "区分8では必須。不均等時の補足用法コードはここに記録しない。"}, {"csv_pos": "7", "name": "部位コード", "type": "X", "digits": "3", "bytes": "3", "req": "", "note": "区分9では必須。"}], "source": {"table": "表3-38", "pdf_page": 18, "document_page": 15}}, {"no": "201", "name": "薬品レコード", "group": "RP内薬品情報", "condition": "必須出力", "repeat": "1RPに1レコード以上", "sample": "201,1,1,1,2,612170709,ノルバスク錠2.5mg,4,1,錠", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP内連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "1RP内の薬品連番。"}, {"csv_pos": "4", "name": "情報区分", "type": "9", "digits": "1", "bytes": "1", "req": "", "note": "1=医薬品、2=医療材料、3=非保険薬。省略時は不明。"}, {"csv_pos": "5", "name": "薬品コード種別", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=コードなし、2=レセ電算、3=厚生省、4=YJ、6=HOT、7=一般名、5/8=予備。"}, {"csv_pos": "6", "name": "薬品コード", "type": "X", "digits": "13", "bytes": "13", "req": "", "note": "コード種別に対応する薬品コード。一般名処方で省略時は一般名処方であることだけを示す。"}, {"csv_pos": "7", "name": "薬品名称", "type": "N", "digits": "40", "bytes": "80", "req": "", "note": "レセ電算コード利用時は省略可。ただし対応コードなし医療材料は省略不可。"}, {"csv_pos": "8", "name": "用量", "type": "X", "digits": "12", "bytes": "12", "req": "◎", "note": "最大 整数6桁+小数5桁。内服薬は1日量。分割指示時は当該回の処方箋記載量。"}, {"csv_pos": "9", "name": "力価フラグ", "type": "9", "digits": "1", "bytes": "1", "req": "◎", "note": "1=薬価単位、2=力価単位。"}, {"csv_pos": "10", "name": "単位名", "type": "N", "digits": "6", "bytes": "12", "req": "◎", "note": "錠、g、mL等。"}], "source": {"table": "表3-39", "pdf_page": 19, "document_page": 16}}, {"no": "211", "name": "単位変換レコード", "group": "RP内薬品情報", "condition": "処方箋表記単位が薬価収載単位と同じなら未出力、それ以外は必須", "repeat": "1薬品に1レコード", "sample": "211,1,1,250", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP内連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "No.201のRP内連番。"}, {"csv_pos": "4", "name": "単位変換係数", "type": "X", "digits": "12", "bytes": "12", "req": "◎", "note": "処方箋表記単位から薬価収載単位へ変換する係数。割り切れない場合は小数6桁目四捨五入。"}], "source": {"table": "表3-40", "pdf_page": 20, "document_page": 17}}, {"no": "221", "name": "不均等レコード", "group": "RP内薬品情報", "condition": "不均等服用時は必須、それ以外は未出力可。薬品補足レコード代用可", "repeat": "1薬品に1レコード", "sample": "221,1,1,1.5,0.5,0.5,,,,,,,", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP内連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "No.201のRP内連番。"}, {"csv_pos": "4", "name": "1回目服用量", "type": "X", "digits": "12", "bytes": "12", "req": "◎", "note": "不均等服用の1回目量。最大 整数6桁+小数5桁。"}, {"csv_pos": "5", "name": "2回目服用量", "type": "X", "digits": "12", "bytes": "12", "req": "◎", "note": "不均等服用の2回目量。"}, {"csv_pos": "6", "name": "3回目服用量", "type": "X", "digits": "12", "bytes": "12", "req": "", "note": "不均等服用の3回目量。"}, {"csv_pos": "7", "name": "4回目服用量", "type": "X", "digits": "12", "bytes": "12", "req": "", "note": "不均等服用の4回目量。"}, {"csv_pos": "8", "name": "5回目服用量", "type": "X", "digits": "12", "bytes": "12", "req": "", "note": "不均等服用の5回目量。"}, {"csv_pos": "9", "name": "1回目服用量コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "JAMI不均等時の補足用法コード。"}, {"csv_pos": "10", "name": "2回目服用量コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "JAMI不均等時の補足用法コード。"}, {"csv_pos": "11", "name": "3回目服用量コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "JAMI不均等時の補足用法コード。"}, {"csv_pos": "12", "name": "4回目服用量コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "JAMI不均等時の補足用法コード。"}, {"csv_pos": "13", "name": "5回目服用量コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "JAMI不均等時の補足用法コード。"}], "source": {"table": "表3-41", "pdf_page": 21, "document_page": 18}}, {"no": "231", "name": "負担区分レコード", "group": "RP内薬品情報", "condition": "処方箋内で出力/未出力を混在させない。全薬品出力または全薬品未出力", "repeat": "1薬品に1レコード", "sample": "231,1,1,1,1,,", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP内連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "No.201のRP内連番。"}, {"csv_pos": "4", "name": "第一公費負担区分", "type": "9", "digits": "1", "bytes": "1", "req": "", "note": "0=負担しない、1=負担する、省略=負担しない。"}, {"csv_pos": "5", "name": "第二公費負担区分", "type": "9", "digits": "1", "bytes": "1", "req": "", "note": "0=負担しない、1=負担する、省略=負担しない。"}, {"csv_pos": "6", "name": "第三公費負担区分", "type": "9", "digits": "1", "bytes": "1", "req": "", "note": "0=負担しない、1=負担する、省略=負担しない。"}, {"csv_pos": "7", "name": "特殊公費負担区分", "type": "9", "digits": "1", "bytes": "1", "req": "", "note": "0=負担しない、1=負担する、省略=負担しない。"}], "source": {"table": "表3-42", "pdf_page": 22, "document_page": 19}}, {"no": "241", "name": "1回服用量レコード", "group": "RP内薬品情報", "condition": "未出力可。薬品補足レコード代用可", "repeat": "1薬品に1レコード", "sample": "241,1,1,1,3", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP内連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "No.201のRP内連番。"}, {"csv_pos": "4", "name": "1回服用量", "type": "X", "digits": "12", "bytes": "12", "req": "◎", "note": "内服薬の1回量。数値に限らず 2/3 のような文字列も可。"}, {"csv_pos": "5", "name": "1日服用回数", "type": "9", "digits": "2", "bytes": "1", "req": "", "note": "1日の服用回数。No.111の1日回数に記録する場合は省略可。"}], "source": {"table": "表3-43", "pdf_page": 22, "document_page": 19}}, {"no": "281", "name": "薬品補足レコード", "group": "RP内薬品情報", "condition": "未出力可", "repeat": "1薬品に1レコード以上可", "sample": "281,1,1,1,3,後発品変更不可,", "fields": [{"csv_pos": "2", "name": "RP番号", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "No.101のRP番号。"}, {"csv_pos": "3", "name": "RP内連番", "type": "9", "digits": "2", "bytes": "2", "req": "◎", "note": "No.201のRP内連番。"}, {"csv_pos": "4", "name": "薬品補足連番", "type": "9", "digits": "3", "bytes": "3", "req": "◎", "note": "1～999。"}, {"csv_pos": "5", "name": "薬品補足区分", "type": "9", "digits": "2", "bytes": "2", "req": "", "note": "1=一包化、2=粉砕、3=後発品変更不可、4=剤形変更不可、5=含量規格変更不可、6=剤形/含量規格変更不可、7=JAMI補足用法、8=先発医薬品患者希望。"}, {"csv_pos": "6", "name": "薬品補足情報", "type": "N", "digits": "50", "bytes": "100", "req": "◎", "note": "薬品にかかる補足情報。"}, {"csv_pos": "7", "name": "補足用法コード", "type": "X", "digits": "8", "bytes": "8", "req": "", "note": "区分7では必須。不均等時の補足用法コードはここに記録しない。"}], "source": {"table": "表3-44", "pdf_page": 23, "document_page": 20}}];
+const scenarios = [{"name": "基本: 内服1剤1薬品", "description": "最小限に近い内服薬の例。RP番号と薬品レコードの対応を見るためのサンプル。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "2,105-0004,東京都港区新橋1丁目11番", "3,03-0000-0000,,", "5,,,工業会 次郎", "11,,日薬 太郎,ﾆﾁﾔｸ ﾀﾛｳ", "12,1", "13,19600606", "22,06012345", "23,０１－２３,１２３４,1,", "51,20260513", "101,1,1,,14", "111,1,1,,毎食後服用,3", "201,1,1,1,2,612170709,ノルバスク錠２．５ｍｇ,4,1,錠", "241,1,1,1,3"]}, {"name": "患者氏名: カナだけ記録", "description": "●の例。患者漢字氏名と患者カナ氏名のどちらかがあればよいケース。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "5,,,工業会 次郎", "11,,,ﾆﾁﾔｸ ﾀﾛｳ", "12,1", "13,19600606", "22,06012345", "23,,,1,", "51,20260513", "101,1,1,,7", "111,1,1,,朝食後服用,1", "201,1,1,1,1,,アムロジピン錠２．５ｍｇ,1,1,錠"]}, {"name": "外用薬: 備考と薬品補足あり", "description": "外用のRP、備考レコード、薬品補足レコードを含む例。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "5,,,工業会 次郎", "11,,日薬 花子,ﾆﾁﾔｸ ﾊﾅｺ", "12,2", "13,19750510", "22,06012345", "23,ＡＢＣ,９９９９,2,03", "51,20260513", "81,1,,塗布部位は患部", "101,1,3,,1", "111,1,1,,1日2回患部に塗布,2", "201,1,1,1,1,,サンプル軟膏,10,1,ｇ", "281,1,1,1,,患部に薄く塗布,"]}, {"name": "分割指示: 3分割の1回目", "description": "分割指示レコードと分割指示調剤数量レコードの関係を見る例。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "5,,,工業会 次郎", "11,,日薬 太郎,ﾆﾁﾔｸ ﾀﾛｳ", "12,1", "13,19600606", "22,06012345", "23,０１－２３,１２３４,1,", "51,20260513", "63,3,1", "81,1,3,分割日数14日、分割回数3回", "101,1,1,,42", "102,1,14,42", "111,1,1,,毎食後服用,3", "201,1,1,1,1,,ABC錠１０ｍｇ,3,1,錠"]}, {"name": "リフィル処方箋", "description": "リフィル可の総使用回数を記録する例。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "5,,,工業会 次郎", "11,,日薬 太郎,ﾆﾁﾔｸ ﾀﾛｳ", "12,1", "13,19600606", "22,06012345", "23,０１－２３,１２３４,1,", "51,20260513", "64,3", "101,1,1,,30", "111,1,1,,朝食後服用,1", "201,1,1,1,7,,ニフェジピン１０ｍｇ,1,1,錠", "281,1,1,1,8,先発医薬品患者希望,"]}, {"name": "残薬確認: 減量して情報提供", "description": "Ver.1.11で説明が変わったNo.62のフラグ2を含む例。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "5,,,工業会 次郎", "11,,日薬 太郎,ﾆﾁﾔｸ ﾀﾛｳ", "12,1", "13,19600606", "22,06012345", "23,０１－２３,１２３４,1,", "51,20260513", "62,2", "101,1,1,,14", "111,1,1,,毎食後服用,3", "201,1,1,1,2,612170709,ノルバスク錠２．５ｍｇ,3,1,錠"]}, {"name": "複数RP・複数薬品: 内服+外用", "description": "1つの処方箋に複数の剤（RP）があり、RP1に複数薬品、RP2に外用薬がある例。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "2,105-0004,東京都港区新橋1丁目11番", "3,03-0000-0000,03-1111-2222,renraku@example.jp", "4,2,01,内科", "5,DR0001,ｺｳｷﾞｮｳｶｲ ｼﾞﾛｳ,工業会 次郎", "11,P0000000000001,日薬 太郎,ﾆﾁﾔｸ ﾀﾛｳ", "12,1", "13,19600606", "14,1", "21,1", "22,06012345", "23,０１－２３,１２３４,1,05", "24,30,70", "31,1112", "51,20260513", "52,20260517", "81,1,1,一包化", "101,1,1,,14", "111,1,2,1013044400000000,１日３回朝昼夕食後,3", "181,1,1,8,１日おき,I1100000,", "181,1,2,9,左耳,,42L", "201,1,1,1,2,612170709,ノルバスク錠２．５ｍｇ,4,1,錠", "201,1,2,1,1,,マーズレンＳ顆粒０．６７ｇ,3,1,包", "211,1,2,0.66667", "221,1,2,1.5,0.5,0.5,0.5,0.25,V11.5NNN,V20.5NNN,V30.5NNN,V40.5NNN,V50.25NN", "231,1,1,1,1,1,1", "231,1,2,1,1,1,1", "241,1,1,1,3", "281,1,2,1,7,１日おき,I1100000", "101,2,3,,1", "111,2,1,,１日２回患部に塗布,2", "201,2,1,1,1,,サンプル軟膏,10,1,ｇ", "281,2,1,1,,患部に薄く塗布,", "101,3,9,訪問,1", "111,3,1,,必要時使用,", "201,3,1,2,1,,ペンニードル３０Ｇ６ｍｍ,14,1,本"]}, {"name": "網羅補助: 公費・麻薬・電子処方箋", "description": "公費、職務上の事由、麻薬施用、処方箋番号など、通常サンプルに出にくいレコードをまとめた網羅確認用の例。", "lines": ["JAHIS11", "1,1,1234567,13,医療法人 工業会病院", "4,2,01,内科", "5,DR0002,ｺｳｷﾞｮｳｶｲ ｼﾞﾛｳ,工業会 次郎", "11,P0000000000002,日薬 次郎,ﾆﾁﾔｸ ｼﾞﾛｳ", "12,1", "13,19800101", "14,2", "21,3", "22,39101233", "23,１２－３４,５６７８,2,07", "24,20,80", "25,3", "27,51123456,1234567", "28,52123456,2345678", "29,53123456,3456789", "30,特－１２,１２３４５６７", "31,3112", "51,20260513", "52,20260517", "61,M123456789,東京都港区新橋1丁目11番,03-0000-0000", "82,1,1234567890123456", "101,1,5,,1", "111,1,1,,医師の指示通り,", "201,1,1,1,1,,注射用サンプル,1,1,瓶"]}];
+const byNo = Object.fromEntries(records.map(r => [r.no, r]));
+let selectedIndex = 0;
+let selectedScenarioIndex = 0;
+
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+}[c]));
+
+function isVersionLine(line) {
+  return /^JAHIS\d+$/i.test(line.trim());
+}
+
+function splitLine(line) {
+  return line.trim().split(",");
+}
+
+function parseLine(line) {
+  if (isVersionLine(line)) {
+    return { recordNo: "VER", record: byNo.VER, values: [line.trim()], version: true, parts: [line.trim()] };
+  }
+  const parts = splitLine(line);
+  const recordNo = parts[0] || "";
+  return { recordNo, record: byNo[recordNo], values: parts.slice(1), version: false, parts };
+}
+
+function valueFor(parsed, fieldName) {
+  if (!parsed.record) return "";
+  const index = parsed.record.fields.findIndex(f => f.name === fieldName);
+  return index >= 0 ? (parsed.values[index] ?? "") : "";
+}
+
+function typeMeaning(type) {
+  if (type === "9") return "数値";
+  if (type === "X") return "英数字・ピリオド・ハイフン。医師カナ氏名や患者カナ氏名のように、備考で半角カナを求める項目もあります";
+  if (type === "N") return "文字列（全角半角混在可）";
+  return "未定義";
+}
+
+function sourceRef(record) {
+  const source = record?.source;
+  if (!source?.pdf_page) return "PDF参照未設定";
+  return `PDF ${source.pdf_page}ページ（本文 p.${source.document_page}・${source.table}）`;
+}
+
+function choiceFields(record) {
+  if (!record) return [];
+  return record.fields.filter(f => f.req === "●");
+}
+
+function reqPill(req, record) {
+  if (req === "◎") return '<span class="pill must">◎ 必須</span>';
+  if (req === "●") {
+    const peers = choiceFields(record).map(f => f.name);
+    const label = peers.length === 2 ? "● どちらか必須" : "● いずれか必須";
+    return `<span class="pill either">${label}: ${escapeHtml(peers.join(" / "))}</span>`;
+  }
+  return '<span class="pill">省略可</span>';
+}
+
+function recordLabel(no) {
+  if (no === "VER") return "VER";
+  return no || "?";
+}
+
+function fieldLabel(no) {
+  return byNo[no]?.name || (no === "VER" ? "バージョン行" : "未定義レコード");
+}
+
+function computeCoverage(lines) {
+  const usedRecords = new Set();
+  const coveredFields = new Set();
+  for (const line of lines) {
+    const parsed = parseLine(line);
+    if (!parsed.record) continue;
+    usedRecords.add(parsed.recordNo);
+    if (parsed.version) {
+      if (parsed.values[0]) coveredFields.add(`${parsed.recordNo}|${parsed.record.fields[0].name}`);
+      continue;
+    }
+    parsed.record.fields.forEach((field, index) => {
+      const value = parsed.values[index] ?? "";
+      if (value !== "") coveredFields.add(`${parsed.recordNo}|${field.name}`);
+    });
+  }
+  return {
+    records: usedRecords.size,
+    fields: coveredFields.size,
+    totalRecords: records.length,
+    totalFields: records.reduce((sum, record) => sum + record.fields.length, 0),
+  };
+}
+
+function groupBreakdown() {
+  const groups = new Map();
+  for (const record of records) {
+    const key = record.group || "その他";
+    if (!groups.has(key)) groups.set(key, { records: 0, fields: 0 });
+    const current = groups.get(key);
+    current.records += 1;
+    current.fields += record.fields.length;
+  }
+  return [...groups.entries()];
+}
+
+function renderBreakdown() {
+  const groupRows = groupBreakdown().map(([group, counts]) => `
+    <div class="breakdown-item"><span>${escapeHtml(group)}</span><strong>${counts.records}レコード / ${counts.fields}項目</strong></div>
+  `).join("");
+  const recordRows = records.map(record => `
+    <div class="record-breakdown-row"><strong>${escapeHtml(record.no)}</strong><span>${escapeHtml(record.name)}</span><strong>${record.fields.length}項目</strong></div>
+  `).join("");
+  return `
+    <details class="coverage-breakdown">
+      <summary>112項目の内訳を見る</summary>
+      <div class="breakdown-grid">${groupRows}</div>
+      <div class="record-breakdown">${recordRows}</div>
+    </details>`;
+}
+
+function renderCoverage() {
+  const allLines = scenarios.flatMap(scenario => scenario.lines);
+  const all = computeCoverage(allLines);
+  const current = computeCoverage(scenarios[selectedScenarioIndex].lines);
+  document.getElementById("coverageBox").innerHTML = `
+    <summary>ユニーク集計: 全サンプルの和集合で全項目をカバー</summary>
+    <div class="coverage-title">ユニーク集計: 全サンプルの和集合で全項目をカバー</div>
+    <div class="coverage-metrics">
+      <div class="coverage-metric"><strong>${all.records}/${all.totalRecords}</strong><span>全サンプル: レコード</span></div>
+      <div class="coverage-metric"><strong>${all.fields}/${all.totalFields}</strong><span>全サンプル: 非空項目値</span></div>
+      <div class="coverage-metric"><strong>${current.records}/${all.totalRecords}</strong><span>このサンプル: レコード</span></div>
+      <div class="coverage-metric"><strong>${current.fields}/${all.totalFields}</strong><span>このサンプル: 非空項目値</span></div>
+    </div>`;
+  document.getElementById("coverageBox").innerHTML += renderBreakdown();
+}
+
+function lineMeaning(parsed, line) {
+  if (!parsed.record) return "このレコードNoは定義一覧にありません。";
+  const r = parsed.record;
+  if (parsed.version) return `このデータ全体が JAHIS Ver.1.11 形式であることを示す先頭行です。`;
+  switch (parsed.recordNo) {
+    case "1":
+      return `処方箋を発行した医療機関を表します。医療機関コード ${valueFor(parsed, "医療機関コード")}、都道府県コード ${valueFor(parsed, "医療機関都道府県コード")}、名称 ${valueFor(parsed, "医療機関名称") || "空欄"}。`;
+    case "2":
+      return `医療機関の所在地情報です。郵便番号または所在地のどちらかで住所を補います。`;
+    case "3":
+      return `医療機関の連絡先です。電話番号 ${valueFor(parsed, "医療機関電話番号") || "空欄"} を記録しています。`;
+    case "5":
+      return `処方医の情報です。この例では医師漢字氏名 ${valueFor(parsed, "医師漢字氏名") || "空欄"} を記録しています。`;
+    case "11":
+      return `患者氏名です。漢字氏名 ${valueFor(parsed, "患者漢字氏名") || "空欄"}、カナ氏名 ${valueFor(parsed, "患者カナ氏名") || "空欄"}。`;
+    case "12":
+      return `患者性別です。値 ${valueFor(parsed, "患者性別")} は 1=男、2=女です。`;
+    case "13":
+      return `患者生年月日です。値 ${valueFor(parsed, "患者生年月日")} を日付として記録しています。`;
+    case "22":
+      return `保険者番号です。有効桁だけを記録します。この例では ${valueFor(parsed, "保険者番号") || "空欄"}。`;
+    case "23":
+      return `保険資格の記号・番号と本人/扶養者区分です。区分 ${valueFor(parsed, "被保険者／被扶養者")} は 1=被保険者、2=被扶養者です。`;
+    case "51":
+      return `処方箋交付年月日です。この例では ${valueFor(parsed, "処方箋交付年月日")}。`;
+    case "101":
+      return `RP ${valueFor(parsed, "RP番号")} の剤形と数量です。剤形区分 ${valueFor(parsed, "剤形区分")}、調剤数量 ${valueFor(parsed, "調剤数量")}。`;
+    case "111":
+      return `RP ${valueFor(parsed, "RP番号")} の用法です。用法名称は ${valueFor(parsed, "用法名称") || "空欄"}、1日回数は ${valueFor(parsed, "1日回数") || "空欄"}。`;
+    case "201":
+      return `RP ${valueFor(parsed, "RP番号")} の ${valueFor(parsed, "RP内連番")} 番目の薬品です。薬品コード ${valueFor(parsed, "薬品コード") || "空欄"}、薬品名称 ${valueFor(parsed, "薬品名称") || "空欄"}、用量 ${valueFor(parsed, "用量") || "空欄"} ${valueFor(parsed, "単位名") || ""}。`;
+    case "241":
+      return `RP ${valueFor(parsed, "RP番号")}・薬品 ${valueFor(parsed, "RP内連番")} の1回服用量です。1回 ${valueFor(parsed, "1回服用量") || "空欄"}、1日 ${valueFor(parsed, "1日服用回数") || "空欄"} 回。`;
+    default:
+      return `${r.name}です。この行の2列目以降を、下の詳細表の項目順に割り当てます。`;
+  }
+}
+
+function renderLines() {
+  const container = document.getElementById("formatLines");
+  const scenario = scenarios[selectedScenarioIndex];
+  document.getElementById("scenarioDescription").textContent = scenario.description;
+  renderCoverage();
+  container.innerHTML = scenario.lines.map((line, i) => {
+    const parsed = parseLine(line);
+    const no = recordLabel(parsed.recordNo);
+    const name = fieldLabel(parsed.recordNo);
+    return `<button class="format-line ${i === selectedIndex ? "active" : ""}" data-index="${i}">
+      <span class="line-index">${String(i + 1).padStart(2, "0")}</span>
+      <span class="line-no">${escapeHtml(no)}</span>
+      <span class="line-text"><code>${escapeHtml(line)}</code><br><span class="hint">${escapeHtml(name)}</span></span>
+    </button>`;
+  }).join("");
+}
+
+function renderSelected() {
+  const scenario = scenarios[selectedScenarioIndex];
+  const line = scenario.lines[selectedIndex] || scenario.lines[0];
+  const parsed = parseLine(line);
+  renderLines();
+  renderSummary(parsed, line);
+  renderDetail(parsed, line);
+}
+
+function renderSummary(parsed, line) {
+  const target = document.getElementById("lineSummary");
+  if (!parsed.record) {
+    target.innerHTML = `<div class="warning">レコードNo ${escapeHtml(parsed.recordNo)} は定義されていません。</div><div class="raw-line mono">${escapeHtml(line)}</div>`;
+    return;
+  }
+  const r = parsed.record;
+  const context = summaryContext(parsed);
+  target.innerHTML = `
+    <div class="record-head">
+      <div class="record-badge">${escapeHtml(recordLabel(parsed.recordNo))}</div>
+      <div>
+        <p class="record-name">${escapeHtml(r.name)}</p>
+        <p class="meta">${escapeHtml(r.group)} / ${escapeHtml(r.condition)} / 同一No: ${escapeHtml(r.repeat)} / ${escapeHtml(sourceRef(r))}</p>
+      </div>
+    </div>
+    <div class="meaning">${escapeHtml(lineMeaning(parsed, line))}</div>
+    ${context}
+    <div class="raw-line mono">${escapeHtml(line)}</div>
+  `;
+}
+
+function summaryContext(parsed) {
+  if (!parsed.record) return "";
+  if (parsed.version) {
+    return `<div class="context-strip"><span class="context-chip">形式 <strong>${escapeHtml(parsed.values[0])}</strong></span></div>`;
+  }
+  const chips = [];
+  const rp = valueFor(parsed, "RP番号");
+  const rpSeq = valueFor(parsed, "RP内連番");
+  const recordSeq = valueFor(parsed, "RP補足連番") || valueFor(parsed, "薬品補足連番") || valueFor(parsed, "備考連番");
+  if (rp) chips.push(`RP <strong>${escapeHtml(rp)}</strong>`);
+  if (rpSeq) chips.push(`RP内薬品 <strong>${escapeHtml(rpSeq)}</strong>`);
+  if (recordSeq) chips.push(`連番 <strong>${escapeHtml(recordSeq)}</strong>`);
+  if (parsed.recordNo === "201") chips.push("この薬品に 211/221/231/241/281 がひも付く");
+  if (["211", "221", "231", "241", "281"].includes(parsed.recordNo)) chips.push("RP番号 + RP内連番で No.201 の薬品を参照");
+  if (["101", "102", "111", "181"].includes(parsed.recordNo)) chips.push("RP番号で同じ剤グループを参照");
+  if (chips.length === 0) return "";
+  return `<div class="context-strip">${chips.map(chip => `<span class="context-chip">${chip}</span>`).join("")}</div>`;
+}
+
+function renderDetail(parsed, line) {
+  const target = document.getElementById("lineDetail");
+  if (!parsed.record) {
+    target.innerHTML = `<div class="warning">詳細を表示できません。</div>`;
+    return;
+  }
+  const rows = [];
+  if (parsed.version) {
+    const f = parsed.record.fields[0];
+    rows.push(detailRow("1", parsed.values[0], f.name, f, "バージョン行だけは、レコードNoを持たない特別な1行です。", parsed.record));
+  } else {
+    rows.push(`<tr>
+      <td class="csv-col">列1</td>
+      <td class="value mono">${escapeHtml(parsed.recordNo)}</td>
+      <td><strong>レコードNo</strong></td>
+      <td>この値で ${escapeHtml(parsed.record.name)} の定義を選びます。</td>
+      <td class="source-ref">${escapeHtml(sourceRef(parsed.record))}</td>
+    </tr>`);
+    parsed.record.fields.forEach((f, i) => {
+      rows.push(detailRow(String(i + 2), parsed.values[i] ?? "", f.name, f, f.note, parsed.record));
+    });
+    if (parsed.values.length > parsed.record.fields.length) {
+      const extras = parsed.values.slice(parsed.record.fields.length).join(",");
+      rows.push(`<tr><td colspan="4"><div class="warning">定義より列が多いです: ${escapeHtml(extras)}</div></td></tr>`);
+    }
+  }
+  const choiceHtml = choiceExplanation(parsed);
+  target.innerHTML = `
+    ${choiceHtml}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>CSV列</th><th>値</th><th>対応する項目</th><th>仕様上の詳細</th><th>参照</th></tr></thead>
+        <tbody>${rows.join("")}</tbody>
+      </table>
+    </div>`;
+}
+
+function choiceExplanation(parsed) {
+  const fields = choiceFields(parsed.record);
+  if (fields.length === 0) return "";
+  const values = fields.map(f => {
+    const index = parsed.record.fields.findIndex(item => item.name === f.name);
+    const value = parsed.values[index] ?? "";
+    return `${f.name}=${value || "空欄"}`;
+  });
+  const ok = fields.some(f => {
+    const index = parsed.record.fields.findIndex(item => item.name === f.name);
+    return (parsed.values[index] ?? "") !== "";
+  });
+  const label = fields.length === 2 ? "どちらか必須" : "いずれか必須";
+  return `<div class="choice-box"><strong>● ${label}の組み合わせ:</strong> ${escapeHtml(fields.map(f => f.name).join(" / "))}<br><span>${escapeHtml(values.join("、"))}。判定: ${ok ? "この行では満たしています" : "この行では未入力です"}</span></div>`;
+}
+
+function detailRow(pos, value, name, field, note, record) {
+  const empty = value === "";
+  return `<tr>
+    <td class="csv-col">列${escapeHtml(pos)}</td>
+    <td class="value mono ${empty ? "empty" : ""}">${escapeHtml(empty ? "空欄" : value)}</td>
+    <td><strong>${escapeHtml(name)}</strong><br><span class="field-note">型 ${escapeHtml(field.type)}: ${escapeHtml(typeMeaning(field.type))} / 桁数 ${escapeHtml(field.digits)} / ${escapeHtml(field.bytes)}バイト</span></td>
+    <td>${reqPill(field.req, record)}<br><span class="field-note">${escapeHtml(note)}</span></td>
+    <td class="source-ref">${escapeHtml(sourceRef(record))}</td>
+  </tr>`;
+}
+
+document.getElementById("formatLines").addEventListener("click", event => {
+  const button = event.target.closest("button[data-index]");
+  if (!button) return;
+  selectedIndex = Number(button.dataset.index);
+  renderSelected();
+});
+
+function renderScenarioSelect() {
+  const select = document.getElementById("scenarioSelect");
+  select.innerHTML = scenarios.map((scenario, i) => `<option value="${i}">${escapeHtml(scenario.name)}</option>`).join("");
+  select.addEventListener("change", event => {
+    selectedScenarioIndex = Number(event.target.value);
+    selectedIndex = 0;
+    renderSelected();
+  });
+}
+
+renderScenarioSelect();
+renderSelected();
+</script>
+</body>
+</html>
