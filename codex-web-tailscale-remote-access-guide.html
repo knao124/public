@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>codex-web と外部アクセスの考え方</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #efe7da;
+        --panel: #fffdf8;
+        --text: #1f2933;
+        --muted: #5f6b76;
+        --accent: #9a3412;
+        --border: #e6d9c4;
+        --code-bg: #f5ecdf;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+        background: linear-gradient(180deg, #efe7da 0%, #f8f4ed 100%);
+        color: var(--text);
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 40px 20px 72px;
+      }
+      header,
+      section,
+      footer {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 22px 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 12px 30px rgba(31, 41, 51, 0.06);
+      }
+      h1,
+      h2 {
+        margin: 0 0 12px;
+        line-height: 1.3;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      code,
+      pre {
+        background: var(--code-bg);
+        border-radius: 10px;
+      }
+      code {
+        padding: 0.12em 0.38em;
+      }
+      pre {
+        padding: 14px 16px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+      }
+      ul {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+      .callout {
+        border-left: 4px solid var(--accent);
+        padding-left: 14px;
+      }
+      .diagram {
+        display: grid;
+        gap: 14px;
+        margin-top: 16px;
+      }
+      .lane {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fffaf2;
+        padding: 16px;
+      }
+      .lane h3 {
+        margin: 0 0 12px;
+        font-size: 1rem;
+      }
+      .flow {
+        display: grid;
+        gap: 10px;
+      }
+      .box {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 12px 14px;
+      }
+      .box strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .arrow {
+        color: var(--accent);
+        font-weight: 700;
+        text-align: center;
+      }
+      .mini {
+        font-size: 0.92rem;
+      }
+      a {
+        color: var(--accent);
+      }
+      .terms {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .term {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fffaf2;
+        padding: 16px;
+      }
+      .term h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+      }
+      .term p {
+        margin: 0 0 8px;
+      }
+      @media (min-width: 760px) {
+        .flow {
+          grid-template-columns: 1fr auto 1fr auto 1fr;
+          align-items: stretch;
+        }
+        .arrow {
+          display: grid;
+          place-items: center;
+          min-width: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Generated: 2026-05-13 07:42:44 JST / Updated: 2026-05-13</p>
+        <h1>codex-web を外のネットワークから使うときの考え方</h1>
+        <p>
+          結論だけ先に言うと、<code>codex-web</code> はそのままインターネットに公開する前提の作りではありません。
+          外出先から安全寄りに使いたいなら、VPN、Tailscale、WireGuard、SSH トンネルのような
+          「外側の安全な通路」を作る前提で考えるのが正しいです。
+        </p>
+      </header>
+
+      <section>
+        <h2>Overview</h2>
+        <p>
+          このプロジェクトは「ブラウザ UI」と「その裏で動く codex の実行環境」を同じマシン上に寄せる設計です。
+          ブラウザで見えているのはフロントエンドですが、実際にはその UI 経由でホストマシン上の
+          <code>codex</code> を動かせます。
+        </p>
+        <p class="callout">
+          つまり、外からアクセスできる人は、ほぼ「そのホスト上で codex を触れる人」と考えるべきです。
+        </p>
+      </section>
+
+      <section>
+        <h2>全体アーキテクチャ図</h2>
+        <p>
+          外部端末から見たときの全体像は次の通りです。重要なのは、保護レイヤの内側に入った時点で
+          Web UI だけでなく、その背後の <code>codex</code> 実行環境にも届くことです。
+        </p>
+        <div class="diagram">
+          <div class="lane">
+            <h3>標準構成</h3>
+            <div class="flow">
+              <div class="box">
+                <strong>Client Device</strong>
+                ブラウザで <code>codex-web</code> を開く
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>Trusted Access Layer</strong>
+                Tailscale / WireGuard / SSH Tunnel
+                <div class="mini">公開するなら前段で認証・閉域化</div>
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>Host Machine</strong>
+                <div><code>codex-web</code> が HTTP と <code>/__backend/ipc</code> WebSocket を提供</div>
+                <div class="mini">ブラウザ UI と IPC bridge が同居</div>
+              </div>
+            </div>
+            <div class="arrow">↓</div>
+            <div class="flow">
+              <div class="box">
+                <strong>codex CLI / app-server</strong>
+                プロンプト実行、会話、サブエージェント処理
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>Local Resources</strong>
+                ファイル、環境変数、SSH keys、ワークスペース
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>OpenAI / Remote Services</strong>
+                モデル API や外部連携先
+              </div>
+            </div>
+          </div>
+
+          <div class="lane">
+            <h3>どこが危ないか</h3>
+            <div class="flow">
+              <div class="box">
+                <strong>危険な公開パターン</strong>
+                インターネット
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong><code>codex-web</code> を直接公開</strong>
+                <div class="mini">認証・認可を内蔵していない</div>
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>結果</strong>
+                到達できる人がホスト上の codex 実行権限にかなり近い状態になる
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>なぜ VPN が話題になるのか</h2>
+        <ul>
+          <li>README ではデフォルト待受が <code>127.0.0.1:8214</code> です。つまり最初からローカル専用です。</li>
+          <li>サーバー実装でもデフォルトの <code>--host</code> は <code>127.0.0.1</code> です。</li>
+          <li>UI は同じホストに対して <code>/__backend/ipc</code> へ WebSocket 接続します。</li>
+          <li>README は「trusted networks でだけ使え」とかなり明確に書いています。</li>
+          <li>認証や認可は <code>codex-web</code> の中では持たず、外側で足す方針です。</li>
+        </ul>
+        <pre><code>ブラウザ
+  ↓ HTTPS / WSS
+codex-web
+  ↓ IPC bridge / codex CLI
+ホストマシン上のファイル・環境変数・認証済み codex アカウント</code></pre>
+      </section>
+
+      <section>
+        <h2>実際のリスク</h2>
+        <p>README の説明どおり、Web UI に届く人は次のことができる前提で考えるべきです。</p>
+        <ul>
+          <li>ホスト上でコマンドを実行する</li>
+          <li>読める権限のあるファイル、環境変数、SSH キー等へ触れる</li>
+          <li>そのマシンでサインイン済みの codex / ChatGPT アカウントを使う</li>
+        </ul>
+        <p>
+          なので「公開 URL を作って、Basic 認証だけ付ければ十分」とまでは言いづらいです。
+          まずはネットワーク自体を閉じる方が筋が良いです。
+        </p>
+      </section>
+
+      <section>
+        <h2>どう使うのが現実的か</h2>
+        <p>個人用途なら次の順で考えるのがわかりやすいです。</p>
+        <ul>
+          <li>一番無難: ホストでは <code>127.0.0.1</code> のまま動かし、Tailscale / WireGuard / SSH トンネル経由でだけ入る</li>
+          <li>LAN 内だけ: <code>--host 0.0.0.0</code> にして、家庭内や社内の信頼できるネットワークからだけ使う</li>
+          <li>公開運用に近い形: 逆プロキシで TLS を終端しつつ、さらに VPN や認証ゲートを前段に置く</li>
+        </ul>
+        <p>
+          モバイルから使いたいなら、Tailscale のように端末同士を閉域でつなぐやり方がかなり相性が良いです。
+        </p>
+      </section>
+
+      <section>
+        <h2>Tailscale を理解するための基本用語</h2>
+        <p>
+          ここは <code>codex-web</code> を Tailscale 越しに使うために必要な用語を、
+          上から順に読めばつながるように並べた節です。Tailscale 全機能の完全な辞書ではなく、
+          この用途で混乱しやすい言葉を一通りまとめています。
+        </p>
+
+        <div class="terms">
+          <div class="term">
+            <h3>1. Device / Client: まず何が参加するのか</h3>
+            <p>
+              Tailscale の <code>client</code> は、PC、スマホ、サーバーのような
+              <code>device</code> に入れるソフトです。公式の用語集でも、client は
+              「端末が tailnet に参加して活動するためのアプリ」とされています。
+            </p>
+            <p>
+              つまり、人が直接 tailnet に入るというより、まずは「端末に Tailscale client を入れる」が出発点です。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>2. User / Sign in / 参加: 誰の端末として入るのか</h3>
+            <p>
+              端末に client を入れただけでは不十分で、次にその端末をどのアカウントで
+              Tailscale にログインさせるかを決めます。これでその端末は特定の
+              <code>tailnet</code> に属するようになります。
+            </p>
+            <p>
+              Tailscale の用語では <code>node</code> は「user と device の組み合わせ」です。
+              なので「この Mac を自分の tailnet に参加させる」というのは、
+              厳密には「自分のユーザーとして、その Mac を node 化する」に近い理解です。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>3. Tailnet: 参加先の私的な空間</h3>
+            <p>
+              <code>tailnet</code> は Tailscale のネットワークそのものです。
+              公式には「users, devices, resources の相互接続された集合」と説明されています。
+            </p>
+            <p>
+              ここで言う「空間」はこの <code>tailnet</code> のことです。
+              同じ tailnet に入っている端末同士は、Tailscale のルールに従って互いを見つけて通信できます。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>4. Peer: その空間の中で相手になる端末</h3>
+            <p>
+              自分の端末が通信しようとしている別の node を <code>peer</code> と呼びます。
+              たとえば iPhone から自宅サーバー上の <code>codex-web</code> に入るなら、
+              そのサーバーは iPhone から見た peer です。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>5. Tailscale IP: tailnet の中での固定っぽい住所</h3>
+            <p>
+              各端末には <code>100.x.y.z</code> 形式の <code>Tailscale IP</code> が付きます。
+              これは自宅 Wi-Fi、テザリング、カフェの回線などに変わっても維持されやすい、
+              tailnet 内での安定したアドレスです。
+            </p>
+            <p>
+              「家の回線のグローバル IP が変わるから困る」という問題を、
+              ある程度この安定した内部アドレスで隠してくれる、と思うと理解しやすいです。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>6. MagicDNS / ts.net: IP ではなく名前で呼ぶ仕組み</h3>
+            <p>
+              <code>MagicDNS</code> は、tailnet 内の端末へ自動で DNS 名を付ける機能です。
+              これが有効だと、数字の IP ではなく名前で相手に届きやすくなります。
+            </p>
+            <p>
+              特に共有マシンでは <code>&lt;hostname&gt;.&lt;tailnet-name&gt;.ts.net</code> のような
+              完全修飾名が出てきます。Tailscale を使っていると URL や接続先に
+              <code>.ts.net</code> が出てくるのはこのためです。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>7. Overlay network / Tunnel / WireGuard: どうやってつながるのか</h3>
+            <p>
+              Tailscale は public internet の上に重ねる <code>overlay network</code> です。
+              下にある通常の Wi-Fi やモバイル回線が underlay、その上に暗号化された
+              <code>tunnel</code> を作るのが Tailscale です。
+            </p>
+            <p>
+              公式用語集では client は WireGuard を使って暗号化された peer-to-peer 接続を作ると説明されています。
+              ここで大事なのは「普段のインターネットを捨てる」のではなく、
+              その上に私的な通信路を追加する、という感覚です。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>8. NAT traversal / DERP: 直接つながらない時にどうするか</h3>
+            <p>
+              現実のネットワークには NAT やファイアウォールがあるので、端末同士が常に直接つながるわけではありません。
+              そのため Tailscale は <code>NAT traversal</code> を使って、まずは直接接続を試みます。
+            </p>
+            <p>
+              それでも無理なときは、公式用語集にある <code>DERP relay</code> という中継を使います。
+              なので「Tailscale は常に中央サーバーを経由する VPN」という理解は少しズレています。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>9. 同じ tailnet に参加することと、共有してもらうことは別</h3>
+            <p>
+              ここがかなり重要です。同じ tailnet に参加するとは、あなたの端末がその tailnet の内部メンバーになることです。
+              一方で <code>sharing</code> は、別 tailnet のマシンを限定的に見せてもらう仕組みです。
+            </p>
+            <p>
+              公式の共有ドキュメントでは、共有マシンはデフォルトで quarantine され、
+              受け手側へ見せる情報も最小限です。個人で自分の PC とスマホをつなぐなら、
+              まず考えるのは sharing より「同じ tailnet に両方参加させる」です。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>10. Access control / Grants / ACLs: 空間の中で誰が何に触れるか</h3>
+            <p>
+              同じ tailnet にいるだけで無制限に何でもしてよい、とは限りません。
+              Tailscale では <code>tailnet policy file</code> でアクセス制御を管理します。
+            </p>
+            <p>
+              新しい書き方は <code>grants</code>、古い書き方は <code>ACLs</code> です。
+              どちらも「誰が」「どの端末やサービスへ」「どのポートや機能で」届けるかを決めるためのものです。
+              <code>codex-web</code> を人に見せるなら、この層の理解も重要です。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>11. Serve と Funnel: 端末の中のローカルサービスをどこまで見せるか</h3>
+            <p>
+              <code>Serve</code> は、端末上のローカルポートを tailnet 内だけに見せる機能です。
+              公式ドキュメントでも、Serve は tailnet 内向け、Funnel は public internet にも出す機能として区別されています。
+            </p>
+            <p>
+              <code>codex-web</code> を使う文脈では、<code>127.0.0.1:8214</code> で動くローカルサービスを
+              自分の端末群にだけ見せたいので、基本的には <code>Serve</code> を使います。
+            </p>
+          </div>
+
+          <div class="term">
+            <h3>12. Exit node と subnet router: よく似て見えるが別物</h3>
+            <p>
+              <code>exit node</code> は、一般のインターネット向け通信を特定の端末経由にする仕組みです。
+              典型的な VPN の「全部そこから出す」に近い機能です。
+            </p>
+            <p>
+              <code>subnet router</code> は、Tailscale client を入れていない社内 LAN や VPC の奥へ入るためのゲートウェイです。
+              <code>codex-web</code> を自分の端末から触るだけなら、まず必要なのはこの2つではなく
+              「同じ tailnet に参加」+「Serve」です。
+            </p>
+          </div>
+        </div>
+
+        <p class="mini">
+          参考:
+          <a href="https://tailscale.com/docs/reference/glossary">Terminology and concepts</a>,
+          <a href="https://tailscale.com/docs/reference/dns-in-tailscale">DNS in Tailscale</a>,
+          <a href="https://tailscale.com/docs/features/sharing">Sharing</a>,
+          <a href="https://tailscale.com/docs/features/access-control">Access control</a>,
+          <a href="https://tailscale.com/docs/features/access-control/grants">Grants</a>,
+          <a href="https://tailscale.com/docs/features/exit-nodes">Exit nodes</a>,
+          <a href="https://tailscale.com/docs/features/subnet-routers">Subnet routers</a>,
+          <a href="https://tailscale.com/docs/features/tailscale-serve">Tailscale Serve</a>
+        </p>
+      </section>
+
+      <section>
+        <h2>iPhone を tailnet に参加させて、5G から自宅 Mac に入るには</h2>
+        <p>
+          ここでは「自宅の Mac で <code>codex-web</code> を動かし、それを外出先の iPhone から
+          5G 回線で開く」という具体例で説明します。結論だけ先に言うと、
+          自宅ルーターでポート開放をしなくても、Mac と iPhone を同じ <code>tailnet</code> に参加させ、
+          Mac 側で <code>tailscale serve</code> を設定すれば足ります。
+        </p>
+
+        <div class="diagram">
+          <div class="lane">
+            <h3>通信のイメージ</h3>
+            <div class="flow">
+              <div class="box">
+                <strong>iPhone</strong>
+                5G 回線上で Tailscale の VPN を有効化
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>Tailscale tailnet</strong>
+                NAT 越えを自動処理し、必要なら DERP relay を使う
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>自宅 Mac</strong>
+                <code>codex-web</code> は localhost、<code>tailscale serve</code> で tailnet にだけ公開
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p>必要な準備は次の 4 つです。</p>
+        <ul>
+          <li>自宅 Mac に Tailscale を入れて、あなたの tailnet にログインしておく</li>
+          <li>iPhone に Tailscale アプリを入れて、同じ tailnet にログインする</li>
+          <li>Mac 側で <code>codex-web</code> を起動しておく</li>
+          <li>Mac 側で <code>tailscale serve</code> を設定して、localhost の <code>8214</code> 番を tailnet 内 HTTPS として見せる</li>
+        </ul>
+
+        <h3>手順 1. 自宅 Mac を tailnet に参加させる</h3>
+        <p>
+          自宅 Mac へ Tailscale client を入れ、あなたのアカウントでサインインします。
+          Tailscale の公式ドキュメントでは、新しい端末で認証するとその端末は tailnet に追加されます。
+          もし <code>device approval</code> を有効にしているなら、管理画面の Machines で承認が必要です。
+        </p>
+
+        <h3>手順 2. iPhone を同じ tailnet に参加させる</h3>
+        <p>
+          iPhone でも Tailscale アプリを入れて、同じアカウントまたは同じ tailnet に入れるアカウントでログインします。
+          初回は iOS の VPN 構成追加の許可が出るので、それを許可します。
+          これで iPhone も tailnet の node になります。
+        </p>
+        <p>
+          Tailscale の iOS ドキュメントでは、必要なら <code>VPN On Demand</code> を設定できます。
+          5G で毎回自動接続したいなら、Cellular を <code>Always</code> にすると、
+          iPhone がモバイル回線に乗った時に自動で Tailscale を張りやすくなります。
+        </p>
+
+        <h3>手順 3. Mac で codex-web を localhost のまま起動する</h3>
+        <p>
+          <code>codex-web</code> はデフォルトで <code>127.0.0.1:8214</code> にだけ待ち受けます。
+          このままで問題ありません。むしろこのままの方が、LAN や public IP に直接さらしにくいので安全寄りです。
+        </p>
+        <pre><code>codex-web</code></pre>
+
+        <h3>手順 4. Mac で tailscale serve を設定する</h3>
+        <p>
+          次に、Mac の localhost 上にある <code>codex-web</code> を tailnet 内 HTTPS として見せます。
+          いまの Tailscale ドキュメントでは、ローカルポートをそのまま指定して公開できます。
+        </p>
+        <pre><code>tailscale serve 8214</code></pre>
+        <p>
+          初回に HTTPS が未設定なら、Tailscale が有効化のための案内を出します。
+          設定が通ると、<code>https://your-mac-name.your-tailnet.ts.net</code> のような URL が表示されます。
+          これが iPhone から開く先です。
+        </p>
+
+        <h3>手順 5. iPhone を 5G でつないで URL を開く</h3>
+        <p>
+          iPhone で Wi-Fi を切るか、外出先で 5G 回線に乗った状態にします。
+          その上で Tailscale が接続済みになっていることを確認し、Mac 側で表示された
+          <code>*.ts.net</code> の URL を Safari で開きます。
+        </p>
+        <p>
+          このとき、iPhone の通常の Web 通信が全部自宅 Mac 経由になるわけではありません。
+          Tailscale の FAQ にある通り、通常は Tailscale IP 宛てなど必要な通信だけが Tailscale 側へ流れます。
+          つまり「iPhone の 5G から、必要なときだけ自宅 Mac の <code>codex-web</code> に届く」と理解すれば十分です。
+        </p>
+
+        <h3>この構成で不要なもの</h3>
+        <ul>
+          <li>自宅ルーターのポート開放</li>
+          <li>動的 DNS の設定</li>
+          <li><code>codex-web --host 0.0.0.0</code> での全体公開</li>
+        </ul>
+
+        <h3>詰まりやすい点</h3>
+        <ul>
+          <li>iPhone 側で Tailscale の VPN が切れていると <code>*.ts.net</code> に届かない</li>
+          <li>iPhone は他の VPN と同時利用しづらい。Tailscale 公式 FAQ でも iOS は同時に複数の VPN を有効化できないとされています</li>
+          <li>Mac がスリープしているとつながらない。常時受けたいなら電源とスリープ設定も確認が必要</li>
+          <li><code>device approval</code> や access control を厳しくしている tailnet では、iPhone の追加やサービス到達に別途承認が要る</li>
+        </ul>
+
+        <h3>最短の理解</h3>
+        <p>
+          やることを一文で言うと、
+          「Mac と iPhone を同じ tailnet に入れる → Mac で <code>codex-web</code> を localhost 起動 →
+          <code>tailscale serve 8214</code> で tailnet 内 URL を作る → iPhone の 5G からその URL を開く」
+          です。
+        </p>
+
+        <p class="mini">
+          参考:
+          <a href="https://tailscale.com/docs/features/access-control/device-management/how-to/set-up">Add a device</a>,
+          <a href="https://tailscale.com/docs/features/client/ios-vpn-on-demand">VPN On Demand for iOS</a>,
+          <a href="https://tailscale.com/docs/reference/tailscale-cli/serve">tailscale serve command</a>,
+          <a href="https://tailscale.com/docs/reference/faq/other-vpns">Using other VPNs</a>,
+          <a href="https://tailscale.com/docs/concepts/tailnet">What is a tailnet?</a>
+        </p>
+      </section>
+
+      <section>
+        <h2>Tailscale を使うなら</h2>
+        <p>
+          Tailscale は、参加した端末同士だけをつなぐプライベートなネットワーク
+          <code>tailnet</code> を作る仕組みです。Tailscale の公式説明でも、
+          tailnet は public internet から直接見えない私的な空間として扱われています。
+        </p>
+        <p>
+          上の用語節を前提にすると、
+          <code>codex-web</code> との相性が良いのは、サーバーを無理に外へ公開せず、
+          ローカル専用のまま Tailscale 側でだけ到達可能にする構成です。
+        </p>
+
+        <div class="diagram">
+          <div class="lane">
+            <h3>おすすめ構成</h3>
+            <div class="flow">
+              <div class="box">
+                <strong>Host</strong>
+                <code>codex-web</code> は <code>127.0.0.1:8214</code> のまま
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>Tailscale Serve</strong>
+                localhost のポートを tailnet 内 HTTPS として中継
+              </div>
+              <div class="arrow">→</div>
+              <div class="box">
+                <strong>Other Devices</strong>
+                同じ tailnet に入った自分の PC / スマホだけがアクセス
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p>考え方としては、次のような流れです。</p>
+        <pre><code>1. ホストマシンで codex-web をデフォルトの localhost で起動する
+2. ホストと使いたいクライアント端末を同じ Tailscale tailnet に参加させる
+3. ホスト側で tailscale serve を使って 127.0.0.1:8214 を tailnet に公開する
+4. クライアントは Tailscale 経由の URL で codex-web を開く</code></pre>
+
+        <pre><code>例:
+codex-web
+tailscale serve 8214</code></pre>
+
+        <p>実運用上の利点は次の通りです。</p>
+        <ul>
+          <li><code>codex-web</code> 自体は localhost のままなので、LAN や public IP に直接さらしにくい</li>
+          <li>Tailscale 側のアクセス制御をそのまま使える</li>
+          <li>Tailscale Serve は tailnet 内向けで、ローカルのサービスを他の tailnet 端末に共有する用途として提供されている</li>
+          <li>Serve は HTTPS 証明書が必要だが、未設定なら CLI が有効化を案内する</li>
+        </ul>
+
+        <p>
+          逆に、<code>codex-web --host 0.0.0.0</code> で全インターフェース待受にして
+          Tailscale IP から入る形もできますが、設定を間違えると LAN や他の経路にも開きます。
+          そのため、まずは localhost のまま + <code>tailscale serve</code> の方が安全寄りです。
+        </p>
+
+        <p>
+          注意点として、Tailscale には <code>Serve</code> と <code>Funnel</code> があります。
+          <code>Serve</code> は tailnet 内だけ、<code>Funnel</code> は public internet 向けです。
+          <code>codex-web</code> を私的に遠隔利用したいだけなら、基本的には <code>Serve</code> を選びます。
+        </p>
+
+        <p class="mini">
+          参考:
+          <a href="https://tailscale.com/docs/concepts/tailnet">What is a tailnet?</a>,
+          <a href="https://tailscale.com/docs/features/tailscale-serve">Tailscale Serve</a>,
+          <a href="https://tailscale.com/docs/reference/tailscale-cli/serve">tailscale serve command</a>
+        </p>
+      </section>
+
+      <section>
+        <h2>あなたの質問への短い答え</h2>
+        <p>
+          「外のネットワークから使うなら、VPN をどうにかしないといけないよね？」に対しては、
+          <strong>はい、ほぼその理解で合っています</strong>。
+          ただし正確には「VPN が唯一の方法」ではなく、<code>SSH トンネル</code> や
+          <code>Tailscale / WireGuard</code> のような安全な経路が必要、という理解です。
+        </p>
+      </section>
+
+      <footer>
+        <h2>参照した箇所</h2>
+        <p class="muted">
+          README:
+          <a href="https://github.com/0xcaff/codex-web/blob/main/README.md">https://github.com/0xcaff/codex-web/blob/main/README.md</a>
+        </p>
+        <p class="muted">
+          Server:
+          <a href="https://github.com/0xcaff/codex-web/blob/main/src/server/main.ts">https://github.com/0xcaff/codex-web/blob/main/src/server/main.ts</a>
+        </p>
+        <p class="muted">
+          Browser bridge:
+          <a href="https://github.com/0xcaff/codex-web/blob/main/src/browser/shim.ts">https://github.com/0xcaff/codex-web/blob/main/src/browser/shim.ts</a>
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

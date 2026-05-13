@@ -6,6 +6,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 
 - https://knao124.github.io/public/
 - https://knao124.github.io/public/static-html-publishing-guide.html
+- https://knao124.github.io/public/codex-web-tailscale-remote-access-guide.html
 
 ## 使い方
 
@@ -22,3 +23,4 @@ GitHub Pages で静的 HTML を公開するための repository です。
 
 - `/` : repository のトップページ
 - `/static-html-publishing-guide.html` : 静的 HTML を手早く公開する方法の解説
+- `/codex-web-tailscale-remote-access-guide.html` : codex-web の外部アクセスと Tailscale の基本をまとめた解説
