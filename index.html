@@ -34,16 +34,12 @@
       }
 
       main {
-        width: min(720px, 100%);
+        width: min(820px, 100%);
         padding: 40px 32px;
         border: 1px solid var(--border);
         border-radius: 24px;
         background: var(--panel);
         box-shadow: 0 20px 48px rgba(31, 41, 55, 0.1);
-      }
-
-      p {
-        line-height: 1.7;
       }
 
       .eyebrow {
@@ -65,59 +61,111 @@
         color: var(--muted);
       }
 
-      .box {
-        margin-top: 24px;
+      .table-wrap {
+        margin-top: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead th {
+        padding: 14px 18px;
+        text-align: left;
+        font-size: 0.88rem;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        background: rgba(15, 118, 110, 0.08);
+      }
+
+      tbody td {
         padding: 16px 18px;
-        border-left: 4px solid var(--accent);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.6);
+        vertical-align: top;
+        border-top: 1px solid var(--border);
       }
 
-      .links {
-        margin-top: 24px;
-        padding: 0;
-        list-style: none;
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.68);
       }
 
-      .links li + li {
-        margin-top: 12px;
+      .published-at {
+        width: 230px;
+        white-space: nowrap;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
       }
 
-      .links a {
+      .page-link a {
         color: var(--accent);
         font-weight: 700;
       }
 
-      code {
-        padding: 0.15em 0.45em;
-        border-radius: 8px;
-        background: rgba(15, 118, 110, 0.09);
+      @media (max-width: 640px) {
+        main {
+          padding: 28px 18px;
+        }
+
+        thead {
+          display: none;
+        }
+
+        table,
+        tbody,
+        tr,
+        td {
+          display: block;
+          width: 100%;
+        }
+
+        tbody td {
+          padding: 10px 16px;
+          border-top: none;
+        }
+
+        tbody tr {
+          padding: 8px 0 12px;
+          border-top: 1px solid var(--border);
+        }
+
+        .published-at {
+          padding-bottom: 0;
+        }
       }
     </style>
   </head>
   <body>
     <main>
       <p class="eyebrow">GitHub Pages</p>
-      <h1>knao124 public</h1>
-      <p>
-        この repository は、静的 HTML をそのまま公開するための公開用サイトです。
-      </p>
-      <p class="muted">
-        まずは最小の <code>index.html</code> を配置しています。今後ここに HTML/CSS/JavaScript を追加して、
-        GitHub Pages からそのまま配信できます。
-      </p>
-      <div class="box">
-        公開時は repository の <code>Settings</code> → <code>Pages</code> で
-        <code>Deploy from a branch</code> を選び、<code>main</code> と <code>/(root)</code> を指定すると公開できます。
+      <h1>Page 一覧</h1>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>公開日時</th>
+              <th>Page</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="published-at">2026-05-13 09:58 JST</td>
+              <td class="page-link">
+                <a href="./static-html-publishing-guide.html">静的HTMLの公開手段まとめ</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="published-at">2026-05-13 10:06 JST</td>
+              <td class="page-link">
+                <a href="./codex-web-tailscale-remote-access-guide.html">codex-web を Tailscale 越しに使うための解説</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <ul class="links">
-        <li>
-          <a href="./static-html-publishing-guide.html">静的HTMLの公開手段まとめ</a>
-        </li>
-        <li>
-          <a href="./codex-web-tailscale-remote-access-guide.html">codex-web を Tailscale 越しに使うための解説</a>
-        </li>
-      </ul>
     </main>
   </body>
 </html>
