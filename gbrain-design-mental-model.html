@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GBrain 設計メンタルモデル</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7f8;
+        --panel: #ffffff;
+        --text: #15202b;
+        --muted: #5f6b77;
+        --border: #dbe3ea;
+        --accent: #0f766e;
+        --accent-bg: #e8f5f2;
+        --code: #f1f5f7;
+        --warn-bg: #fff7e6;
+        --warn: #946200;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+        line-height: 1.78;
+      }
+      main {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 42px 20px 72px;
+      }
+      header, section, footer {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 24px;
+        margin: 0 0 16px;
+      }
+      h1, h2, h3 { line-height: 1.3; margin: 0 0 12px; }
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.35rem; padding-top: 4px; }
+      h3 { font-size: 1.05rem; margin-top: 18px; }
+      p { margin: 0 0 12px; }
+      ul, ol { margin: 8px 0 12px 1.4rem; padding: 0; }
+      li { margin: 5px 0; }
+      table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.96rem; }
+      th, td { border: 1px solid var(--border); padding: 9px 10px; vertical-align: top; }
+      th { background: #f0f4f7; text-align: left; }
+      code {
+        background: var(--code);
+        border: 1px solid #e2e8ee;
+        border-radius: 6px;
+        padding: 0.08rem 0.34rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92em;
+      }
+      pre {
+        background: #111827;
+        color: #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        overflow-x: auto;
+        line-height: 1.55;
+      }
+      pre code { background: transparent; border: 0; padding: 0; color: inherit; }
+      a { color: #0f5e9c; text-decoration-thickness: 1px; }
+      .muted { color: var(--muted); }
+      .callout {
+        background: var(--accent-bg);
+        border-left: 4px solid var(--accent);
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+      }
+      .warn {
+        background: var(--warn-bg);
+        border-left: 4px solid var(--warn);
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfd;
+      }
+      .toc a { display: inline-block; margin: 2px 12px 2px 0; }
+      .small { font-size: 0.92rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Generated: 2026-05-18 14:10:55 JST</p>
+        <h1>GBrain の設計メンタルモデル</h1>
+        <p>
+          前の解説は実装の地図に寄りすぎていました。ここではコードの細部ではなく、
+          GBrain がどういう発想で設計されているかを説明します。
+        </p>
+        <div class="callout">
+          <p>
+            核心はこれです。GBrain は「AI に長期記憶を持たせるシステム」ではなく、
+            <strong>人間の世界についての知識を、証拠つきのページ、検索インデックス、関係グラフ、
+            判断手順、バックグラウンド処理に分解して、エージェントが毎回そこへ戻ってくるようにする設計</strong>です。
+          </p>
+        </div>
+      </header>
+
+      <section class="toc">
+        <h2>目次</h2>
+        <a href="#one-line">1 文モデル</a>
+        <a href="#problem">問題設定</a>
+        <a href="#layers">3 種類の記憶</a>
+        <a href="#page">ページ設計</a>
+        <a href="#loop">Brain-Agent Loop</a>
+        <a href="#deterministic-latent">判断と決定論</a>
+        <a href="#graph">グラフの役割</a>
+        <a href="#skills">Skills の意味</a>
+        <a href="#jobs">Minions の意味</a>
+        <a href="#boundaries">境界設計</a>
+        <a href="#summary">まとめ</a>
+      </section>
+
+      <section id="one-line">
+        <h2>1. まず 1 文で捉える</h2>
+        <p>
+          GBrain のメンタルモデルは、こうです。
+        </p>
+        <pre><code>AI agent の「その場の会話能力」に、
+人間が読める dossier 群と、
+機械が検索できる index/graph と、
+繰り返し運用できる skill/job を接続する。</code></pre>
+        <p>
+          ここで大事なのは、GBrain は「全部をベクトル DB に投げる」設計ではないことです。
+          情報の種類ごとに置き場所と更新ルールを変えています。
+        </p>
+        <table>
+          <thead>
+            <tr><th>種類</th><th>置き場所</th><th>なぜ分けるか</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>現在の会話</td>
+              <td>session context</td>
+              <td>今だけ必要。永続化しない。</td>
+            </tr>
+            <tr>
+              <td>エージェントの操作方針</td>
+              <td>agent memory</td>
+              <td>「短く答えて」「本番前に staging」など、世界の知識ではなく振る舞いの設定。</td>
+            </tr>
+            <tr>
+              <td>人・会社・会議・概念・自分の考え</td>
+              <td>GBrain</td>
+              <td>世界についての永続知識。後で検索・引用・更新する。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          この分類は <code>docs/guides/brain-vs-memory.md</code> の中心です。
+          「Pedro は Brex の CEO」は GBrain、「回答は箇条書きが好き」は agent memory、「今この PR を見ている」は session。
+          これを混ぜると、個人 dossier が消えたり、運用 preference が知識ページを汚したりします。
+        </p>
+      </section>
+
+      <section id="problem">
+        <h2>2. 解こうとしている問題</h2>
+        <p>
+          GBrain が前提にしている問題は、普通の AI agent が「賢いが忘れる」ことです。
+          ただし「忘れる」といっても、単にログを保存すればよいわけではありません。
+        </p>
+        <h3>単なるログ保存が弱い理由</h3>
+        <ul>
+          <li>会議 transcript が 200 件あるだけでは、今の結論がわからない。</li>
+          <li>ベクトル検索だけでは「誰が誰に投資したか」「誰が会議に出たか」の関係質問に弱い。</li>
+          <li>エージェントの会話履歴だけでは、人間が読んで修正できる正本にならない。</li>
+          <li>LLM に全部やらせると、同じ入力でも結果がぶれるし、定期処理が高コストになる。</li>
+        </ul>
+        <h3>GBrain の答え</h3>
+        <p>
+          GBrain は「保存」ではなく「構造化された知識運用」を作ろうとしています。
+        </p>
+        <pre><code>生の出来事
+  -> どの entity の話か検出する
+  -> その entity の dossier に追記する
+  -> 現在の理解を rewrite する
+  -> 証拠ログは append-only で残す
+  -> relation は graph edge にする
+  -> 検索 index を更新する
+  -> 次の会話では brain first で読む</code></pre>
+      </section>
+
+      <section id="layers">
+        <h2>3. 設計の第一原理: 記憶を 3 層に分ける</h2>
+        <p>
+          GBrain の最初の設計判断は、「何でも長期記憶に入れる」ではありません。
+          記憶を session、agent memory、brain に分けます。
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>Session</h3>
+            <p>現在の作業状態。今の依頼、直前の会話、開いているファイル。自然に context window にある。</p>
+          </div>
+          <div class="card">
+            <h3>Agent Memory</h3>
+            <p>エージェントの操作方法。ユーザーの好み、デプロイ手順、ツール設定、会話継続のための作法。</p>
+          </div>
+          <div class="card">
+            <h3>GBrain</h3>
+            <p>世界の知識。人、会社、会議、概念、アイデア、関係、証拠、評価。</p>
+          </div>
+        </div>
+        <p>
+          ここでの設計感覚は、OS の memory 階層に近いです。
+          レジスタ、RAM、ディスクを同じ扱いにしないように、会話 context、操作記憶、世界 knowledge も同じ扱いにしません。
+        </p>
+        <div class="warn">
+          <p>
+            重要な罠: 「Pedro prefers email」は preference に見えますが、Pedro という人についての事実なので GBrain。
+            「ユーザーは短い回答を好む」は agent の操作方針なので agent memory。
+            この区別が GBrain の設計の入口です。
+          </p>
+        </div>
+      </section>
+
+      <section id="page">
+        <h2>4. 設計の第二原理: ページはログではなく dossier</h2>
+        <p>
+          GBrain のページは、Obsidian 的なメモでも、単なる transcript の束でもありません。
+          目指しているのは「その entity について 30 秒で現状がわかり、必要なら証拠に戻れる dossier」です。
+        </p>
+        <h3>Compiled Truth + Timeline</h3>
+        <p>
+          ページは 2 つの領域に分かれます。
+        </p>
+        <table>
+          <thead>
+            <tr><th>領域</th><th>更新ルール</th><th>意味</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Compiled truth</td>
+              <td>rewrite</td>
+              <td>現在のベストな理解。古い評価は新しい情報に合わせて書き換える。</td>
+            </tr>
+            <tr>
+              <td>Timeline</td>
+              <td>append-only</td>
+              <td>証拠の履歴。既存 entry は編集せず、新しい証拠や訂正を追加する。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          これがかなり重要です。append-only ログだけだと、半年後に読むときに 200 件の履歴から自分で要約する必要があります。
+          compiled truth があると、今の評価、相手の状況、関係性、次に注意すべきことがすぐ読めます。
+          timeline はその評価を支える証拠です。
+        </p>
+        <pre><code>Person page
+  compiled truth:
+    - 何者か
+    - 今の状態
+    - 何を信じているか
+    - 何を作っているか
+    - 自分の assessment
+    - trajectory
+
+  timeline:
+    - 2026-04-07: 会議でこう話した
+    - 2026-04-03: メールでこう言っていた
+    - 2026-03-15: 初回 meeting</code></pre>
+        <p>
+          つまり GBrain のページは「検索結果の保存先」ではなく、「継続的に更新される intelligence profile」です。
+        </p>
+      </section>
+
+      <section id="loop">
+        <h2>5. 設計の第三原理: Brain-Agent Loop</h2>
+        <p>
+          GBrain は静的なデータベースではなく、エージェントとのループで価値を出します。
+          <code>docs/guides/brain-agent-loop.md</code> はこれをそのまま説明しています。
+        </p>
+        <pre><code>Signal arrives
+  -> DETECT: 人・会社・概念・アイデアを拾う
+  -> READ: 返答前に brain を読む
+  -> RESPOND: brain context を使って答える
+  -> WRITE: 新情報を brain page に反映する
+  -> SYNC: index を更新する
+  -> 次回の READ が強くなる</code></pre>
+        <h3>ここでの設計思想</h3>
+        <p>
+          普通の agent は「質問に答える」で終わります。
+          GBrain は「質問に答えるたびに、次の質問に強くなる」ことを狙っています。
+          つまり、会話は単発の入出力ではなく、brain を改善する event です。
+        </p>
+        <p>
+          このループが回ると、半年後には agent が「外部 API で調べた一般情報」ではなく、
+          「自分がその人と何を話したか」「自分はその会社をどう評価していたか」「最近何が変わったか」を前提に答えられます。
+        </p>
+      </section>
+
+      <section id="deterministic-latent">
+        <h2>6. 設計の第四原理: Latent と Deterministic を分ける</h2>
+        <p>
+          GBrain の思想文書で最も設計らしいのは <code>Thin Harness, Fat Skills</code> です。
+          ここでの中心は「LLM にやらせるべき仕事」と「決定的コードに落とすべき仕事」を分けることです。
+        </p>
+        <table>
+          <thead>
+            <tr><th>分類</th><th>得意なこと</th><th>GBrain での置き場所</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Latent / Judgment</td>
+              <td>読む、評価する、矛盾を見つける、何が重要か判断する、dossier にまとめる。</td>
+              <td>Skills、agent workflow、compiled truth rewrite。</td>
+            </tr>
+            <tr>
+              <td>Deterministic</td>
+              <td>同じ入力なら同じ出力。SQL、chunking、embedding、graph traversal、job retry、auth。</td>
+              <td>CLI、DB、operations、Minions。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          これは GBrain の設計全体に通っています。
+          例えば「この meeting transcript から何が重要か」は判断なので skill。
+          「既存ページを検索する」「edge を insert する」「job を retry する」は決定的処理なのでコード。
+        </p>
+        <div class="callout">
+          <p>
+            雑にいうと、GBrain は LLM を「何でも実行する worker」として使うのではなく、
+            「判断が必要なところだけに置く」設計です。信頼性が必要な部分は Postgres、CLI、schema、job queue に寄せます。
+          </p>
+        </div>
+      </section>
+
+      <section id="graph">
+        <h2>7. なぜベクトル検索だけではないのか</h2>
+        <p>
+          GBrain は hybrid search を持ちますが、設計上もっと重要なのは「text を relation に変換する」ことです。
+          これは knowledge graph の発想です。
+        </p>
+        <h3>ベクトル検索が得意な質問</h3>
+        <ul>
+          <li>このテーマに近いメモはどれか。</li>
+          <li>この言い換えに意味的に近い文章はどれか。</li>
+          <li>自分が過去に似た考えを書いていないか。</li>
+        </ul>
+        <h3>グラフが得意な質問</h3>
+        <ul>
+          <li>誰が Acme に勤めているか。</li>
+          <li>Bob が投資した会社はどれか。</li>
+          <li>Alice と Carol はどの会議や会社でつながっているか。</li>
+          <li>この founder の trajectory は時間とともに改善しているか。</li>
+        </ul>
+        <p>
+          vector は「似ている」を扱う。graph は「関係している」を扱う。
+          GBrain はこの 2 つを混ぜています。だから「検索エンジン」というより「個人世界モデル」に近い。
+        </p>
+        <pre><code>Text:
+  "Alice is CEO of Acme and Bob invested in Acme."
+
+Derived graph:
+  people/alice --works_at/founded?--> companies/acme
+  people/bob   --invested_in-------> companies/acme</code></pre>
+      </section>
+
+      <section id="skills">
+        <h2>8. Skills は「プロンプト」ではなく「判断手順のソースコード」</h2>
+        <p>
+          GBrain の skills は、単なるプロンプト集ではありません。
+          設計上は「agent が何をどう判断するか」を Markdown で配布する仕組みです。
+          <code>docs/ethos/MARKDOWN_SKILLS_AS_RECIPES.md</code> では、Markdown を software distribution の単位として扱っています。
+        </p>
+        <h3>なぜ Markdown なのか</h3>
+        <ul>
+          <li>LLM が直接読める。</li>
+          <li>人間もレビューできる。</li>
+          <li>判断基準、失敗時の処理、例外、哲学を書ける。</li>
+          <li>コードより柔らかく、ただの自然文より構造化できる。</li>
+        </ul>
+        <h3>Skill の設計上の役割</h3>
+        <table>
+          <thead>
+            <tr><th>役割</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Procedure</td>
+              <td>meeting ingestion、email triage、enrichment などの手順を定義する。</td>
+            </tr>
+            <tr>
+              <td>Judgment carrier</td>
+              <td>何を重要とみなすか、どう評価するか、どこまで調べるかを記述する。</td>
+            </tr>
+            <tr>
+              <td>Resolver target</td>
+              <td>タスクに応じて、agent がどの skill を読むべきか決める。</td>
+            </tr>
+            <tr>
+              <td>Distribution unit</td>
+              <td>別の agent 環境にも recipe として配れる。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          ここが GBrain の発想としてかなり独特です。
+          「LLM を賢くする」のではなく、「LLM が読むべき手順・判断基準・失敗モードを Markdown として蓄積する」。
+          その結果、モデルが変わっても skills は残り、同じ手順がよりよく実行される、という設計です。
+        </p>
+      </section>
+
+      <section id="jobs">
+        <h2>9. Minions は「LLM にやらせない」ための設計</h2>
+        <p>
+          Minions は、GBrain の中でかなり重要な設計判断です。
+          これは「エージェントをもっと増やす」機能ではなく、逆に「LLM が不要な仕事を LLM から取り上げる」機能です。
+        </p>
+        <table>
+          <thead>
+            <tr><th>仕事</th><th>載せる場所</th><th>理由</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>tweet を取得して JSON を parse して brain page に書く</td>
+              <td>Minion job</td>
+              <td>手順が決まっている。token を使う必要がない。</td>
+            </tr>
+            <tr>
+              <td>会議 transcript から重要な人物・評価・関係を判断する</td>
+              <td>Skill + LLM</td>
+              <td>何が重要か判断が必要。</td>
+            </tr>
+            <tr>
+              <td>毎朝 sync / extract / doctor を走らせる</td>
+              <td>Minion job / cron</td>
+              <td>繰り返し可能な運用処理。</td>
+            </tr>
+            <tr>
+              <td>メールに返信すべきか判断する</td>
+              <td>LLM / skill</td>
+              <td>文脈と優先度の判断が必要。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          つまり Minions は「耐久性」「再試行」「親子ジョブ」「進捗」「停止/再開」を DB に持たせることで、
+          LLM ループの不安定さを運用処理から切り離す設計です。
+        </p>
+      </section>
+
+      <section id="boundaries">
+        <h2>10. 境界設計: Brain / Source / System of Record</h2>
+        <h3>Markdown repo が正本、DB は派生 cache</h3>
+        <p>
+          <code>docs/architecture/system-of-record.md</code> の中心は、
+          「GitHub repo の Markdown + frontmatter が system of record。Postgres/PGLite は derived cache」という契約です。
+        </p>
+        <p>
+          この設計により、DB が壊れても Markdown repo から rebuild できます。
+          人間は Markdown を読んで編集できます。
+          DB は検索、dedup、embedding、graph materialization のために使います。
+        </p>
+        <pre><code>Markdown repo = canonical knowledge
+DB = derived index / graph / runtime state
+
+user knowledge:
+  markdown first
+
+runtime infra:
+  db-only allowed
+  examples: oauth tokens, job queue, request logs</code></pre>
+        <h3>Brain と Source</h3>
+        <p>
+          <code>docs/architecture/brains-and-sources.md</code> は、知識のスコープを 2 軸で分けます。
+        </p>
+        <table>
+          <thead>
+            <tr><th>概念</th><th>意味</th><th>境界</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Brain</td>
+              <td>どの DB か。</td>
+              <td>所有者・アクセス権・ライフサイクルの境界。</td>
+            </tr>
+            <tr>
+              <td>Source</td>
+              <td>その DB 内のどの repo / corpus か。</td>
+              <td>同じ所有者内の namespace 境界。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          例えば「個人 brain」と「media team brain」は別 Brain。
+          個人 brain の中の「wiki」「gstack」「essays」は別 Source。
+          これは設計上、権限・引用・検索対象の混線を防ぐためです。
+        </p>
+      </section>
+
+      <section>
+        <h2>11. GBrain を設計図として見るなら、登場する基本オブジェクトはこれ</h2>
+        <table>
+          <thead>
+            <tr><th>プリミティブ</th><th>設計上の意味</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Page</td>
+              <td>人・会社・概念などの dossier。current synthesis と evidence trail を持つ。</td>
+            </tr>
+            <tr>
+              <td>Timeline Entry</td>
+              <td>いつ何が起きたかの証拠。append-only。</td>
+            </tr>
+            <tr>
+              <td>Fact / Take</td>
+              <td>構造化された主張。後で検証、矛盾検出、trajectory に使う。</td>
+            </tr>
+            <tr>
+              <td>Link / Edge</td>
+              <td>entity 間の関係。検索ではなく関係質問のための構造。</td>
+            </tr>
+            <tr>
+              <td>Chunk</td>
+              <td>検索単位。ページ本文から作られる派生 index。</td>
+            </tr>
+            <tr>
+              <td>Skill</td>
+              <td>LLM に読ませる判断手順。Markdown で書かれた capability。</td>
+            </tr>
+            <tr>
+              <td>Operation</td>
+              <td>CLI/MCP から呼ぶ安定 API。権限と trust boundary を持つ。</td>
+            </tr>
+            <tr>
+              <td>Minion Job</td>
+              <td>LLM ではなく DB queue で動かす決定的バックグラウンド処理。</td>
+            </tr>
+            <tr>
+              <td>Brain</td>
+              <td>DB 境界。所有者と権限の単位。</td>
+            </tr>
+            <tr>
+              <td>Source</td>
+              <td>Brain 内の repo/corpus 境界。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>12. なぜこの設計は「個人知識」に向いているのか</h2>
+        <p>
+          個人知識は、公開 web knowledge と違って次の性質があります。
+        </p>
+        <ul>
+          <li>関係性が重要。誰をどう知っているかが価値。</li>
+          <li>評価が重要。LinkedIn にない自分の assessment が価値。</li>
+          <li>時間変化が重要。昔の評価と今の評価が違う。</li>
+          <li>証拠が重要。なぜそう思っているかを追える必要がある。</li>
+          <li>漏洩リスクが高い。remote/tool/API 境界を慎重に扱う必要がある。</li>
+        </ul>
+        <p>
+          GBrain の compiled truth、timeline、links、facts、source scope、remote stripping は、全部この性質に対応しています。
+          だから普通の RAG より複雑です。複雑なのは、扱っている情報が「ドキュメント検索」ではなく「自分の世界モデル」だからです。
+        </p>
+      </section>
+
+      <section id="summary">
+        <h2>13. まとめ: GBrain の設計を 7 つの原則で覚える</h2>
+        <ol>
+          <li><strong>Brain は世界知識、memory は操作方針、session は現在作業。</strong> まず置き場所を間違えない。</li>
+          <li><strong>ページは dossier。</strong> 現在の理解は rewrite、証拠は append-only。</li>
+          <li><strong>毎回 brain first。</strong> 外部 API は fallback。自分の文脈が先。</li>
+          <li><strong>検索だけでなく関係も保存する。</strong> vector は similarity、graph は relation。</li>
+          <li><strong>判断は skill、実行は deterministic tooling。</strong> LLM に全部やらせない。</li>
+          <li><strong>Markdown が正本、DB は派生 index。</strong> 人間可読性と再構築性を維持する。</li>
+          <li><strong>運用処理は Minions。</strong> 繰り返し処理・再試行・cron を LLM loop から外す。</li>
+        </ol>
+        <div class="callout">
+          <p>
+            一番短くいうなら、GBrain は「AI agent 用の個人 CRM + research notebook + knowledge graph + workflow runtime」です。
+            ただし、正本は Markdown、検索は DB、判断は skills、反復処理は jobs、という分業で作られています。
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        <h2>参照した設計資料</h2>
+        <ul class="small">
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/guides/brain-vs-memory.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/guides/compiled-truth.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/guides/brain-agent-loop.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/guides/brain-first-lookup.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/architecture/system-of-record.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/architecture/brains-and-sources.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/ethos/THIN_HARNESS_FAT_SKILLS.md</code></li>
+          <li><code>/Users/na-kobayashi/Documents/Codex/2026-05-18/garrytan-gbrain-https-github-com-garrytan/gbrain/docs/ethos/MARKDOWN_SKILLS_AS_RECIPES.md</code></li>
+        </ul>
+      </footer>
+    </main>
+  </body>
+</html>
