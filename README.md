@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/explain-to-html-skill-review.html
 - https://knao124.github.io/public/gbrain-design-mental-model.html
 - https://knao124.github.io/public/jahis-prescription-qr-format-v1-11.html
 - https://knao124.github.io/public/static-html-publishing-guide.html
@@ -24,6 +25,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/explain-to-html-skill-review.html` : explain-to-html Skill のレビュー機能を試せる解説
 - `/gbrain-design-mental-model.html` : GBrain の設計思想とメンタルモデルの解説
 - `/jahis-prescription-qr-format-v1-11.html` : JAHIS 院外処方箋2次元シンボル Ver.1.11 のCSV形式を行ごとに読む解説
 - `/static-html-publishing-guide.html` : 静的 HTML を手早く公開する方法の解説

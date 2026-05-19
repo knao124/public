@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>explain-to-html Skill 解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fb;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #5b6470;
+        --accent: #2563eb;
+        --accent-strong: #1d4ed8;
+        --note: #f59e0b;
+        --border: #d8dee8;
+        --code-bg: #eef2f7;
+        --success: #047857;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 24px 92px;
+      }
+      header,
+      section,
+      footer {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 12px 30px rgba(31, 41, 55, 0.06);
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.3;
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        margin-bottom: 12px;
+      }
+      h2 {
+        font-size: 1.32rem;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      ul {
+        padding-left: 1.2rem;
+      }
+      li + li {
+        margin-top: 8px;
+      }
+      code,
+      pre {
+        background: var(--code-bg);
+        border-radius: 8px;
+      }
+      code {
+        padding: 0.1em 0.35em;
+      }
+      pre {
+        overflow-x: auto;
+        padding: 16px;
+        line-height: 1.55;
+      }
+      a {
+        color: var(--accent-strong);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent-strong);
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .summary-item {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fafbfe;
+      }
+      .summary-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--success);
+        font-weight: 700;
+      }
+      [data-review-target] {
+        position: relative;
+      }
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(37, 99, 235, 0.45);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(440px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+      .review-panel h2,
+      .review-export h2 {
+        margin-bottom: 4px;
+      }
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+      }
+      .review-comment {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+      .review-comment p {
+        white-space: pre-wrap;
+      }
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 760px) {
+        main {
+          padding: 24px 14px 108px;
+        }
+        header,
+        section,
+        footer {
+          padding: 18px;
+        }
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+        .review-toolbar {
+          left: 12px;
+          right: 12px;
+        }
+        .review-toolbar button {
+          flex: 1 1 auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="概要">
+        <p class="eyebrow">Generated: 2026-05-19 08:41 JST</p>
+        <h1>explain-to-html Skill 解説</h1>
+        <p class="muted">
+          参照:
+          <code>/Users/na-kobayashi/dev/knao124/agent-skills-interactive-html-comments/skills/explain-to-html/SKILL.md</code>
+          / <a href="https://github.com/knao124/agent-skills/pull/5">PR #5</a>
+        </p>
+        <p>
+          このHTMLは、PR #5 の `explain-to-html` skill 変更内容を説明するためのテスト用成果物です。
+          読むだけの説明ページではなく、各コンポーネント内の自由な位置にコメントを残し、そのコメントをAI改善依頼用プロンプトとして出力できます。
+        </p>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <strong>対象</strong>
+            <span>HTML解説生成Skill</span>
+          </div>
+          <div class="summary-item">
+            <strong>追加機能</strong>
+            <span>自由位置コメント</span>
+          </div>
+          <div class="summary-item">
+            <strong>出力</strong>
+            <span>改善プロンプト</span>
+          </div>
+        </div>
+      </header>
+
+      <section data-review-target="purpose" data-review-label="Skillの目的">
+        <h2>Skillの目的</h2>
+        <p>
+          `explain-to-html` は、チャットだけでは流れてしまう解説を `/tmp` 配下の単体HTMLとして保存するSkillです。
+          コード、diff、設定、コマンドなどを調べたうえで、ブラウザで読める説明ページを作成します。
+        </p>
+        <p>
+          今回の変更で、HTMLは単なる静的な文書ではなく、レビュー可能な作業面になりました。
+          読み手は気になったセクションへ直接コメントを付け、そのコメント集合を改善指示としてAIへ渡せます。
+        </p>
+      </section>
+
+      <section data-review-target="contract" data-review-label="出力契約">
+        <h2>出力契約</h2>
+        <ul>
+          <li>UTF-8の単体HTMLを `/tmp/codex-explain-&lt;topic&gt;-&lt;YYYYMMDD-HHMMSS&gt;.html` 形式で作る。</li>
+          <li>外部アセット、ネットワークfetch、フレームワークは使わない。</li>
+          <li>CSSとJavaScriptはHTML内にインラインで含める。</li>
+          <li>各主要コンポーネントへ一意な `data-review-target` と読みやすい `data-review-label` を付ける。</li>
+          <li>生成後に `data-review-target`、`review-toggle`、`review-export` が含まれることを確認する。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="review-layer" data-review-label="レビュー機能">
+        <h2>レビュー機能</h2>
+        <p>
+          画面右下の `コメント` ボタンでレビュー対象のアウトラインを表示します。
+          その状態でセクション内の任意位置をクリックすると、コメントアイコンのカーソル位置へ番号付きピンを置けます。
+        </p>
+        <p>
+          ピンを押すとコメントパネルが開き、コメントの追加、編集、削除ができます。
+          コメントは `localStorage` に保存され、対象IDとx/y位置で復元されます。
+        </p>
+      </section>
+
+      <section data-review-target="prompt-export" data-review-label="改善プロンプト出力">
+        <h2>改善プロンプト出力</h2>
+        <p>
+          `改善プロンプト` ボタンを押すと、保存済みコメントをもとにAIへ貼り付けられる改善依頼文を生成します。
+          各項目は対象ID、対象内のx/y位置、コメント本文を中心にした短い形式です。
+        </p>
+        <pre><code>targets: contract=出力契約
+1. t=contract xy=48.2,31.5 c=ここに具体例を追加してほしい</code></pre>
+      </section>
+
+      <section data-review-target="risks" data-review-label="注意点">
+        <h2>注意点</h2>
+        <ul>
+          <li>コメント共有はブラウザ内保存なので、他人にHTMLだけ渡しても自分のコメントは同梱されない。</li>
+          <li>`localStorage` がブロックされる環境では、ページを閉じるまでの一時コメントとして扱う。</li>
+          <li>レビュー対象IDは一意である必要がある。重複するとコメント位置の紐付けが曖昧になる。</li>
+        </ul>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参照">
+        <h2>参照</h2>
+        <p>
+          対象ファイル:
+          <code>/Users/na-kobayashi/dev/knao124/agent-skills-interactive-html-comments/skills/explain-to-html/SKILL.md</code>
+        </p>
+        <p>
+          関連PR:
+          <a href="https://github.com/knao124/agent-skills/pull/5">https://github.com/knao124/agent-skills/pull/5</a>
+        </p>
+        <p class="status">検証用HTMLとしてレビューUIを同梱</p>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = { comments: load().map(normalize).filter((comment) => byId.has(comment.target)), activeCommentId: null, activeTarget: null, draft: null };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            // Keep the review UI usable even when localStorage is blocked.
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.activeTarget = target;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.activeTarget = comment.target;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => {
+          setReviewMode(!document.body.classList.contains("review-mode"));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            state.comments.push({ id, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.activeTarget = nextDraft.target;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try {
+            await navigator.clipboard.writeText($("#review-export-text").value);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
