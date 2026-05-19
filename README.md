@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/gcp-pr-preview-qa-environment.html
 - https://knao124.github.io/public/explain-to-html-skill-review.html
 - https://knao124.github.io/public/gbrain-design-mental-model.html
 - https://knao124.github.io/public/jahis-prescription-qr-format-v1-11.html
@@ -25,6 +26,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/gcp-pr-preview-qa-environment.html` : GCPで作るPR専用Preview/QA環境の解説
 - `/explain-to-html-skill-review.html` : explain-to-html Skill のレビュー機能を試せる解説
 - `/gbrain-design-mental-model.html` : GBrain の設計思想とメンタルモデルの解説
 - `/jahis-prescription-qr-format-v1-11.html` : JAHIS 院外処方箋2次元シンボル Ver.1.11 のCSV形式を行ごとに読む解説
