@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/x-post-summary-skill-guide.html
 - https://knao124.github.io/public/gcp-pr-preview-qa-environment.html
 - https://knao124.github.io/public/explain-to-html-skill-review.html
 - https://knao124.github.io/public/gbrain-design-mental-model.html
@@ -26,6 +27,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/x-post-summary-skill-guide.html` : X投稿要約Skillの接続方法とApp-only tokenの始め方をまとめた解説
 - `/gcp-pr-preview-qa-environment.html` : GCPで作るブランチ環境の解説
 - `/explain-to-html-skill-review.html` : explain-to-html Skill のレビュー機能を試せる解説
 - `/gbrain-design-mental-model.html` : GBrain の設計思想とメンタルモデルの解説

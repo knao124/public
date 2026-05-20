@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>X投稿を要約するSkillの接続方法</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #20242a;
+        --muted: #606975;
+        --border: #d9dee7;
+        --accent: #0f766e;
+        --accent-strong: #0b5f59;
+        --note: #f7c948;
+        --code-bg: #eef2f5;
+        --warn-bg: #fff7ed;
+        --ok-bg: #ecfdf5;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%230f766e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.75;
+      }
+
+      main {
+        width: min(980px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 36px 0 88px;
+      }
+
+      header,
+      section,
+      footer,
+      figure {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: clamp(18px, 3vw, 28px);
+        margin: 0 0 16px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        font-size: clamp(1.7rem, 2.4vw, 2.35rem);
+        line-height: 1.25;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        margin-bottom: 12px;
+      }
+
+      h3 {
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+
+      a {
+        color: var(--accent-strong);
+      }
+
+      code,
+      pre {
+        background: var(--code-bg);
+        border-radius: 8px;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+      }
+
+      pre {
+        overflow-x: auto;
+        padding: 14px;
+        line-height: 1.55;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.35rem;
+        margin: 0;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .lead {
+        font-size: 1.05rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfd;
+      }
+
+      .card.ok {
+        background: var(--ok-bg);
+      }
+
+      .card.warn {
+        background: var(--warn-bg);
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr auto 1fr;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .flow-box {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfd;
+        min-height: 94px;
+      }
+
+      .arrow {
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .decision {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        font-size: 0.95rem;
+      }
+
+      .decision th,
+      .decision td {
+        border: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+        padding: 10px;
+      }
+
+      .decision th {
+        background: #eef6f5;
+      }
+
+      .badge {
+        display: inline-block;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 2px 9px;
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-right: 6px;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(15, 118, 110, 0.5);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .review-toolbar button.primary,
+      .review-panel button.primary,
+      .review-export button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-export textarea {
+        min-height: 300px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.9rem;
+      }
+
+      .review-comment {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+
+      .review-comment p {
+        white-space: pre-wrap;
+      }
+
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 760px) {
+        .grid,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .arrow {
+          text-align: center;
+          transform: rotate(90deg);
+        }
+
+        .decision {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="要約">
+        <p class="muted">Generated: 2026-05-20 13:22:36 JST</p>
+        <h1>X投稿を要約するSkillは、何にどう接続するのか</h1>
+        <p class="lead">
+          いちばん大事なのは、SkillはXに直接ログインする部品ではない、という点です。
+          Skillは「どの道具でX投稿を取り、どの形で要約するか」をCodexに教える手順書です。
+        </p>
+      </header>
+
+      <section data-review-target="before-reading" data-review-label="読む前の整理">
+        <h2>まず登場人物を分ける</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Skill</h3>
+            <p>Codex用の手順書。接続情報やAPIキーそのものを埋め込む場所ではない。</p>
+          </div>
+          <div class="card">
+            <h3>取得スクリプト</h3>
+            <p>X APIやブラウザから投稿を取る実行部品。例: <code>scripts/fetch_x_posts.py</code></p>
+          </div>
+          <div class="card">
+            <h3>認証情報</h3>
+            <p>Xのトークン。環境変数やローカルの安全な場所から読む。Skillに直書きしない。</p>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="mental-model" data-review-label="全体像">
+        <h2>全体像</h2>
+        <figure data-review-target="flow-diagram" data-review-label="取得から要約までの流れ">
+          <div class="flow" aria-label="Skillから要約までの流れ">
+            <div class="flow-box">
+              <strong>1. ユーザー依頼</strong>
+              <p>「Xを見てまとめて」</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="flow-box">
+              <strong>2. Skill</strong>
+              <p>取得方法、絞り込み、要約形式を指示</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="flow-box">
+              <strong>3. API/ブラウザ</strong>
+              <p>投稿データを取得し、Codexが要約</p>
+            </div>
+          </div>
+        </figure>
+        <p>
+          つまり「Xにどう接続する？」の答えは、Skillの中に接続機能を作るというより、
+          Skillから呼べる取得手段を用意する、です。
+        </p>
+      </section>
+
+      <section data-review-target="connection-options" data-review-label="接続方法の選択肢">
+        <h2>接続方法は大きく3つ</h2>
+        <table class="decision">
+          <thead>
+            <tr>
+              <th>やりたいこと</th>
+              <th>使う接続</th>
+              <th>向いているケース</th>
+              <th>注意点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>自分のホームタイムラインを読む</td>
+              <td>OAuth 2.0 PKCE + <code>/2/users/:id/timelines/reverse_chronological</code></td>
+              <td>フォローしている人の投稿をまとめたい</td>
+              <td>ユーザー認証が必要。Xアプリの「おすすめ」そのものとは違う。</td>
+            </tr>
+            <tr>
+              <td>特定アカウントや検索語を読む</td>
+              <td>Bearer Token + <code>/2/users/:id/tweets</code> や <code>/2/tweets/search/recent</code></td>
+              <td>公開投稿を安定して集めたい</td>
+              <td>検索は直近7日など、エンドポイントごとの制限がある。</td>
+            </tr>
+            <tr>
+              <td>Xの画面をそのまま見る</td>
+              <td>ログイン済みブラウザの自動操作</td>
+              <td>APIでは取れない画面上の情報を見たい</td>
+              <td>UI変更に弱く、規約や運用の注意が大きい。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="tweet-url-case" data-review-label="投稿URLを渡す場合">
+        <h2>投稿URLを渡して解説する場合</h2>
+        <p>
+          <code>https://x.com/{user}/status/{id}</code> のようなURLを渡す用途なら、
+          まずURL末尾の投稿IDを取り出し、<code>GET /2/tweets/:id</code> で1件取得します。
+          公開投稿を読むだけなら、基本は App-only の <strong>Bearer Token</strong> で始められます。
+        </p>
+        <div class="grid">
+          <div class="card ok">
+            <h3>公開投稿</h3>
+            <p>App-only Bearer Token。Skillの最初の実装に向く。</p>
+          </div>
+          <div class="card warn">
+            <h3>保護アカウントやログイン文脈</h3>
+            <p>User Access Token。あなたのアカウントとして読める範囲を扱う。</p>
+          </div>
+          <div class="card">
+            <h3>APIで取れない画面情報</h3>
+            <p>ログイン済みブラウザ操作。ただし壊れやすい。</p>
+          </div>
+        </div>
+        <pre data-review-target="tweet-url-curl" data-review-label="投稿URLのcurl例"><code>curl -G "https://api.x.com/2/tweets/$TWEET_ID" \
+  -H "Authorization: Bearer $X_APP_BEARER_TOKEN" \
+  --data-urlencode "tweet.fields=created_at,author_id,public_metrics,entities,referenced_tweets,conversation_id,lang" \
+  --data-urlencode "expansions=author_id,attachments.media_keys,referenced_tweets.id" \
+  --data-urlencode "user.fields=username,name,verified,public_metrics" \
+  --data-urlencode "media.fields=type,url,preview_image_url,width,height"</code></pre>
+      </section>
+
+      <section data-review-target="app-only-start" data-review-label="App-only開始手順">
+        <h2>App-onlyで始める手順</h2>
+        <ol>
+          <li>X Developer Consoleに入り、Developer Accountを作る。Developer Agreementと利用目的の入力が必要。</li>
+          <li>Project/Appを作る。tweet URLを読んで要約するだけなら、まずは公開データのread用途で考える。</li>
+          <li>Appの <strong>Keys and Tokens</strong> を開き、Bearer Tokenをコピーする。なければAPI KeyとAPI Secretから生成する。</li>
+          <li>ローカルの環境変数に入れる。SkillやGit管理ファイルには書かない。</li>
+          <li><code>GET /2/tweets/:id</code> で公開投稿が取れるか確認する。</li>
+        </ol>
+        <pre data-review-target="app-only-env" data-review-label="環境変数の置き方"><code># zshの現在のターミナルだけで試す
+export X_APP_BEARER_TOKEN='ここにDeveloper ConsoleのBearer Token'
+
+# 永続化するなら ~/.zshrc などに入れる。ただしGit管理ファイルには書かない。</code></pre>
+        <pre data-review-target="app-only-generate" data-review-label="Bearer Token生成例"><code># Developer ConsoleにBearer Tokenが表示されていない場合の生成例
+# API KeyとAPI SecretはDeveloper ConsoleのKeys and Tokensから取得する
+export X_API_KEY='...'
+export X_API_SECRET='...'
+
+curl -u "$X_API_KEY:$X_API_SECRET" \
+  --data 'grant_type=client_credentials' \
+  'https://api.x.com/oauth2/token'</code></pre>
+        <p>
+          返ってきたJSONの <code>access_token</code> がApp-only Bearer Tokenです。
+          それを <code>X_APP_BEARER_TOKEN</code> に入れて使います。
+        </p>
+        <div class="card warn" data-review-target="app-only-expiry" data-review-label="App-only tokenの期限">
+          <h3>期限の考え方</h3>
+          <p>
+            App-only Bearer Tokenは、User Access Tokenのように短い有効期限で更新し続けるものではありません。
+            公式ドキュメント上は、同じアプリ資格情報で再発行しても、無効化されるまで同じtokenが返ると説明されています。
+            ただし、漏えい時の無効化、再生成、アプリ設定や権限の変更、プランやアカウント状態の影響で使えなくなることはあります。
+          </p>
+        </div>
+        <pre data-review-target="app-only-test" data-review-label="疎通確認curl"><code># 投稿URLが https://x.com/xdevelopers/status/1346889436626259968 の場合
+export TWEET_ID='1346889436626259968'
+
+curl -G "https://api.x.com/2/tweets/$TWEET_ID" \
+  -H "Authorization: Bearer $X_APP_BEARER_TOKEN" \
+  --data-urlencode "tweet.fields=created_at,author_id,public_metrics,entities,referenced_tweets,conversation_id,lang" \
+  --data-urlencode "expansions=author_id" \
+  --data-urlencode "user.fields=username,name,verified"</code></pre>
+      </section>
+
+      <section data-review-target="recommended-start" data-review-label="最初のおすすめ">
+        <h2>最初に作るならこれ</h2>
+        <p>
+          いきなり「俺のホームタイムライン全部」を狙うより、
+          まずは <strong>特定アカウント群、リスト、検索クエリをAPIで取って要約</strong> が作りやすいです。
+          認証が単純で、失敗原因も切り分けやすいからです。
+        </p>
+        <div class="card ok">
+          <span class="badge">最小構成</span>
+          <code>X_APP_BEARER_TOKEN</code> を環境変数に置き、取得スクリプトが公開投稿をJSONで返し、Skillがそれを要約する。
+        </div>
+      </section>
+
+      <section data-review-target="skill-shape" data-review-label="Skillの形">
+        <h2>Skillに書くこと</h2>
+        <p>Skillは薄く保ち、実際の取得処理はスクリプトに寄せます。</p>
+        <pre data-review-target="folder-example" data-review-label="フォルダ構成例"><code>x-digest/
+  SKILL.md
+  scripts/
+    fetch_x_posts.py</code></pre>
+        <pre data-review-target="skill-example" data-review-label="SKILL.mdに書く内容例"><code>1. X投稿を要約する依頼なら scripts/fetch_x_posts.py を使う。
+2. トークンは環境変数から読む。Skillやリポジトリには保存しない。
+3. 取得結果は、重要トピック、投稿URL、投稿者、時刻、未確認事項に分けて要約する。
+4. レート制限やAPIエラーが出たら、その事実を要約に含める。</code></pre>
+      </section>
+
+      <section data-review-target="token-model" data-review-label="トークンの考え方">
+        <h2>トークンごとの役割</h2>
+        <p>
+          ここが混乱しやすいところです。X APIでは「Bearer」という書き方が複数の場面で出ます。
+          HTTPヘッダ上はどちらも <code>Authorization: Bearer ...</code> ですが、
+          <strong>アプリとして読むトークン</strong> と <strong>あなたのユーザーとして読むトークン</strong> は別物です。
+        </p>
+        <table class="decision" data-review-target="token-table" data-review-label="トークン早見表">
+          <thead>
+            <tr>
+              <th>名前</th>
+              <th>正体</th>
+              <th>使う場面</th>
+              <th>Skill内の扱い</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>App-only Bearer Token</td>
+              <td>アプリ自身としてAPIを読むためのトークン。ユーザーのログイン文脈は持たない。通常の短期アクセストークンのような期限ではなく、無効化されるまで使う前提。</td>
+              <td>公開投稿の1件取得、公開ユーザー投稿、公開検索など。tweet URLを渡して解説する最初の実装はこれ。</td>
+              <td><code>X_APP_BEARER_TOKEN</code> から読む。Skillには保存しない。</td>
+            </tr>
+            <tr>
+              <td>OAuth 2.0 User Access Token</td>
+              <td>あなたのXアカウントとしてAPIを読むためのトークン。許可したscopeの範囲で動く。</td>
+              <td>ホームタイムラインなど、ユーザー文脈が必要なAPI。保護アカウントなどは権限とAPI側の可否に依存する。</td>
+              <td><code>X_USER_ACCESS_TOKEN</code> から読む。期限切れを想定する。</td>
+            </tr>
+            <tr>
+              <td>Refresh Token</td>
+              <td>User Access Tokenを更新するためのトークン。投稿取得APIへ直接送るものではない。</td>
+              <td>長期運用でUser Access Tokenが切れたとき。OAuth 2.0の <code>offline.access</code> scopeが関係する。</td>
+              <td><code>X_USER_REFRESH_TOKEN</code> として安全に保管し、更新処理だけで使う。</td>
+            </tr>
+            <tr>
+              <td>Client ID / Client Secret</td>
+              <td>OAuth 2.0でアプリを識別する値。ユーザー認可フローで使う。</td>
+              <td>User Access TokenやRefresh Tokenを発行・更新するとき。</td>
+              <td><code>X_CLIENT_ID</code>、必要なら <code>X_CLIENT_SECRET</code>。投稿取得のcurlには通常直接出さない。</td>
+            </tr>
+            <tr>
+              <td>API Key / API Key Secret</td>
+              <td>X Developer Appの資格情報。OAuth 1.0aや一部のトークン生成で使う。</td>
+              <td>古い方式や一部のAPI操作が必要になったとき。tweet URL要約の最初の実装では主役ではない。</td>
+              <td>必要になるまでSkillからは触らない。リポジトリに書かない。</td>
+            </tr>
+          </tbody>
+        </table>
+        <pre data-review-target="token-env-example" data-review-label="環境変数名の例"><code># 公開投稿を読む最小構成
+X_APP_BEARER_TOKEN=...
+
+# 自分のアカウント文脈で読む場合
+X_USER_ACCESS_TOKEN=...
+X_USER_REFRESH_TOKEN=...
+X_CLIENT_ID=...
+X_CLIENT_SECRET=...</code></pre>
+      </section>
+
+      <section data-review-target="api-example" data-review-label="API例">
+        <h2>APIで読むときのイメージ</h2>
+        <p>自分のホームタイムラインを読む場合は、ユーザー認証済みトークンで次のようなリクエストになります。</p>
+        <pre data-review-target="curl-example" data-review-label="curl例"><code>curl -G "https://api.x.com/2/users/$X_USER_ID/timelines/reverse_chronological" \
+  -H "Authorization: Bearer $X_USER_ACCESS_TOKEN" \
+  --data-urlencode "max_results=100" \
+  --data-urlencode "tweet.fields=created_at,author_id,public_metrics,entities,referenced_tweets,lang"</code></pre>
+        <p>
+          公開アカウントの投稿や検索だけなら、Bearer Tokenで足りるケースがあります。
+          ただし、どのAPIがどの認証を許すかはエンドポイントごとに違います。
+        </p>
+      </section>
+
+      <section data-review-target="practical-path" data-review-label="実装手順">
+        <h2>現実的な作り方</h2>
+        <ol>
+          <li>まずは読む対象を決める。例: 特定アカウント、検索語、自分のホームタイムライン。</li>
+          <li>必要なX Developer Appを作り、必要なトークンを環境変数に入れる。</li>
+          <li><code>scripts/fetch_x_posts.py</code> で投稿をJSONとして取れるようにする。</li>
+          <li><code>SKILL.md</code> で、そのスクリプトの使い方と要約フォーマットをCodexに教える。</li>
+          <li>レート制限、APIコスト、取得できなかった投稿を要約に明記させる。</li>
+        </ol>
+      </section>
+
+      <section data-review-target="caveats" data-review-label="注意点">
+        <h2>注意点</h2>
+        <ul>
+          <li>X APIは無料で何でも読める前提ではありません。現在は利用量に応じた課金とエンドポイントごとの制限があります。</li>
+          <li>SkillにAPIキーやトークンを書かないでください。漏れるとアカウントや課金に影響します。</li>
+          <li>ブラウザ操作でXを見る方法は最後の手段です。動きやすいが壊れやすい、という性質があります。</li>
+          <li>要約結果には投稿URLや時刻を残すと、あとから確認しやすくなります。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="app-only-errors" data-review-label="App-onlyのエラー">
+        <h2>App-onlyで詰まったとき</h2>
+        <table class="decision">
+          <thead>
+            <tr>
+              <th>症状</th>
+              <th>よくある原因</th>
+              <th>見るところ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>401 Unauthorized</code></td>
+              <td>Bearer Tokenが間違っている、失効している、環境変数が空。</td>
+              <td><code>echo ${X_APP_BEARER_TOKEN:0:8}</code> で値が入っているか確認し、Developer Consoleで再生成。</td>
+            </tr>
+            <tr>
+              <td><code>403 Forbidden</code></td>
+              <td>App-onlyでは読めないAPIを呼んだ、またはプラン/権限が足りない。</td>
+              <td>そのエンドポイントがapplication-only auth対応か、X APIのプランで使えるか確認。</td>
+            </tr>
+            <tr>
+              <td><code>429 Too Many Requests</code></td>
+              <td>レート制限。App-onlyの制限枠を使い切っている。</td>
+              <td>時間を空ける。Skillには取得失敗とレート制限を明記させる。</td>
+            </tr>
+            <tr>
+              <td>投稿が取れない</td>
+              <td>投稿削除、非公開、年齢/地域/ログイン文脈が必要、URLからID抽出ミス。</td>
+              <td>投稿IDが数字だけか確認。必要ならUser Access Tokenかブラウザ操作に切り替える。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参照元">
+        <h2>参照元</h2>
+        <ul>
+          <li><a href="https://docs.x.com/x-api/posts/timelines/introduction">X API Timelines</a>: ホームタイムライン、ユーザー投稿、メンション取得の違いを確認。</li>
+          <li><a href="https://docs.x.com/x-api/posts/get-post-by-id">Get Post by ID</a>: 投稿URLから抜いたIDで1件取得するAPIを確認。</li>
+          <li><a href="https://docs.x.com/fundamentals/authentication/oauth-2-0/application-only">App-only authentication</a>: App-only Bearer Tokenがユーザー文脈を持たないことを確認。</li>
+          <li><a href="https://docs.x.com/x-api/getting-started/getting-access">Getting Access</a>: Bearer Token、Client ID、Client Secretの役割分担を確認。</li>
+          <li><a href="https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code">OAuth 2.0 Authorization Code with PKCE</a>: ユーザー認証、scope、refresh tokenの扱いを確認。</li>
+          <li><a href="https://docs.x.com/x-api/posts/search-recent-posts">Search recent Posts</a>: 直近検索エンドポイントの用途を確認。</li>
+          <li><a href="https://docs.x.com/x-api/fundamentals/rate-limits">Rate Limits</a>: エンドポイントごとの制限があることを確認。</li>
+        </ul>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+          <path d="M12 8v6"></path>
+          <path d="M9 11h6"></path>
+        </svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect width="8" height="4" x="8" y="2" rx="1"></rect>
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+          <path d="M8 12h8"></path>
+          <path d="M8 16h5"></path>
+        </svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+
+        const state = {
+          comments: load().map(normalize).filter((comment) => byId.has(comment.target)),
+          activeCommentId: null,
+          activeTarget: null,
+          draft: null,
+        };
+
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+          }
+        };
+
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.activeTarget = target;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.activeTarget = comment.target;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+
+        $("#review-toggle").addEventListener("click", () => {
+          setReviewMode(!document.body.classList.contains("review-mode"));
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            state.comments.push({ id, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.activeTarget = nextDraft.target;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try {
+            await navigator.clipboard.writeText($("#review-export-text").value);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
