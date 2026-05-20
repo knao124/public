@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude on Vertex AI Agentic Stack 詳細解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --panel-soft: #f9fafb;
+        --text: #1f2937;
+        --muted: #5f6b7a;
+        --accent: #1f6feb;
+        --accent-strong: #174ea6;
+        --accent-soft: #e8f0fe;
+        --green: #047857;
+        --orange: #b45309;
+        --red: #b91c1c;
+        --note: #f59e0b;
+        --border: #d8dee8;
+        --code-bg: #eef2f7;
+        --shadow: 0 12px 30px rgba(31, 41, 55, 0.06);
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%231f6feb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.75;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 48px 24px 104px;
+      }
+
+      header,
+      section,
+      article,
+      footer {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 28px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.32;
+        letter-spacing: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 14px;
+        font-size: clamp(2rem, 5vw, 3.35rem);
+      }
+
+      h2 {
+        margin-bottom: 14px;
+        font-size: 1.48rem;
+      }
+
+      h3 {
+        margin-bottom: 8px;
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin-bottom: 12px;
+      }
+
+      a {
+        color: var(--accent-strong);
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+
+      code,
+      pre {
+        background: var(--code-bg);
+        border-radius: 8px;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.92em;
+        overflow-wrap: anywhere;
+      }
+
+      pre {
+        overflow-x: auto;
+        padding: 16px;
+        line-height: 1.55;
+      }
+
+      pre code {
+        display: block;
+        min-width: 100%;
+        width: max-content;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.25rem;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent-strong);
+        font-weight: 800;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .lead {
+        font-size: 1.08rem;
+        color: #374151;
+      }
+
+      .summary-grid,
+      .concept-grid,
+      .split-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .concept-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .split-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metric,
+      .concept,
+      .callout,
+      .step,
+      .source-card {
+        min-width: 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        padding: 16px;
+      }
+
+      .metric strong,
+      .concept strong,
+      .source-card strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .callout {
+        background: #fff8ed;
+        border-color: #f2d4a6;
+      }
+
+      .callout strong {
+        color: var(--orange);
+      }
+
+      .stack {
+        display: grid;
+        gap: 10px;
+        margin: 18px 0;
+      }
+
+      .stack-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .stack-label {
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-weight: 800;
+        text-align: center;
+        padding: 12px;
+      }
+
+      .stack-body {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        background: #fff;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .timeline-item {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+      }
+
+      .time {
+        color: var(--accent-strong);
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .flow-node {
+        min-height: 88px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        background: #fff;
+      }
+
+      .flow-node strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--accent-strong);
+      }
+
+      .table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+        background: #fff;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        padding: 2px 8px;
+        background: #fff;
+        font-size: 0.84rem;
+        color: var(--muted);
+        overflow-wrap: anywhere;
+        max-width: 100%;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--green);
+        font-weight: 800;
+      }
+
+      .warn {
+        color: var(--red);
+        font-weight: 800;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(31, 111, 235, 0.45);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-weight: 800;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(440px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+
+      .review-panel h2,
+      .review-export h2 {
+        margin-bottom: 4px;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+      }
+
+      .review-comment {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+
+      .review-comment p {
+        white-space: pre-wrap;
+      }
+
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 900px) {
+        .summary-grid,
+        .concept-grid,
+        .split-grid,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .stack-row,
+        .timeline-item {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 24px 14px 112px;
+        }
+
+        header,
+        section,
+        article,
+        footer {
+          padding: 18px;
+        }
+
+        .review-toolbar {
+          left: 12px;
+          right: 12px;
+        }
+
+        .review-toolbar button {
+          flex: 1 1 auto;
+        }
+
+        table {
+          min-width: 0;
+        }
+
+        thead {
+          display: none;
+        }
+
+        table,
+        tbody,
+        tr,
+        td {
+          display: block;
+          width: 100%;
+        }
+
+        tr {
+          border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child {
+          border-bottom: 0;
+        }
+
+        td {
+          border-bottom: 0;
+        }
+
+        pre,
+        pre code {
+          white-space: pre-wrap;
+          word-break: break-word;
+          width: auto;
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="概要">
+        <p class="eyebrow">Generated: 2026-05-20 18:47 JST</p>
+        <h1>Claude on Vertex AI Agentic Stack 詳細解説</h1>
+        <p class="lead">
+          対象は、CyrilXBT がXで紹介していた約30分の動画です。内容は Anthropic の
+          Code w/ Claude セッションで、Google Cloud の Ivan Nardini が
+          Claude を Vertex AI 上で使い、AIエージェントをローカル開発から本番運用へ運ぶ方法を説明しています。
+        </p>
+        <p>
+          一言でいうと、この動画は「エージェントを作れる」から一段進んで、
+          <strong>エージェントをどう標準化し、ツール接続し、複数エージェント化し、監視可能なサービスとして出すか</strong>
+          を扱っています。リモートに置くかどうかは一部でしかありません。中心は、エージェントを
+          継続運用できるソフトウェア単位に変える設計です。
+        </p>
+        <div class="summary-grid">
+          <div class="metric">
+            <strong>動画の主題</strong>
+            <span>Claude + Vertex AI で本番向けAgentを作る</span>
+          </div>
+          <div class="metric">
+            <strong>中心技術</strong>
+            <span>ADK / MCP / Agent Engine / A2A</span>
+          </div>
+          <div class="metric">
+            <strong>デモ対象</strong>
+            <span>誕生日プランナーとカレンダー連携Agent</span>
+          </div>
+          <div class="metric">
+            <strong>読みどころ</strong>
+            <span>Codex Skillとの違いを運用面から整理</span>
+          </div>
+        </div>
+      </header>
+
+      <section data-review-target="before-reading" data-review-label="読む前の整理">
+        <h2>読む前の整理</h2>
+        <p>
+          この動画でいう <strong>Agent</strong> は、単にLLMへ長いプロンプトを渡すラッパーではありません。
+          モデル、指示、ツール、セッション状態、実行ランナー、デバッグUI、デプロイ先、ログ、評価導線までを含む
+          アプリケーション単位として扱われています。
+        </p>
+        <div class="concept-grid">
+          <div class="concept">
+            <strong>登場人物</strong>
+            <span>開発者、LLM、Agent、外部ツール、Agent Engine、他Agent。</span>
+          </div>
+          <div class="concept">
+            <strong>動画の順序</strong>
+            <span>課題設定、4層スタック、Claudeへのアクセス、ADKで実装、MCPで拡張、Agent Engineへデプロイ、A2Aで締め。</span>
+          </div>
+          <div class="concept">
+            <strong>重要な読み替え</strong>
+            <span>ここでの production-grade は「賢いプロンプト」ではなく、運用できる境界と観測性を持つという意味。</span>
+          </div>
+          <div class="concept">
+            <strong>Codex/Claude Codeとの関係</strong>
+            <span>Skillは作業者AIの振る舞いを濃くする。Agentは外部から呼べるサービス単位に近い。</span>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="timeline" data-review-label="動画の流れ">
+        <h2>動画の流れ</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="time">0:00-2:30</div>
+            <div>AI Agentの本番化が難しい理由を説明。フレームワークの分断、連携の複雑さ、運用とガバナンスの重さが主な課題。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">2:30-5:30</div>
+            <div>Google CloudのAgentic Stackを提示。ADK、MCP、Vertex AI Agent Engine、A2Aの4要素を一枚の構造にする。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">6:00-8:30</div>
+            <div>Vertex AI Model GardenからClaudeモデルへアクセスする流れを紹介。Claude 3.7 Sonnetをデモで使い、Claude 4への言及もある。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">9:00-13:30</div>
+            <div>ADKの基本概念を説明し、誕生日プランナーAgentを最小構成で作る。`agent.py`、環境変数、`__init__.py` のような構成が示される。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">14:00-19:30</div>
+            <div>MCPを使ってカレンダーAgentを追加し、オーケストレーターが誕生日AgentとカレンダーAgentへ振り分ける多Agent構成へ進む。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">20:00-25:30</div>
+            <div>Agent Engineがなぜ必要かを説明し、デプロイスクリプトとVertex AIの管理UIを見せる。ログ、セッション、CPU/メモリ、レイテンシの話が出る。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">26:00-30:12</div>
+            <div>A2A Protocolを概説。Agent Skill、Agent Card、Agent Executorで異なるフレームワークのAgent同士をつなぐ構想を示して締める。</div>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="core-thesis" data-review-label="動画の主張">
+        <h2>動画の主張</h2>
+        <p>
+          動画の主張は、「Agent開発の勝負どころは、モデル呼び出しのコードではなく、その周辺の標準化と運用にある」というものです。
+          LLMを呼ぶだけなら、どのフレームワークでも短いコードでできます。しかし実際のアプリケーションでは、以下がすぐ問題になります。
+        </p>
+        <ul>
+          <li>Agentごとにツール接続の実装が違い、再利用しづらい。</li>
+          <li>LangGraph、CrewAI、ADKなど、異なるフレームワークで作ったAgent同士が自然に協調できない。</li>
+          <li>ローカルデモから本番へ移すと、API化、コンテナ化、スケール、ログ、監視、評価、権限管理が一気に必要になる。</li>
+          <li>複数Agentを増やすほど、どのAgentが何をしたのか、なぜそのツールを呼んだのかを追跡する必要が出る。</li>
+        </ul>
+        <div class="callout">
+          <strong>重要:</strong>
+          <p>
+            X投稿では「AnthropicがデモAgent時代を終わらせた」という表現になっていますが、動画そのものは
+            Anthropic単体のAgent SDK紹介ではなく、Google CloudがVertex AI上で示すAgentic Stackの実演です。
+          </p>
+        </div>
+      </section>
+
+      <section data-review-target="four-layer-stack" data-review-label="4層スタック">
+        <h2>4層のAgentic Stack</h2>
+        <p>
+          動画では、Agentを本番運用へ近づけるために4つの層を組み合わせます。
+          それぞれの役割は重なっているようで、実際には責任範囲が違います。
+        </p>
+        <div class="stack">
+          <div class="stack-row">
+            <div class="stack-label">ADK</div>
+            <div class="stack-body">
+              <strong>Agentをコードとして定義する層。</strong>
+              `LLMAgent`、モデル、指示、ツール、Runner、Sessionなどを使って、Agentの振る舞いをアプリケーション構造に落とす。
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="stack-label">MCP</div>
+            <div class="stack-body">
+              <strong>ツールとコンテキスト接続を標準化する層。</strong>
+              既存のMCPサーバーをADKのToolとして取り込み、Agentが外部サービスを使えるようにする。
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="stack-label">Agent Engine</div>
+            <div class="stack-body">
+              <strong>Agentを本番サービスとして動かす層。</strong>
+              デプロイ、スケール、ログ、監視、セッション、評価連携など、アプリ運用の面倒を見る。
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="stack-label">A2A</div>
+            <div class="stack-body">
+              <strong>Agent同士の共通言語を作る層。</strong>
+              異なるフレームワークや基盤で動くAgentが、自分の能力を公開し、互いに依頼を出せるようにする。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="adk-concepts" data-review-label="ADKの概念">
+        <h2>ADKの中核概念</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>概念</th>
+                <th>動画での説明</th>
+                <th>実務的な意味</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>LLMAgent</code></td>
+                <td>LLMを「脳」とする最もシンプルなAgentパターン。</td>
+                <td>モデル名、説明、指示、ツールを明示して、Agentの責務をコード上で固定する。</td>
+              </tr>
+              <tr>
+                <td><code>Tool</code></td>
+                <td>Agentに与える能力やアクション。Python関数やMCPツールを使える。</td>
+                <td>LLMが外部世界に作用する境界。権限、入力スキーマ、失敗時の扱いが重要になる。</td>
+              </tr>
+              <tr>
+                <td><code>Runner</code></td>
+                <td>Agentを実行し、会話やツール呼び出しをまとめる実行器。</td>
+                <td>Agent本体とユーザーインターフェースの間にある実行制御の層。</td>
+              </tr>
+              <tr>
+                <td><code>Session</code></td>
+                <td>会話状態を保持する単位。以前の会話を覚えた形でやり取りできる。</td>
+                <td>ステートレスなLLM呼び出しを、ユーザー体験として連続したものに変える。</td>
+              </tr>
+              <tr>
+                <td><code>adk run</code></td>
+                <td>AgentをCLIで対話的に動かす。</td>
+                <td>最小実装の動作確認とプロンプト・ツール挙動の反復に向く。</td>
+              </tr>
+              <tr>
+                <td><code>adk web</code></td>
+                <td>Web UIでAgentの実行を観察する。</td>
+                <td>多Agent構成で、どのAgentがどの処理を担当したかを確認しやすい。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-review-target="claude-on-vertex" data-review-label="Claudeへのアクセス">
+        <h2>ClaudeをVertex AIで使う流れ</h2>
+        <p>
+          動画では、まずVertex AI Model Gardenを開き、AnthropicのClaudeモデルを選びます。
+          Model Gardenは、Googleのモデルだけでなく、パートナーモデルやオープンモデルを見つけて使うための入口として説明されています。
+        </p>
+        <p>
+          デモでは <code>Claude 3.7 Sonnet</code> を使ってAgentを作ります。
+          イベント当日の文脈ではClaude 4にも触れていますが、ADKとの統合は「今後対応」といった位置づけで説明されています。
+          ここで重要なのは、モデルを直接Anthropic APIだけで呼ぶ話ではなく、Vertex AIの認証、コンソール、API導線に乗せる点です。
+        </p>
+      </section>
+
+      <section data-review-target="birthday-agent" data-review-label="誕生日プランナーAgent">
+        <h2>Lab 1: 誕生日プランナーAgent</h2>
+        <p>
+          最初の実装は、誕生日会の企画を助けるシンプルなAgentです。
+          役割は、テーマ案、ゲストリスト、準備の相談などに答えることです。
+          動画では、Agentを動かすための最小構成として、概ね次のようなファイル構成が示されます。
+        </p>
+        <pre><code>birthday_planner_agent/
+  __init__.py
+  agent.py
+  .env</code></pre>
+        <p>
+          `agent.py` では、ADKのAgentクラスとClaudeモデルをimportし、名前、モデル、説明、指示を渡してAgentを作ります。
+          ここでのポイントは、Agentが「何でも屋」ではなく、説明と指示で責務を絞られていることです。
+        </p>
+        <pre><code># 概念的な形。動画の画面コードを厳密転写したものではありません。
+birthday_agent = LlmAgent(
+    name="birthday_planner_agent",
+    model=Claude(...),
+    description="Helps plan birthday parties",
+    instruction="Suggest themes, plans, and useful next steps.",
+    tools=[],
+)</code></pre>
+        <p>
+          これを <code>adk run birthday</code> のように起動すると、CLI上でAgentと対話できます。
+          この段階では、Agentは主にLLMの知識と指示で答えるだけで、外部カレンダーなどにはまだ接続していません。
+        </p>
+      </section>
+
+      <section data-review-target="mcp-extension" data-review-label="MCPによる拡張">
+        <h2>Lab 2: MCPでカレンダー連携を足す</h2>
+        <p>
+          次の段階では、「誕生日の案を出す」だけでなく、「プレゼントを買いに行く予定をカレンダーに入れる」
+          といった外部アクションが必要になります。ここでMCPが登場します。
+        </p>
+        <p>
+          動画では、既存または自作のMCPサーバーへ接続し、そのMCPサーバーをADKのToolとして扱う流れが説明されます。
+          MCPサーバー側が提供する能力をADKが読み取り、Agentが呼べるツールへ変換する、という理解でよいです。
+        </p>
+        <div class="flow">
+          <div class="flow-node">
+            <strong>User</strong>
+            誕生日相談や予定登録を依頼する。
+          </div>
+          <div class="flow-node">
+            <strong>Orchestrator</strong>
+            依頼の種類を見て担当Agentを選ぶ。
+          </div>
+          <div class="flow-node">
+            <strong>Birthday Agent</strong>
+            テーマ、準備、ギフト案を考える。
+          </div>
+          <div class="flow-node">
+            <strong>Calendar Agent</strong>
+            MCP経由で予定を扱う。
+          </div>
+          <div class="flow-node">
+            <strong>MCP Server</strong>
+            カレンダー操作など外部機能を提供する。
+          </div>
+        </div>
+        <p>
+          この時点で構成は単一Agentから多Agentシステムになります。
+          誕生日プランナーはそのまま残し、カレンダーAgentを追加し、さらにオーケストレーターAgentが両者をToolのように扱います。
+          動画では、誕生日案の生成にはGeminiを使い、カレンダー側にはClaudeを使うようなハイブリッド構成にも触れています。
+        </p>
+      </section>
+
+      <section data-review-target="orchestrator" data-review-label="オーケストレーター">
+        <h2>オーケストレーターの意味</h2>
+        <p>
+          オーケストレーターは、単に「複数の関数を順番に呼ぶ」ものではありません。
+          ユーザーの依頼を読んで、どのAgentに任せるべきかを判断するAgentです。
+          そのため、オーケストレーター自身にも明確なinstructionが必要になります。
+        </p>
+        <div class="split-grid">
+          <div class="step">
+            <h3>単一Agentの場合</h3>
+            <p>ユーザーの全依頼を1つのAgentが受ける。実装は簡単だが、ツールや責務が膨らむと管理しづらい。</p>
+          </div>
+          <div class="step">
+            <h3>多Agentの場合</h3>
+            <p>専門Agentを分け、オーケストレーターが依頼を振り分ける。責務は明確になるが、観測性とルーティング設計が必要になる。</p>
+          </div>
+        </div>
+        <p>
+          ADKのWeb UIは、この多Agent構成のデバッグに役立つものとして紹介されています。
+          会話の裏側で、どのAgentが呼ばれ、どのツールが使われたのかを確認できるためです。
+        </p>
+      </section>
+
+      <section data-review-target="agent-engine" data-review-label="Agent Engine">
+        <h2>Lab 3: Agent Engineで本番化する</h2>
+        <p>
+          動画の後半で最も重要なのがAgent Engineです。
+          ローカルでAgentを作っただけでは、社内外のユーザーが安定して呼べるサービスにはなりません。
+          通常なら、AgentをAPIに包み、Webフレームワークを選び、コンテナを作り、クラウド環境へ出し、ログと監視を整える必要があります。
+        </p>
+        <p>
+          登壇者は、この手作業の例としてFastAPIやDjango、コンテナ、GCP実行環境、インフラ運用、モニタリングを挙げます。
+          Agent Engineは、その運用面をマネージドにするための層として紹介されます。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>自前で必要になりがちなもの</th>
+                <th>Agent Engineが担う範囲</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AgentをHTTP APIとして包む</td>
+                <td>Agentをデプロイ可能なリソースとして扱う</td>
+              </tr>
+              <tr>
+                <td>コンテナ作成、依存関係、実行環境</td>
+                <td>requirementsやAgent定義からデプロイを進める</td>
+              </tr>
+              <tr>
+                <td>スケール、CPU、メモリ、レイテンシ監視</td>
+                <td>Vertex AIの管理UIで確認できる</td>
+              </tr>
+              <tr>
+                <td>会話ログとセッション管理</td>
+                <td>セッションやリクエスト情報を管理対象にする</td>
+              </tr>
+              <tr>
+                <td>Agent改善のための評価データ</td>
+                <td>ログを評価サービスへつなげ、継続改善の材料にする</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-review-target="deployment-shape" data-review-label="デプロイの形">
+        <h2>デプロイコードの形</h2>
+        <p>
+          動画では、最後のLabとして、リポジトリ内のデプロイ用モジュールを実行します。
+          概念的には、Agent本体とrequirementsを渡し、Agent Engine上にエンドポイントを作る流れです。
+        </p>
+        <pre><code># 概念的な形。動画の画面コードを厳密転写したものではありません。
+remote_agent = AgentEngine.create(
+    agent=local_birthday_agent,
+    requirements=[
+        "google-cloud-aiplatform",
+        "google-adk",
+        "anthropic-or-vertex-related-package",
+    ],
+)</code></pre>
+        <p>
+          デプロイが走ると、裏側でイメージのビルドやリソース作成が行われます。
+          完了後はVertex AI Agent EngineのUIで、デプロイ済みAgent、セッション、詳細情報、呼び出し方法、
+          そしてクエリ数やレイテンシ、CPU/メモリなどを確認できます。
+        </p>
+      </section>
+
+      <section data-review-target="a2a" data-review-label="A2A Protocol">
+        <h2>A2A Protocolの位置づけ</h2>
+        <p>
+          A2Aは、動画では最後のボーナス的な紹介です。
+          ただし、考え方としてはかなり重要です。Agent EngineはADK以外のフレームワークも受け入れられるが、
+          異なるフレームワークで作られたAgent同士が自然に会話するには、共通のプロトコルが必要になります。
+        </p>
+        <div class="concept-grid">
+          <div class="concept">
+            <strong>Agent Skill</strong>
+            <span>Agentができる具体的な機能や能力。A2A文脈での「Skill」は、CodexのSkillとは別物。</span>
+          </div>
+          <div class="concept">
+            <strong>Agent Card</strong>
+            <span>Agentのデジタル名刺。どんな能力があり、どう呼び出せるかを他Agentやアプリへ伝える。</span>
+          </div>
+          <div class="concept">
+            <strong>Agent Executor</strong>
+            <span>Agent間のリクエストとレスポンスを実際に処理する実行部分。</span>
+          </div>
+          <div class="concept">
+            <strong>Protocol Base</strong>
+            <span>HTTPやJSON-RPCのような一般的な標準の上に組むため、企業環境で扱いやすいという説明。</span>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="skill-comparison" data-review-label="Codex/Claude Code Skillとの違い">
+        <h2>Codex/Claude Code Skillとの違い</h2>
+        <p>
+          ここがユーザー視点で一番混同しやすいところです。
+          CodexやClaude CodeでSkillをゴリゴリにカスタマイズすると、かなり高度な作業者AIになります。
+          しかし動画で扱っているAgentとは、主な責務が違います。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>観点</th>
+                <th>Codex / Claude Code Skill</th>
+                <th>動画のAgent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>本質</td>
+                <td>既存の作業者AIへ手順、判断基準、補助スクリプトを足す。</td>
+                <td>特定目的のAIアプリケーションを独立した単位として作る。</td>
+              </tr>
+              <tr>
+                <td>実行主体</td>
+                <td>人間がCodexやClaude Codeへ依頼し、そのセッション内で動く。</td>
+                <td>API、UI、他Agent、社内システムから呼ばれる。</td>
+              </tr>
+              <tr>
+                <td>リモート性</td>
+                <td>ローカル中心だが、外部APIを叩くSkillも作れる。</td>
+                <td>ローカルでも動くが、本番ではリモートの常時稼働サービスになりやすい。</td>
+              </tr>
+              <tr>
+                <td>状態</td>
+                <td>会話、ワークスペース、CLI実行履歴に依存しやすい。</td>
+                <td>Session、Memory、DB、ログなどを設計対象にできる。</td>
+              </tr>
+              <tr>
+                <td>運用責任</td>
+                <td>基本は人間の作業支援なので、失敗時は人間が拾う。</td>
+                <td>サービスとして、監視、スケール、失敗時挙動、権限、評価が必要。</td>
+              </tr>
+              <tr>
+                <td>他Agent連携</td>
+                <td>主に同じ作業環境内のツール連携。</td>
+                <td>A2AやAgent Cardで、外部のAgentと発見・依頼・応答する方向。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <strong>remoteにあるかどうかだけではない</strong>
+          <p>
+            remoteに置くことは違いの一部ですが、核心ではありません。
+            Skillは「作業者AIの振る舞いを濃くするもの」、Agentは「外部から仕事を受けられるソフトウェア単位」です。
+          </p>
+        </div>
+      </section>
+
+      <section data-review-target="production-risks" data-review-label="本番化で見るべきリスク">
+        <h2>本番化で見るべきリスク</h2>
+        <p>
+          動画は製品紹介のトーンなので、実務では追加で見ておくべき点があります。
+          Agent Engineが運用面を軽くしても、設計責任が消えるわけではありません。
+        </p>
+        <ul>
+          <li><strong>権限境界:</strong> カレンダー、メール、DB、決済などをTool化する場合、Agentにどこまで許すかを明確にする。</li>
+          <li><strong>プロンプト注入:</strong> MCP経由で取得した外部データが、Agentの指示を書き換える形にならないようにする。</li>
+          <li><strong>観測性:</strong> 失敗した応答だけでなく、どのToolをなぜ呼んだかを追える必要がある。</li>
+          <li><strong>評価:</strong> 「答えが自然」ではなく、ツール選択、手順、権限遵守、最終結果を評価する。</li>
+          <li><strong>コスト:</strong> 多Agent構成では、1つのユーザー依頼で複数モデル呼び出しが連鎖しやすい。</li>
+          <li><strong>責務分割:</strong> Agentを分けすぎるとルーティングが複雑になり、分けなさすぎるとTool肥大化が起きる。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="mental-model" data-review-label="実務での使い分け">
+        <h2>実務での使い分け</h2>
+        <p>
+          この動画の内容を、CodexやClaude Codeで日々作業している開発者向けに言い換えると、次の判断になります。
+        </p>
+        <div class="split-grid">
+          <div class="step">
+            <h3>Skillでよいケース</h3>
+            <ul>
+              <li>人間が監督する開発作業を速くしたい。</li>
+              <li>リポジトリ固有の手順、レビューポリシー、生成形式を覚えさせたい。</li>
+              <li>失敗時にその場で人間が修正できる。</li>
+              <li>常時稼働APIや複数ユーザー向け運用は不要。</li>
+            </ul>
+          </div>
+          <div class="step">
+            <h3>Agent化するケース</h3>
+            <ul>
+              <li>社内システムやユーザーから継続的に呼びたい。</li>
+              <li>セッション、権限、監視、ログ、評価を運用対象にしたい。</li>
+              <li>他Agentや外部ツールと標準プロトコルでつなぎたい。</li>
+              <li>人間が毎回Codex/Claude Codeを開かなくても仕事が進む必要がある。</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          したがって、最初はSkillでワークフローを固め、再現性が出てきたらAgentとしてAPI化・常時稼働化する、
+          という移行はかなり自然です。
+        </p>
+      </section>
+
+      <section data-review-target="takeaways" data-review-label="持ち帰るべきポイント">
+        <h2>持ち帰るべきポイント</h2>
+        <ol>
+          <li>この動画の主役は「Claudeを呼ぶ方法」ではなく、Agentを本番運用へ運ぶための周辺構造。</li>
+          <li>ADKはAgentをコードとして定義するための層で、Skillのような手順書とは責務が違う。</li>
+          <li>MCPは外部ツール接続の標準化。Toolが増えるほど価値が出る。</li>
+          <li>Agent Engineはremote実行だけでなく、ログ、監視、セッション、評価導線を含む運用基盤。</li>
+          <li>A2Aは、Agentが増えた世界で「発見して依頼する」ためのプロトコル。</li>
+          <li>Codex/Claude Code Skillは強力な作業環境拡張。Agentは独立して仕事を受けるソフトウェア単位。</li>
+        </ol>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参照と caveat">
+        <h2>参照と caveat</h2>
+        <div class="concept-grid">
+          <div class="source-card">
+            <strong>X投稿</strong>
+            <a href="https://x.com/cyrilXBT/status/2056652578885390357">https://x.com/cyrilXBT/status/2056652578885390357</a>
+            <p>投稿本文、動画URL、動画尺を確認するために使用。</p>
+          </div>
+          <div class="source-card">
+            <strong>元動画トランスクリプト</strong>
+            <a href="https://claudemy.org/en/learn/18-youtube-library/anthropic-api-development/lesson-13-building-ai-agents-with-claude-in-google-clouds-vertex-ai-co">Claudemy: Building AI agents with Claude in Google Cloud's Vertex AI</a>
+            <p>章立て、用語、デモの流れを確認するために使用。Claudemyは独立サイトで、Anthropic公式サイトではありません。</p>
+          </div>
+          <div class="source-card">
+            <strong>ローカル確認</strong>
+            <span class="tag">/tmp/cyrilxbt_video/contact-sheet.png</span>
+            <p>動画を1分ごとにフレーム抽出し、スライド構成とデモ画面の流れを照合。</p>
+          </div>
+          <div class="source-card">
+            <strong>注意</strong>
+            <span class="warn">コードは概念説明</span>
+            <p>動画中のコード画面は低解像度のため、HTML内のコード例は厳密な転写ではなく、構造理解のための擬似コードです。</p>
+          </div>
+        </div>
+        <p class="status">レビュー用コメントUIを同梱しています。</p>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = { comments: load().map(normalize).filter((comment) => byId.has(comment.target)), activeCommentId: null, activeTarget: null, draft: null };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            // Keep the review UI usable even when localStorage is blocked.
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.activeTarget = target;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.activeTarget = comment.target;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => {
+          setReviewMode(!document.body.classList.contains("review-mode"));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            state.comments.push({ id, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.activeTarget = nextDraft.target;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try {
+            await navigator.clipboard.writeText($("#review-export-text").value);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
