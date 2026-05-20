@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GCPで作るPR専用Preview/QA環境</title>
+    <title>GCPで作るブランチ環境</title>
     <link rel="icon" href="data:," />
     <style>
       :root {
@@ -412,11 +412,12 @@
   <body>
     <main>
       <header data-review-target="summary" data-review-label="概要">
-        <p class="eyebrow">Generated: 2026-05-19 09:13 JST / Updated: 2026-05-19 09:22 JST</p>
-        <h1>GCPで作るPR専用Preview/QA環境</h1>
-        <p class="muted">目的: AI AgentがPRごとの専用環境を自由に操作し、共有stagingを待たずに動作確認できるようにする。</p>
+        <p class="eyebrow">Generated: 2026-05-19 09:13 JST / Updated: 2026-05-20 12:08 JST</p>
+        <h1>GCPで作るブランチ環境</h1>
+        <p class="muted">目的: AI Agentがタスクごとにbranchを切り、localではなく専用環境で常に動作確認できるようにする。</p>
         <p>
-          初期構成は <strong>Cloud Run service per PR + Cloud SQL preview instance + PRごとのdatabase/user</strong> を推奨する。
+          この資料では、その専用環境を <strong>ブランチ環境</strong> と呼ぶ。
+          初期構成は <strong>Cloud Run service per branch + Cloud SQL branch-env instance + branchごとのdatabase/user</strong> を推奨する。
           GCPだけで始める場合、DB branching相当をCloud SQLのdatabase/user分離で代替するのが、コストと運用負荷のバランスが良い。
         </p>
       </header>
@@ -424,8 +425,9 @@
       <section data-review-target="reading-guide" data-review-label="読む前に">
         <h2>読む前に</h2>
         <p>
-          この資料は、WebアプリのPRを出すたびに専用の確認環境を自動で作り、AI Agentに動作確認させるためのGCP初期構成を説明する。
-          先に登場人物と章立てを押さえると、後続のサービス名や処理順が読みやすい。
+          この資料は、Webアプリのbranchごとに専用の確認環境を自動で作り、AI Agentに動作確認させるためのGCP初期構成を説明する。
+          PRはbranchをレビューに出す段階であり、環境作成の起点ではなくレビューとmerge判断の単位である。
+          Agentはタスクを割り当てられたらbranchを切り、ブランチ環境を立ち上げ、localではなくその環境で常に確認する。
         </p>
 
         <h3>登場人物</h3>
@@ -440,31 +442,35 @@
             <tbody>
               <tr>
                 <td>開発者</td>
-                <td>GitHubでPRを作る。preview URLとAgent QA結果をPR上で確認する。</td>
+                <td>Agentにタスクを割り当てる。必要に応じてPR上でブランチ環境URLとAgent QA結果を確認する。</td>
               </tr>
               <tr>
                 <td>GitHub Actions</td>
-                <td>PR作成や更新をきっかけに、build、deploy、QA、cleanupを実行する自動処理の入口。</td>
+                <td>branch作成、branch更新、PR close、branch削除をきっかけに、build、deploy、QA、cleanupを実行する自動処理の入口。</td>
               </tr>
               <tr>
-                <td>GCP preview project</td>
-                <td>本番とは分けた、PR環境専用のGCP project。Agentが操作しても事故範囲をpreview内に閉じ込める。</td>
+                <td>Git branch</td>
+                <td>タスクごとの作業単位。branch名からブランチ環境の名前、URL、DB名、secret名を決める。</td>
+              </tr>
+              <tr>
+                <td>GCP branch-env project</td>
+                <td>本番とは分けた、ブランチ環境専用のGCP project。Agentが操作しても事故範囲をbranch-env内に閉じ込める。</td>
               </tr>
               <tr>
                 <td>Cloud Run</td>
-                <td>PRごとのWeb/APIを動かす場所。PRごとに<code>pr-123-web</code>のようなserviceを作る。</td>
+                <td>branchごとのWeb/APIを動かす場所。branchごとに<code>br-task-123-web</code>のようなserviceを作る。</td>
               </tr>
               <tr>
                 <td>Cloud SQL</td>
-                <td>PRごとのデータを分ける場所。初期は1つのpreview用instance内にPR専用database/userを作る。</td>
+                <td>branchごとのデータを分ける場所。初期は1つのbranch-env用instance内にbranch専用database/userを作る。</td>
               </tr>
               <tr>
                 <td>AI Agent / Playwright</td>
-                <td>preview URLをブラウザで操作し、表示崩れ、エラー、主要導線の失敗を確認する。</td>
+                <td>ブランチ環境URLをブラウザで操作し、表示崩れ、エラー、主要導線の失敗を確認する。</td>
               </tr>
               <tr>
                 <td>Reaper</td>
-                <td>閉じられたPRや古いPR環境を削除する後始末係。Cloud Schedulerなどで定期実行する。</td>
+                <td>閉じられたPR、削除されたbranch、古いブランチ環境を削除する後始末係。Cloud Schedulerなどで定期実行する。</td>
               </tr>
             </tbody>
           </table>
@@ -472,11 +478,11 @@
 
         <h3>章立て</h3>
         <ol>
-          <li><strong>設計原則</strong>: 共有stagingをやめ、PRごとに壊してよい環境を作る理由。</li>
-          <li><strong>推奨初期構成</strong>: PR作成から削除までの最小構成と処理の順番。</li>
+          <li><strong>設計原則</strong>: 共有stagingをやめ、branchごとに壊してよい環境を作る理由。</li>
+          <li><strong>推奨初期構成</strong>: branch作成から削除までの最小構成と処理の順番。</li>
           <li><strong>GCPサービスの役割</strong>: Cloud Run、Cloud SQLなど各サービスが何を担当するか。</li>
-          <li><strong>PRライフサイクル</strong>: PR作成、更新、QA、cleanupの流れ。</li>
-          <li><strong>DB分離方針</strong>: GCPだけでDBをPR単位に分ける現実的な方法。</li>
+          <li><strong>ブランチ環境ライフサイクル</strong>: branch作成、更新、QA、cleanupの流れ。</li>
+          <li><strong>DB分離方針</strong>: GCPだけでDBをbranch単位に分ける現実的な方法。</li>
           <li><strong>Agent QA</strong>: Agentに何を渡し、PRに何を残すべきか。</li>
           <li><strong>セキュリティとコスト制御</strong>: 本番secretを守り、短命環境の費用を抑える方法。</li>
         </ol>
@@ -493,7 +499,11 @@
             <tbody>
               <tr>
                 <td>PR</td>
-                <td>Pull Request。コード変更をmain branchへ取り込む前にレビューする単位。</td>
+                <td>Pull Request。branchで行ったコード変更をmain branchへ取り込む前にレビューする単位。環境作成の起点ではなく、レビューとmerge判断の単位。</td>
+              </tr>
+              <tr>
+                <td>branch</td>
+                <td>タスクごとの作業単位。AI Agentはまずbranchを切り、そのbranchに対応するブランチ環境を作る。</td>
               </tr>
               <tr>
                 <td>staging</td>
@@ -504,20 +514,24 @@
                 <td>Quality Assurance。動作確認、表示確認、主要導線の検証を指す。</td>
               </tr>
               <tr>
+                <td>ブランチ環境</td>
+                <td>branchごとに作る短命な確認環境。この資料で採用する呼び名。Agentはlocalではなくこの環境で動作確認する。</td>
+              </tr>
+              <tr>
                 <td>preview環境</td>
-                <td>PRごとに作る短命な確認環境。mergeやclose後に削除する。</td>
+                <td>VercelやCloudflare Pagesでよく使われる呼び名。この資料では、PRよりbranch起点であることを明確にするため「ブランチ環境」と呼ぶ。</td>
               </tr>
               <tr>
                 <td>Cloud Run service</td>
-                <td>container imageをHTTPで動かすGCPの実行単位。この案ではPRごとに1つ作る。</td>
+                <td>container imageをHTTPで動かすGCPの実行単位。この案ではbranchごとに1つ作る。</td>
               </tr>
               <tr>
                 <td>Cloud SQL instance</td>
-                <td>GCPの管理型PostgreSQLサーバ。この案ではpreview用に1台持つ。</td>
+                <td>GCPの管理型PostgreSQLサーバ。この案ではbranch-env用に1台持つ。</td>
               </tr>
               <tr>
                 <td>database/user</td>
-                <td>Cloud SQL内のDB名と接続ユーザー。PRごとに分けることでデータ破壊の範囲を限定する。</td>
+                <td>Cloud SQL内のDB名と接続ユーザー。branchごとに分けることでデータ破壊の範囲を限定する。</td>
               </tr>
               <tr>
                 <td>Artifact Registry</td>
@@ -537,7 +551,7 @@
               </tr>
               <tr>
                 <td>TTL</td>
-                <td>Time To Live。有効期限。古いpreview環境を自動削除する基準。</td>
+                <td>Time To Live。有効期限。古いブランチ環境を自動削除する基準。</td>
               </tr>
               <tr>
                 <td>scale-to-zero</td>
@@ -549,7 +563,7 @@
               </tr>
               <tr>
                 <td>Terraform</td>
-                <td>GCPなどの恒久リソースをコードで管理するツール。PRごとの短命リソースはworkflow scriptで作る方が軽い。</td>
+                <td>GCPなどの恒久リソースをコードで管理するツール。branchごとの短命リソースはworkflow scriptで作る方が軽い。</td>
               </tr>
             </tbody>
           </table>
@@ -559,24 +573,24 @@
       <section data-review-target="principle" data-review-label="設計原則">
         <h2>設計原則</h2>
         <p>
-          共有stagingは、並列PRとAI Agent QAの前提に合わない。状態が汚れ、誰の変更が原因か追いにくく、Agentが破壊的操作をできない。
+          共有stagingは、並列branchとAI Agent QAの前提に合わない。状態が汚れ、誰の変更が原因か追いにくく、Agentが破壊的操作をできない。
           QA環境は「守る場所」ではなく「壊してよい使い捨て環境」として設計する。
         </p>
         <div class="grid">
           <div class="tile">
             <span class="status ok">原則</span>
-            <strong>1 PR = 1 URL</strong>
-            <p>PRごとにCloud RunのURLを発行し、AgentはそのURLだけを操作する。</p>
+            <strong>1 branch = 1 URL</strong>
+            <p>branchごとにCloud RunのURLを発行し、AgentはそのURLだけを操作する。</p>
           </div>
           <div class="tile">
             <span class="status ok">原則</span>
-            <strong>1 PR = 1 DB</strong>
-            <p>Cloud SQL内にPR専用database/userを作り、他PRや本番へ影響させない。</p>
+            <strong>1 branch = 1 DB</strong>
+            <p>Cloud SQL内にbranch専用database/userを作り、他branchや本番へ影響させない。</p>
           </div>
           <div class="tile">
             <span class="status ok">原則</span>
-            <strong>自動削除</strong>
-            <p>PR close、merge、TTL超過でruntime、DB、secret、artifactを削除する。</p>
+            <strong>local確認を前提にしない</strong>
+            <p>Agentの動作確認はブランチ環境で行う。localは補助であり、判定根拠にはしない。</p>
           </div>
         </div>
       </section>
@@ -584,18 +598,19 @@
       <section data-review-target="recommended-architecture" data-review-label="推奨初期構成">
         <h2>推奨初期構成</h2>
         <p>
-          要点は、PRが開いたら「動くアプリ」と「専用データ」を作り、Agentが触り、PRが終わったら消すこと。
+          要点は、branchが作られたら「動くアプリ」と「専用データ」を作り、Agentが触り、branchが終わったら消すこと。
           下の流れはGCPサービス名の羅列ではなく、責任の境界ごとに分けた最小単位である。
         </p>
-        <pre><code>GitHub PR
+        <pre><code>Agent task
+  -> Git branch 作成
   -> GitHub Actions
   -> Artifact Registry に image push
-  -> Cloud Run に pr-123-web service deploy
-  -> Cloud SQL preview instance に pr_123 database/user 作成
+  -> Cloud Run に br-task-123-web service deploy
+  -> Cloud SQL branch-env instance に br_task_123 database/user 作成
   -> migration + seed
   -> Agent QA / Playwright
-  -> 結果をPRコメント
-  -> PR closeでCloud Run service / DB / user / secret / imageを削除</code></pre>
+  -> 結果をcommit statusまたはPRコメントへ記録
+  -> branch削除またはPR closeでCloud Run service / DB / user / secret / imageを削除</code></pre>
         <div class="table-wrap">
           <table>
             <thead>
@@ -608,27 +623,27 @@
             <tbody>
               <tr>
                 <td>GitHub Actions workflow</td>
-                <td>PR作成、PR更新、PR closeをきっかけに同じ手順を再現するため。</td>
+                <td>branch作成、branch更新、PR close、branch削除をきっかけに同じ手順を再現するため。</td>
                 <td>消さない。repo側の自動処理として残す。</td>
               </tr>
               <tr>
                 <td>Artifact Registryのimage</td>
-                <td>そのPRのcommitでbuildした実行物を固定するため。deployとQAが同じimageを見る。</td>
+                <td>そのbranchのcommitでbuildした実行物を固定するため。deployとQAが同じimageを見る。</td>
                 <td>TTLまたはcleanup policyで削除。</td>
               </tr>
               <tr>
                 <td>Cloud Run service</td>
-                <td>PRごとにURLとruntimeを分けるため。Agentが自由に操作しても他PRへ影響しない。</td>
-                <td>PR close / merge、またはTTL超過。</td>
+                <td>branchごとにURLとruntimeを分けるため。Agentが自由に操作しても他branchへ影響しない。</td>
+                <td>branch削除 / PR close / merge、またはTTL超過。</td>
               </tr>
               <tr>
                 <td>Cloud SQL database/user</td>
-                <td>PRごとにデータを分けるため。migrationや入力データの破壊をそのPR内に閉じる。</td>
-                <td>PR close / merge、またはTTL超過。</td>
+                <td>branchごとにデータを分けるため。migrationや入力データの破壊をそのbranch内に閉じる。</td>
+                <td>branch削除 / PR close / merge、またはTTL超過。</td>
               </tr>
               <tr>
-                <td>Secret ManagerのPR用secret</td>
-                <td>PR専用DB URLやpreview authをCloud Runに渡すため。本番secretと混ぜない。</td>
+                <td>Secret Managerのbranch用secret</td>
+                <td>branch専用DB URLや環境アクセス用authをCloud Runに渡すため。本番secretと混ぜない。</td>
                 <td>対応するCloud Run serviceと同時に削除。</td>
               </tr>
               <tr>
@@ -642,7 +657,7 @@
         <div class="callout">
           <p>
             この粒度にする理由は、作成・更新・削除の責任を明確にするため。
-            「PRごとに変わるもの」はworkflowで短命リソースとして作り、「常に必要な土台」はTerraformなどで恒久リソースとして管理する。
+            「branchごとに変わるもの」はworkflowで短命リソースとして作り、「常に必要な土台」はTerraformなどで恒久リソースとして管理する。
           </p>
         </div>
       </section>
@@ -654,60 +669,60 @@
             <thead>
               <tr>
                 <th>サービス</th>
-                <th>役割</th>
-                <th>初期設定</th>
-                <th>注意点</th>
+                <th>担当するもの</th>
+                <th>この構成で作るもの</th>
+                <th>運用上の注意</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>Cloud Run</td>
-                <td>PRごとのWeb/API実行環境</td>
-                <td><code>min instances=0</code>、<code>max instances=1-2</code>、service名は<code>pr-123-web</code></td>
-                <td>Agent用に公開URL + アプリ側preview authが扱いやすい。</td>
+                <td>branchごとのWeb/API実行環境</td>
+                <td><code>br-task-123-web</code> のようなservice。<code>min instances=0</code>、<code>max instances=1-2</code>。</td>
+                <td>Agent用には公開URL + アプリ側のブランチ環境authが扱いやすい。</td>
               </tr>
               <tr>
                 <td>Cloud SQL for PostgreSQL</td>
-                <td>preview用DB基盤</td>
-                <td>1つの<code>preview-postgres</code> instanceにPRごとのdatabase/userを作成</td>
+                <td>branchごとのDB分離</td>
+                <td>1つの<code>branch-env-postgres</code> instanceにbranchごとのdatabase/userを作成。</td>
                 <td>NeonのようなDB branchではない。厳密な物理隔離が必要なら後で再検討する。</td>
               </tr>
               <tr>
                 <td>Artifact Registry</td>
-                <td>PRごとのcontainer image保存</td>
-                <td><code>web:pr-123-sha</code> のようにtag付け</td>
-                <td>cleanup policyで古い<code>pr-*</code> imageを削除する。</td>
+                <td>branchごとのcontainer image保存</td>
+                <td><code>web:br-task-123-sha</code> のようにtag付けしたimage。</td>
+                <td>cleanup policyで古い<code>br-*</code> imageを削除する。</td>
               </tr>
               <tr>
                 <td>Secret Manager</td>
-                <td>PR専用secretの受け渡し</td>
-                <td>DB URL、basic auth password、test API keyをPR単位で作成</td>
-                <td>production secretはpreview projectへ持ち込まない。</td>
+                <td>branch専用secretの受け渡し</td>
+                <td>DB URL、basic auth password、test API keyをbranch単位で作成。</td>
+                <td>production secretはbranch-env projectへ持ち込まない。</td>
               </tr>
               <tr>
                 <td>Cloud Storage</td>
                 <td>QA artifact保存</td>
-                <td><code>gs://myapp-preview-artifacts/pr-123/</code> にtraceやvideoを保存</td>
+                <td><code>gs://myapp-branch-env-artifacts/br-task-123/</code> にtraceやvideoを保存。</td>
                 <td>lifecycle ruleで一定期間後に削除する。</td>
               </tr>
               <tr>
                 <td>Cloud Scheduler</td>
                 <td>reaper起動</td>
-                <td>毎日または数時間ごとに古いpreviewを削除</td>
-                <td>PR close webhook漏れの保険として必須。</td>
+                <td>毎日または数時間ごとに古いブランチ環境を削除。</td>
+                <td>branch削除やPR close webhook漏れの保険として必須。</td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <section data-review-target="lifecycle" data-review-label="PRライフサイクル">
-        <h2>PRライフサイクル</h2>
+      <section data-review-target="lifecycle" data-review-label="ブランチ環境ライフサイクル">
+        <h2>ブランチ環境ライフサイクル</h2>
         <div class="flow">
           <div class="flow-step">
             <span>1</span>
-            <strong>PR作成</strong>
-            <p>GitHub ActionsがPR番号とcommit SHAを取得する。</p>
+            <strong>branch作成</strong>
+            <p>Agentがタスク用branchを作り、GitHub Actionsがbranch名とcommit SHAを取得する。</p>
           </div>
           <div class="flow-step">
             <span>2</span>
@@ -717,22 +732,22 @@
           <div class="flow-step">
             <span>3</span>
             <strong>DB準備</strong>
-            <p><code>pr_123</code> database/userを作成し、migrationとseedを実行する。</p>
+            <p><code>br_task_123</code> database/userを作成し、migrationとseedを実行する。</p>
           </div>
           <div class="flow-step">
             <span>4</span>
             <strong>Deploy</strong>
-            <p>Cloud Run service <code>pr-123-web</code> を作成または更新する。</p>
+            <p>Cloud Run service <code>br-task-123-web</code> を作成または更新する。</p>
           </div>
           <div class="flow-step">
             <span>5</span>
             <strong>Agent QA</strong>
-            <p>preview URLをPlaywrightやAI Agentが操作し、結果をartifact化する。</p>
+            <p>ブランチ環境URLをPlaywrightやAI Agentが操作し、結果をartifact化する。</p>
           </div>
           <div class="flow-step">
             <span>6</span>
             <strong>Cleanup</strong>
-            <p>PR close、merge、TTL超過で短命リソースを削除する。</p>
+            <p>branch削除、PR close、merge、TTL超過で短命リソースを削除する。</p>
           </div>
         </div>
       </section>
@@ -740,25 +755,27 @@
       <section data-review-target="db-strategy" data-review-label="DB分離方針">
         <h2>DB分離方針</h2>
         <p>
-          GCPだけで構成する場合、Neonのような「branch per PR」はCloud SQLにはない。
-          そのため、初期は1つのpreview用Cloud SQL instanceにPRごとのdatabaseとuserを作る。
+          Neonの公式docsでは、database branchをcopy-on-writeの独立したbranchとして作り、開発・テスト・preview用途に使えると説明されている。
+          参考: <a href="https://neon.com/docs/guides/branching-intro">Neon Branching docs</a> / <a href="https://neon.com/branching">Neon Database Branching Workflows</a>。
+          一方、GCPのCloud SQLにはこれと同等の軽量なDB branching機能はない。
+          そのため、GCPだけで始める初期案では、1つのbranch-env用Cloud SQL instanceにbranchごとのdatabaseとuserを作る。
         </p>
-        <pre><code>Cloud SQL instance: preview-postgres
+        <pre><code>Cloud SQL instance: branch-env-postgres
 
 databases:
-  pr_101
-  pr_102
-  pr_103
+  br_task_101
+  br_task_102
+  br_task_103
 
 users:
-  pr_101_user -> pr_101 のみ接続
-  pr_102_user -> pr_102 のみ接続
-  pr_103_user -> pr_103 のみ接続</code></pre>
+  br_task_101_user -> br_task_101 のみ接続
+  br_task_102_user -> br_task_102 のみ接続
+  br_task_103_user -> br_task_103 のみ接続</code></pre>
         <div class="callout warn">
           <p>
             この方式は「論理分離」であり、Cloud SQL instance自体は共有する。初期コストを抑えるには妥当だが、
             負荷試験、権限分離の強化、拡張機能の衝突、DBバージョン差分検証が必要になったら、
-            instance per PRや外部DB branchingの併用を検討する。
+            instance per branchや外部DB branchingの併用を検討する。
           </p>
         </div>
       </section>
@@ -766,12 +783,13 @@ users:
       <section data-review-target="agent-qa" data-review-label="Agent QA">
         <h2>Agent QAの動かし方</h2>
         <p>
-          Agentにはpreview URL、test user、確認観点、PR diffだけを渡す。production credentialや共有staging credentialは渡さない。
-          結果は人間が追える形でPRに残す。
+          Agentにはブランチ環境URL、test user、確認観点、branch diffだけを渡す。production credentialや共有staging credentialは渡さない。
+          結果はcommit statusに残し、PRがある場合はPRコメントにも残す。
         </p>
-        <pre><code>Preview: https://pr-123-web-xxxxx.a.run.app
+        <pre><code>Branch environment: https://br-task-123-web-xxxxx.a.run.app
+Branch: agent/task-123
 Commit: abc123
-Database: pr_123
+Database: br_task_123
 
 Result: failed
 
@@ -793,83 +811,260 @@ Artifacts:
 
       <section data-review-target="security-cost" data-review-label="セキュリティとコスト制御">
         <h2>セキュリティとコスト制御</h2>
-        <div class="grid">
-          <div class="tile">
-            <span class="status warn">Security</span>
-            <strong>本番secretを渡さない</strong>
-            <p>preview projectにはtest用secretだけを置く。外部APIはsandbox、mock、sinkを使う。</p>
-          </div>
-          <div class="tile">
-            <span class="status warn">Security</span>
-            <strong>preview authを入れる</strong>
-            <p>Cloud Run IAMより、初期はアプリ側basic auth/tokenの方がAgent QAと相性がよい。</p>
-          </div>
-          <div class="tile">
-            <span class="status warn">Cost</span>
-            <strong>scale-to-zero前提</strong>
-            <p>Cloud Runは<code>min instances=0</code>。PR環境の最大instance数も小さく固定する。</p>
-          </div>
-          <div class="tile">
-            <span class="status warn">Cost</span>
-            <strong>TTL reaper必須</strong>
-            <p>PR close webhookだけに依存しない。古いservice、DB、secret、imageを定期削除する。</p>
-          </div>
-          <div class="tile">
-            <span class="status warn">Data</span>
-            <strong>seedを軽くする</strong>
-            <p>本番dumpではなく、確認に必要な匿名fixtureだけを投入する。</p>
-          </div>
-          <div class="tile">
-            <span class="status warn">Ops</span>
-            <strong>上限を決める</strong>
-            <p>同時preview数、Agent QA時間、max instances、artifact保持期間に上限を入れる。</p>
-          </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>領域</th>
+                <th>ルール</th>
+                <th>理由</th>
+                <th>最小実装</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Secret</td>
+                <td>本番secretを渡さない</td>
+                <td>Agentは破壊的操作をする前提なので、漏洩や誤送信の事故範囲を本番ではなくbranch-env project内に閉じる。</td>
+                <td>Secret Managerにtest用secretだけを作り、Cloud Runへbranch単位でmountする。</td>
+              </tr>
+              <tr>
+                <td>Access</td>
+                <td>ブランチ環境authを入れる</td>
+                <td>Cloud Run URLは外から到達できるため、検索流入や第三者アクセスを避ける必要がある。</td>
+                <td>初期はアプリ側basic authまたは短命token。厳格化時にIAPやCloud Run IAMを検討する。</td>
+              </tr>
+              <tr>
+                <td>External API</td>
+                <td>外部送信をsandboxへ逃がす</td>
+                <td>メール、SMS、決済、Webhookを本物に送ると、Agent QAが顧客影響を起こす。</td>
+                <td>決済はtest mode、メールはsink、Webhookはmock endpointを使う。</td>
+              </tr>
+              <tr>
+                <td>Cost</td>
+                <td>scale-to-zeroを前提にする</td>
+                <td>branchは並列に増えるため、使っていない環境の常時起動費を持たない。</td>
+                <td>Cloud Runは<code>min instances=0</code>、<code>max instances=1-2</code>にする。</td>
+              </tr>
+              <tr>
+                <td>Cleanup</td>
+                <td>TTL reaperを必須にする</td>
+                <td>branch削除やPR close webhookだけに依存すると、消し忘れが必ず発生する。</td>
+                <td>resource labelにbranch名とexpires_atを付け、Cloud Schedulerから定期削除する。</td>
+              </tr>
+              <tr>
+                <td>Data</td>
+                <td>seedを軽くする</td>
+                <td>本番dumpは漏洩リスクと復元時間が大きい。Agent QAに必要なデータだけでよい。</td>
+                <td>匿名fixtureと最小seedを用意し、branch DB作成後に投入する。</td>
+              </tr>
+              <tr>
+                <td>Limit</td>
+                <td>上限を明示する</td>
+                <td>Agentが大量にbranchを作ると、意図せずCI時間、DB容量、artifact容量が増える。</td>
+                <td>同時ブランチ環境数、Agent QA時間、artifact保持期間、DBサイズに上限を入れる。</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       <section data-review-target="implementation-plan" data-review-label="実装ステップ">
         <h2>実装ステップ</h2>
+        <h3>1. 名前と境界を決める</h3>
         <ol>
-          <li>preview専用GCP projectを作り、Artifact Registry、Cloud Run、Cloud SQL、Secret Manager、Cloud Storageを有効化する。</li>
-          <li>GitHub ActionsからGCPへWorkload Identity Federationでdeployできるようにする。</li>
-          <li>恒久リソースをTerraformで作る。短命なPRリソースはworkflow scriptで作る。</li>
-          <li><code>deploy-preview</code> workflowを作り、image build、DB作成、migration、Cloud Run deploy、PRコメントまで実装する。</li>
-          <li><code>qa-preview</code> workflowを作り、Playwright/Agent QAとartifact保存を実装する。</li>
-          <li><code>cleanup-preview</code> workflowとscheduled reaperを作り、PR close漏れや古い環境を削除する。</li>
+          <li>環境名を「ブランチ環境」に統一する。</li>
+          <li>branch名から環境IDを作るルールを決める。</li>
+          <li>環境IDに使えない文字を置換するルールを決める。</li>
+          <li>Cloud Run service名の形式を決める。</li>
+          <li>Cloud SQL database名の形式を決める。</li>
+          <li>Secret Manager secret名の形式を決める。</li>
+          <li>artifact保存先prefixの形式を決める。</li>
+        </ol>
+
+        <h3>2. 恒久リソースを用意する</h3>
+        <ol>
+          <li>ブランチ環境専用のGCP projectを作る。</li>
+          <li>Artifact Registry APIを有効化する。</li>
+          <li>Cloud Run APIを有効化する。</li>
+          <li>Cloud SQL Admin APIを有効化する。</li>
+          <li>Secret Manager APIを有効化する。</li>
+          <li>Cloud Storage APIを有効化する。</li>
+          <li>Cloud Scheduler APIを有効化する。</li>
+          <li>Artifact Registry repositoryを作る。</li>
+          <li>branch-env用Cloud SQL instanceを作る。</li>
+          <li>QA artifact用Cloud Storage bucketを作る。</li>
+          <li>reaper用Cloud Run jobまたはCloud Run serviceを作る。</li>
+          <li>ここまでの恒久リソースをTerraformで管理する。</li>
+        </ol>
+
+        <h3>3. GitHub ActionsからGCPへ認証する</h3>
+        <ol>
+          <li>GitHub OIDC用のWorkload Identity Poolを作る。</li>
+          <li>GitHub repository用のWorkload Identity Providerを作る。</li>
+          <li>deploy用service accountを作る。</li>
+          <li>deploy用service accountにArtifact Registry push権限を付ける。</li>
+          <li>deploy用service accountにCloud Run deploy権限を付ける。</li>
+          <li>deploy用service accountにCloud SQL管理権限を付ける。</li>
+          <li>deploy用service accountにSecret Manager管理権限を付ける。</li>
+          <li>GitHub ActionsでGCPへkeyless認証できることを確認する。</li>
+        </ol>
+
+        <h3>4. deploy workflowを作る</h3>
+        <ol>
+          <li>branch pushでworkflowを起動する。</li>
+          <li>branch名から環境IDを計算する。</li>
+          <li>container imageをbuildする。</li>
+          <li>container imageをArtifact Registryへpushする。</li>
+          <li>branch専用databaseを作る。</li>
+          <li>branch専用DB userを作る。</li>
+          <li>branch専用DB URLをSecret Managerに保存する。</li>
+          <li>migrationを実行する。</li>
+          <li>seedを投入する。</li>
+          <li>Cloud Run serviceを作成または更新する。</li>
+          <li>Cloud Run serviceへbranch名とexpires_atのlabelを付ける。</li>
+          <li>ブランチ環境URLをcommit statusまたはPRコメントに記録する。</li>
+        </ol>
+
+        <h3>5. QA workflowを作る</h3>
+        <ol>
+          <li>Cloud Run serviceのhealth checkを待つ。</li>
+          <li>QA用test userを作る。</li>
+          <li>Playwrightの基本導線テストを実行する。</li>
+          <li>AI Agentにbranch diffと確認観点を渡す。</li>
+          <li>AI Agentにブランチ環境URLだけを操作させる。</li>
+          <li>console errorを収集する。</li>
+          <li>network errorを収集する。</li>
+          <li>screenshotを保存する。</li>
+          <li>Playwright traceを保存する。</li>
+          <li>QA結果をcommit statusまたはPRコメントに記録する。</li>
+        </ol>
+
+        <h3>6. cleanup workflowを作る</h3>
+        <ol>
+          <li>branch削除でcleanup workflowを起動する。</li>
+          <li>PR closeでcleanup workflowを起動する。</li>
+          <li>対象のCloud Run serviceを削除する。</li>
+          <li>対象のCloud SQL databaseを削除する。</li>
+          <li>対象のCloud SQL userを削除する。</li>
+          <li>対象のSecret Manager secretを削除する。</li>
+          <li>対象のartifact prefixを削除対象にする。</li>
+          <li>対象のcontainer imageをcleanup policyの対象にする。</li>
+          <li>Cloud Schedulerでreaperを定期実行する。</li>
+          <li>reaperでTTL超過のブランチ環境を削除する。</li>
         </ol>
       </section>
 
       <section data-review-target="when-to-upgrade" data-review-label="拡張判断">
-        <h2>いつ構成を強くするか</h2>
+        <h2>拡張判断: 何が起きたら何を強くするか</h2>
         <p>
-          初期構成は低コストで始めるためのもの。次の兆候が出たら構成を強化する。
+          初期構成は低コストで始めるためのもの。問題の兆候、困る理由、次の打ち手をセットで判断する。
         </p>
-        <ul>
-          <li>Cloud SQL preview instanceの負荷がPR間で干渉する。</li>
-          <li>DB拡張、migration、権限、バージョン差分をPRごとに完全分離したい。</li>
-          <li>複数service構成になり、service per PRの作成数が増える。</li>
-          <li>Agent QAの実行時間が長くなり、GitHub Actions costやqueueが問題になる。</li>
-          <li>外部API連携が多くなり、sandboxやmockの整備が必要になる。</li>
-        </ul>
-        <div class="callout">
-          <p>
-            その段階で、Cloud SQL instance per PR、外部DB branching、preview専用のself-hosted runner、
-            Cloud Deployやより厳密なpolicy enforcementを検討する。最初から全部入れる必要はない。
-          </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>兆候</th>
+                <th>困ること</th>
+                <th>次の打ち手</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DB負荷がbranch間で干渉する</td>
+                <td>1つのCloud SQL instanceを共有しているため、重いQAやmigrationが他branchの確認を遅くする。</td>
+                <td>Cloud SQL instance per branchにする。もしくはNeonなどのDB branchingを併用する。</td>
+              </tr>
+              <tr>
+                <td>DBを完全に分離したい</td>
+                <td>database/user分離では、instance設定、拡張機能、DBバージョン、性能上限は共有されたままになる。</td>
+                <td>instance per branch、またはcopy-on-write型の外部DB branchingを検討する。</td>
+              </tr>
+              <tr>
+                <td>複数service構成になった</td>
+                <td>Web、API、worker、batchを個別にdeployすると、branch環境の作成手順が散らばる。</td>
+                <td>environment manifestを作り、service一覧からCloud Run service群を生成する。</td>
+              </tr>
+              <tr>
+                <td>Agent QAが長くなった</td>
+                <td>GitHub Actionsのqueue、課金、timeoutがボトルネックになる。</td>
+                <td>QAを分割する。cacheを入れる。必要ならself-hosted runnerを使う。</td>
+              </tr>
+              <tr>
+                <td>外部API連携が増えた</td>
+                <td>sandboxのないAPIやWebhookが増えると、Agent QAが外部へ副作用を出しやすい。</td>
+                <td>mock server、contract test、sandbox proxyを整備する。</td>
+              </tr>
+              <tr>
+                <td>アクセス制御を強くしたい</td>
+                <td>basic authや短命tokenでは、監査、個人別権限、組織外共有の制御が弱い。</td>
+                <td>IAP、Cloud Run IAM、または社内SSO連携の環境アクセスgatewayを検討する。</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       <footer data-review-target="references" data-review-label="参考リンク">
         <h2>参考リンク</h2>
-        <ul>
-          <li><a href="https://cloud.google.com/run/docs/about-instance-autoscaling">Cloud Run autoscaling</a></li>
-          <li><a href="https://cloud.google.com/run/docs/configuring/min-instances">Cloud Run min instances</a></li>
-          <li><a href="https://cloud.google.com/sql/docs/postgres/create-manage-databases">Cloud SQL PostgreSQL databases</a></li>
-          <li><a href="https://cloud.google.com/sql/docs/postgres/connect-run">Cloud RunからCloud SQLへ接続</a></li>
-          <li><a href="https://cloud.google.com/artifact-registry/docs/repositories/cleanup-policy-overview">Artifact Registry cleanup policies</a></li>
-          <li><a href="https://cloud.google.com/iam/docs/workload-identity-federation">Workload Identity Federation</a></li>
-          <li><a href="https://firebase.google.com/docs/hosting/github-integration">Firebase Hosting GitHub PR previews</a></li>
-        </ul>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>リンク</th>
+                <th>何を参考にしたか</th>
+                <th>この資料への反映</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="https://cloud.google.com/run/docs/about-instance-autoscaling">Cloud Run autoscaling</a></td>
+                <td>Cloud Runがリクエスト量に応じてinstance数を自動調整する考え方。</td>
+                <td>branchごとのruntimeにCloud Runを使い、使われていない環境の費用を抑える前提にした。</td>
+              </tr>
+              <tr>
+                <td><a href="https://cloud.google.com/run/docs/configuring/min-instances">Cloud Run min instances</a></td>
+                <td><code>min instances</code> の設定と、常時起動instance数を制御できること。</td>
+                <td>ブランチ環境では<code>min instances=0</code>を基本設定にした。</td>
+              </tr>
+              <tr>
+                <td><a href="https://cloud.google.com/sql/docs/postgres/create-manage-databases">Cloud SQL PostgreSQL databases</a></td>
+                <td>Cloud SQL for PostgreSQLでdatabaseを作成・管理する運用。</td>
+                <td>1つのbranch-env用Cloud SQL instanceにbranchごとのdatabaseを作る案に反映した。</td>
+              </tr>
+              <tr>
+                <td><a href="https://cloud.google.com/sql/docs/postgres/connect-run">Cloud RunからCloud SQLへ接続</a></td>
+                <td>Cloud Run serviceからCloud SQLへ接続する構成。</td>
+                <td>branchごとのCloud Run serviceが、対応するbranch DBへ接続する前提にした。</td>
+              </tr>
+              <tr>
+                <td><a href="https://cloud.google.com/artifact-registry/docs/repositories/cleanup-policy-overview">Artifact Registry cleanup policies</a></td>
+                <td>古いcontainer imageをcleanup policyで削除できること。</td>
+                <td><code>br-*</code> imageをTTLで消すコスト制御に反映した。</td>
+              </tr>
+              <tr>
+                <td><a href="https://cloud.google.com/iam/docs/workload-identity-federation">Workload Identity Federation</a></td>
+                <td>GitHub ActionsからGCPへ長期service account keyなしで認証する方法。</td>
+                <td>GitHub Actions deployの認証方式をkeyless前提にした。</td>
+              </tr>
+              <tr>
+                <td><a href="https://neon.com/docs/guides/branching-intro">Neon Branching docs</a></td>
+                <td>Neonがdatabase branchを開発・テスト・preview用途に使えると説明している点。</td>
+                <td>Cloud SQLには同等の軽量branchingがないため、database/user分離を初期案として位置づけた。</td>
+              </tr>
+              <tr>
+                <td><a href="https://neon.com/branching">Neon Database Branching Workflows</a></td>
+                <td>branch per PR、branch per developer、branch per preview/test runというDB分離の考え方。</td>
+                <td>将来の拡張案として外部DB branching併用を残した。</td>
+              </tr>
+              <tr>
+                <td><a href="https://firebase.google.com/docs/hosting/github-integration">Firebase Hosting GitHub PR previews</a></td>
+                <td>PRごとにpreview URLを作る既存サービスの考え方。</td>
+                <td>この資料ではPR起点ではなくbranch起点に読み替え、呼び名を「ブランチ環境」にした。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </footer>
     </main>
 
