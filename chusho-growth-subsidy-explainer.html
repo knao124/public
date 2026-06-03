@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>中小企業成長加速化補助金 解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f4ef;
+        --panel: #ffffff;
+        --panel-soft: #fbfaf6;
+        --text: #20242a;
+        --muted: #656d76;
+        --border: #d9d3c8;
+        --accent: #1f7a6d;
+        --accent-strong: #155f55;
+        --accent-soft: #e1f3ef;
+        --warn: #b45309;
+        --warn-soft: #fff3d6;
+        --ink: #2f3338;
+        --code-bg: #f0ede6;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%231f7a6d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+        line-height: 1.72;
+        background:
+          linear-gradient(180deg, rgba(31, 122, 109, 0.08), transparent 360px),
+          var(--bg);
+        color: var(--text);
+      }
+
+      a {
+        color: var(--accent-strong);
+        text-decoration-thickness: 0.08em;
+        text-underline-offset: 0.18em;
+      }
+
+      main {
+        width: min(1080px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 36px 0 96px;
+      }
+
+      header,
+      section,
+      footer {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 16px;
+        padding: clamp(20px, 4vw, 32px);
+        box-shadow: 0 16px 36px rgba(32, 36, 42, 0.07);
+      }
+
+      header.hero {
+        background:
+          linear-gradient(135deg, rgba(31, 122, 109, 0.12), rgba(180, 83, 9, 0.1)),
+          var(--panel);
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--accent-strong);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.32;
+        letter-spacing: 0;
+        color: var(--ink);
+      }
+
+      h1 {
+        max-width: 820px;
+        font-size: clamp(2rem, 5vw, 3.7rem);
+      }
+
+      h2 {
+        font-size: clamp(1.35rem, 3vw, 2rem);
+      }
+
+      h3 {
+        font-size: 1.05rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 10px 0 0;
+        padding-left: 1.35rem;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .lead {
+        max-width: 820px;
+        margin-top: 16px;
+        font-size: 1.08rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 20px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        padding: 4px 12px;
+        color: var(--ink);
+        font-size: 0.92rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .card {
+        min-height: 134px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        padding: 16px;
+      }
+
+      .metric {
+        display: block;
+        margin-top: 6px;
+        color: var(--accent-strong);
+        font-size: 1.55rem;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin-top: 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        min-width: 680px;
+        border-collapse: collapse;
+        background: var(--panel);
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        width: 210px;
+        background: var(--panel-soft);
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      tr:last-child th,
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(140px, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .step {
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        padding: 14px;
+        min-height: 122px;
+      }
+
+      .step-num {
+        display: inline-grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        margin-bottom: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .note {
+        border-left: 4px solid var(--warn);
+        background: var(--warn-soft);
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin-top: 16px;
+      }
+
+      .source-note {
+        margin-top: 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .source-note strong {
+        color: var(--ink);
+      }
+
+      .good-fit {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .check {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        padding: 16px;
+      }
+
+      .check strong {
+        color: var(--accent-strong);
+      }
+
+      footer {
+        color: var(--muted);
+      }
+
+      footer ul {
+        padding-left: 1.2rem;
+      }
+
+      code {
+        border-radius: 6px;
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(31, 122, 109, 0.5);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 38px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(32, 36, 42, 0.1);
+      }
+
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: #f6b844;
+        color: #16181c;
+        font-weight: 800;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(32, 36, 42, 0.2);
+      }
+
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(430px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 24px 64px rgba(32, 36, 42, 0.22);
+        padding: 16px;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.88rem;
+      }
+
+      .review-comment {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+
+      .review-comment p {
+        white-space: pre-wrap;
+      }
+
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 800px) {
+        main {
+          width: min(100% - 24px, 1080px);
+          padding-top: 18px;
+        }
+
+        .grid,
+        .good-fit {
+          grid-template-columns: 1fr;
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+          overflow-x: visible;
+        }
+
+        .step {
+          min-height: auto;
+        }
+
+        .review-toolbar {
+          left: 12px;
+          right: 12px;
+          justify-content: stretch;
+        }
+
+        .review-toolbar button {
+          flex: 1 1 auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hero" data-review-target="summary" data-review-label="要約">
+        <p class="eyebrow">2026年6月1日時点の公式情報ベース</p>
+        <h1>中小企業成長加速化補助金の要点</h1>
+        <p class="lead">
+          売上高100億円超を目指す中小企業が、大規模な設備投資や事業拡大を行うときに使える補助金です。
+          小さな改善ではなく、成長投資・賃上げ・地域経済への波及をセットで示す制度です。
+        </p>
+        <div class="meta" aria-label="重要指標">
+          <span class="pill">補助率 1/2</span>
+          <span class="pill">上限 5億円</span>
+          <span class="pill">投資額 1億円以上</span>
+          <span class="pill">補助期間 24か月以内</span>
+        </div>
+      </header>
+
+      <section data-review-target="current-status" data-review-label="現在の公募状況">
+        <h2>現在の公募状況</h2>
+        <p>
+          2次公募の申請受付は、<strong>2026年3月26日15:00に終了</strong>しています。
+          2次公募の有効申請数は<strong>872件</strong>で、書面審査結果は2026年5月28日に申請企業へ通知予定と案内されています。
+        </p>
+        <p>
+          次回については、公式資料で<strong>夏頃を目途に3次公募を予定</strong>とされています。
+          ただし、具体的な受付期間や公募要領は、次回公募の公式発表で確認する必要があります。
+        </p>
+        <div class="note">
+          <strong>実務上の見方:</strong>
+          3次公募を狙うなら、100億宣言、投資計画、金融機関との資金調達相談、賃上げ計画を先に固めておくのが現実的です。
+        </div>
+      </section>
+
+      <section data-review-target="what-it-is" data-review-label="制度の位置づけ">
+        <h2>どんな補助金か</h2>
+        <p>
+          この補助金は、一定規模まで成長している中小企業が「売上高100億円超」を目指すための成長投資を支援する制度です。
+          対象になる投資は、工場・物流拠点の新増設、重要設備の導入、基幹システムや生産管理システムの刷新など、
+          事業の伸びに直接つながるものが中心です。
+        </p>
+        <p>
+          逆に、単なる老朽設備の更新、通常の修繕、既存業務の置き換えだけでは制度趣旨に合いません。
+          審査では「この投資によって本当に成長するのか」「賃上げや地域経済への効果があるのか」が見られます。
+        </p>
+      </section>
+
+      <section data-review-target="numbers" data-review-label="補助額と対象経費">
+        <h2>補助額・対象経費</h2>
+        <div class="grid">
+          <article class="card" data-review-target="number-subsidy-rate" data-review-label="補助率">
+            <h3>補助率</h3>
+            <span class="metric">1/2</span>
+            <p class="muted">補助対象経費の半分が上限の目安です。</p>
+          </article>
+          <article class="card" data-review-target="number-cap" data-review-label="補助上限">
+            <h3>補助上限</h3>
+            <span class="metric">5億円</span>
+            <p class="muted">大規模投資向けの上限設定です。</p>
+          </article>
+          <article class="card" data-review-target="number-investment" data-review-label="投資額要件">
+            <h3>投資額要件</h3>
+            <span class="metric">1億円以上</span>
+            <p class="muted">建物・機械・ソフトウェア等の投資額が基準になります。</p>
+          </article>
+        </div>
+
+        <div class="table-wrap" data-review-target="expense-table" data-review-label="対象経費テーブル">
+          <table>
+            <tbody>
+              <tr>
+                <th>主な対象経費</th>
+                <td>建物費、機械装置費、ソフトウェア費、外注費、専門家経費など。</td>
+              </tr>
+              <tr>
+                <th>対象になりにくいもの</th>
+                <td>既存設備の単純更新、補助事業に直接関係しない汎用品、交付決定前に発注・契約した経費など。</td>
+              </tr>
+              <tr>
+                <th>支払いタイミング</th>
+                <td>補助金は原則として後払いです。先に資金を準備し、完了後に実績報告と検査を経て受け取る流れです。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-review-target="eligibility" data-review-label="対象者と主な条件">
+        <h2>対象者と主な条件</h2>
+        <p>
+          中核になる条件は、<strong>100億宣言を公表している中小企業</strong>であることです。
+          100億宣言は、売上高100億円超を目指す成長ビジョンや取り組みを示す仕組みで、補助金申請の前提になります。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>100億宣言</th>
+                <td>申請時までに、100億企業成長ポータルで宣言が公表されている必要があります。</td>
+              </tr>
+              <tr>
+                <th>賃上げ</th>
+                <td>補助事業終了後3年間で、従業員1人当たり給与支給総額などの年平均上昇率4.5%以上を目指す計画が必要です。</td>
+              </tr>
+              <tr>
+                <th>実施場所</th>
+                <td>補助事業は日本国内で実施する必要があります。</td>
+              </tr>
+              <tr>
+                <th>補助事業期間</th>
+                <td>交付決定日から24か月以内です。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-review-target="application-flow" data-review-label="申請から受給までの流れ">
+        <h2>申請から受給までの流れ</h2>
+        <div class="flow">
+          <article class="step">
+            <span class="step-num">1</span>
+            <h3>100億宣言</h3>
+            <p>成長目標、投資方針、賃上げ方針を整理し、ポータルで宣言を公表します。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">2</span>
+            <h3>事業計画</h3>
+            <p>投資内容、売上計画、資金調達、実行体制、リスクを具体化します。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">3</span>
+            <h3>電子申請</h3>
+            <p>GビズIDプライムを使い、jGrantsで申請します。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">4</span>
+            <h3>審査</h3>
+            <p>書面審査の後、採択候補者にはプレゼン審査があります。</p>
+          </article>
+          <article class="step">
+            <span class="step-num">5</span>
+            <h3>交付・実績報告</h3>
+            <p>交付決定後に発注・契約し、完了後に実績報告と検査を受けます。</p>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="first-round-trends" data-review-label="1次採択事例の傾向と対策">
+        <h2>1次採択事例から見る傾向と対策</h2>
+        <p>
+          1次公募は、2025年9月19日に207件、2025年10月6日に追加4件が公表され、合計<strong>211件</strong>が採択されています。
+          有効申請1,270件に対する採択倍率は<strong>約6.0倍</strong>です。公開された採択者一覧の補助事業名211件を分類すると、
+          「工場・設備・生産能力」「地域波及」「新市場・高付加価値」「DX・自動化」「海外展開」「GX・資源循環」が目立ちます。
+        </p>
+
+        <div class="grid">
+          <article class="card" data-review-target="first-round-count" data-review-label="1次採択件数">
+            <h3>採択件数</h3>
+            <span class="metric">211件</span>
+            <p class="muted">初回207件に追加採択4件を加えた件数です。</p>
+          </article>
+          <article class="card" data-review-target="first-round-ratio" data-review-label="1次採択倍率">
+            <h3>採択倍率</h3>
+            <span class="metric">約6.0倍</span>
+            <p class="muted">有効申請1,270件に対する難関公募です。</p>
+          </article>
+          <article class="card" data-review-target="first-round-bank" data-review-label="金融機関確認書">
+            <h3>金融機関確認書</h3>
+            <span class="metric">96.2%</span>
+            <p class="muted">採択者211件中203件が確認書を提出しています。</p>
+          </article>
+        </div>
+
+        <div class="table-wrap" data-review-target="first-round-indicators" data-review-label="採択者指標">
+          <table>
+            <tbody>
+              <tr>
+                <th>採択者の中央値</th>
+                <td>
+                  売上高成長率23.7%/年、付加価値増加率25.7%/年、売上高投資比率44.0%、
+                  1人当たり給与支給総額増加率5.6%/年、給与支給総額増加率9.8%/年。
+                </td>
+              </tr>
+              <tr>
+                <th>申請全体との差</th>
+                <td>
+                  採択者は、申請全体の中央値である売上高成長率15.7%/年、付加価値増加率15.3%/年、
+                  売上高投資比率23.9%を大きく上回っています。
+                </td>
+              </tr>
+              <tr>
+                <th>読み方</th>
+                <td>
+                  事業名の見栄えだけでなく、成長率、付加価値、投資規模、賃上げ、資金調達の整合性が問われます。
+                  特に「投資額が大きい理由」と「投資後に給与原資を生む理由」を同じ計画内で説明する必要があります。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap" data-review-target="first-round-theme-table" data-review-label="採択テーマ分類">
+          <table>
+            <tbody>
+              <tr>
+                <th>採択テーマの傾向</th>
+                <td>
+                  補助事業名をキーワードで概算分類すると、工場・設備・生産能力系が119件、地域・観光・ブランド系が42件、
+                  新市場・新製品・高付加価値系が38件、物流・拠点系が37件、DX・AI・自動化系が35件、
+                  海外・輸出・インバウンド系が28件、GX・脱炭素・資源循環系が26件でした。
+                  分類は重複ありの独自集計です。
+                </td>
+              </tr>
+              <tr>
+                <th>対策1: 投資の必然性</th>
+                <td>
+                  「設備を買う」では弱く、工場新設、量産化、倉庫・物流、拠点集約などが売上100億円への制約をどう外すかを示します。
+                  投資対象、ボトルネック、増産能力、粗利改善を一つの流れで書くのが有効です。
+                </td>
+              </tr>
+              <tr>
+                <th>対策2: 成長KPI</th>
+                <td>
+                  採択者の中央値を意識し、売上高成長率、付加価値増加率、売上高投資比率、給与増加率を別々に置かず、
+                  投資後の受注増、単価向上、省人化、賃上げ原資としてつなげます。
+                </td>
+              </tr>
+              <tr>
+                <th>対策3: 波及効果</th>
+                <td>
+                  地域雇用、地場産品、取引先、観光、輸出、脱炭素、資源循環など、会社単体の利益を超えた効果を明確にします。
+                  採択事例では、地域ブランド化やサプライチェーン強化を成長投資と結び付けたものが多く見られます。
+                </td>
+              </tr>
+              <tr>
+                <th>対策4: 資金調達</th>
+                <td>
+                  採択者の金融機関確認書提出率が96.2%であるため、申請直前に銀行へ相談する進め方はリスクが高いです。
+                  申請前から投資額、自己資金、借入、補助金入金までの資金繰りを金融機関とすり合わせておきます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-review-target="case-pattern-overview" data-review-label="事例別に見る申請書の書き方">
+        <h2>事例別に見る申請書の書き方</h2>
+        <p>
+          1次採択者一覧で公開されているのは、採択企業の名称、所在地、補助事業名、金融機関名が中心です。
+          申請書本文そのものは公開されていません。ここでは公開事業名から読み取れる事業の型を分解し、
+          実際の申請書では何をどの粒度で書くべきかを具体化します。
+        </p>
+        <div class="note">
+          <strong>前提:</strong>
+          以下の「書き方例」に出てくる数量や金額は、文章構成を示すための仮例です。
+          実際の申請では、自社の受注、稼働率、単価、粗利、人員、資金繰りの数字に置き換えます。
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          事例パターンは、公式の
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>、
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info251006/1st_add_list.xlsx">1次公募 追加採択者一覧Excel</a>、
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info251006/1st_add_index.pdf">1次公募 各種指標PDF</a>
+          をもとに整理しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-factory-capacity" data-review-label="工場・生産能力増強の書き方">
+        <h2>工場・生産能力増強は「取り逃している需要」を書く</h2>
+        <p>
+          北一ミートの生産能力増強、酒田米菓の工場増改築・高度化設備、ダイイチの新工場建設のように、
+          1次採択では「生産キャパシティの不足を投資で外す」型が多く見られます。
+          この型で重要なのは、建物や設備の説明ではなく、現状の上限が売上100億円への制約になっていることを示すことです。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき現状</th>
+                <td>
+                  月産能力、ピーク時稼働率、ボトルネック工程、歩留まり、不良率、外注比率、納期遅延件数、
+                  断っている商談、受注残、既存設備の老朽化による停止時間を数字で書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>投資後の説明</th>
+                <td>
+                  新ライン・新工場で処理能力が何倍になるか、どの工程が短縮されるか、外注費がどれだけ下がるか、
+                  どの顧客・販路に供給できるようになるか、必要人員と賃上げ原資をどう確保するかを書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「老朽化した設備を更新し、生産性を高める」だけでは、通常更新との違いが見えません。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「現状は月産1万個が上限で、直近12か月で大口案件8件、売上換算2.4億円分を受け切れなかった。
+                  新工場で月産2.5万個へ増強し、既存顧客A・Bの追加発注と新規量販ルートCへ供給する。
+                  粗利率は高付加価値品の構成比上昇で改善し、3年後に給与支給総額を年平均9%以上引き上げる」と書くと、
+                  制約、投資、売上、利益、賃上げがつながります。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          北一ミート株式会社、酒田米菓株式会社は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>、
+          株式会社ダイイチは
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info251006/1st_add_list.xlsx">1次公募 追加採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-new-product-mass-production" data-review-label="量産化・高付加価値製品の書き方">
+        <h2>量産化・高付加価値製品は「売れる根拠」と「量産の現実性」を書く</h2>
+        <p>
+          FJコンポジットのEV向け部材量産化、カワテックスの水素関連容器、トップ精工の機能製品開発のように、
+          技術・製品を成長エンジンにする型があります。この型は「技術がすごい」ではなく、
+          需要、価格、量産品質、販売先が揃っていることを示す必要があります。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき市場根拠</th>
+                <td>
+                  対象市場の伸び、顧客業界の投資動向、既存顧客からの引き合い、試作評価、共同開発先、
+                  競合製品との差、想定単価、粗利率、初年度から3年目までの販売数量を示します。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき量産根拠</th>
+                <td>
+                  試作から量産へ移るために必要な設備、品質検査、認証、原材料調達、歩留まり改善、
+                  生産リードタイム、量産開始までのマイルストーンを月単位で書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「新製品を開発し、新市場を開拓する」だけでは、研究開発テーマに見えてしまいます。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「試作品は顧客3社で評価済みで、うち2社から量産見積依頼を受領している。
+                  現設備では月500個が上限だが、新設備で月3,000個まで対応できる。
+                  単価は既存品比1.4倍、粗利率は8ポイント改善するため、3年目に売上7億円、付加価値2億円の上積みを見込む」
+                  のように、売れる根拠と量産後の数字を一体で書きます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          株式会社FJコンポジット、カワテックス株式会社、株式会社トップ精工は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-dx-automation" data-review-label="DX・自動化の書き方">
+        <h2>DX・自動化は「人手不足対策」ではなく「成長の処理能力」を書く</h2>
+        <p>
+          サンテックの自動化と技術承継、KOMPEITOの物流・製造の機械化、Rapyuta Roboticsの自動倉庫拡大のように、
+          DXや自動化を成長投資に組み込む型があります。採択されやすい説明は、システム導入の説明ではなく、
+          受注増に耐える業務処理能力を作る説明です。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき現場の数字</th>
+                <td>
+                  1件あたり作業時間、手戻り率、検査時間、出荷ミス、教育にかかる月数、熟練者依存の工程、
+                  ピーク時の残業時間、採用難による制約を投資前後で比較します。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき成長効果</th>
+                <td>
+                  自動化で処理件数が何倍になるか、欠品や納期遅延がどれだけ減るか、既存人員を高付加価値業務へ移せるか、
+                  人件費削減ではなく売上拡大・賃上げにどうつながるかを書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「AIを活用する」「DXを推進する」といった技術名中心の説明は、成長投資としての必然性が弱くなります。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「受注処理は熟練者5名に依存し、月末は平均45時間の残業が発生している。
+                  自動検査と受注管理連携により、処理件数を月1,200件から3,000件へ拡大し、
+                  既存人員は新規顧客対応と品質改善に再配置する。残業削減分ではなく、増収粗利を原資に賃上げを行う」
+                  と書くと、DXが成長の処理能力として伝わります。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          株式会社サンテック、株式会社KOMPEITO、Rapyuta Robotics株式会社は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-global-brand" data-review-label="海外展開・ブランド化の書き方">
+        <h2>海外展開・ブランド化は「誰に、いくらで、どう売るか」を書く</h2>
+        <p>
+          上川大雪酒造の地域発ブランド、米沢ミートの和牛ブランド、イズムフーズの海外出店、若鶴酒造の体験型ブランド化のように、
+          地域資源や商品力を国内外の高単価市場へ展開する型があります。
+          この型では、海外やブランドという言葉を、販売計画と供給能力まで落とす必要があります。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき販売計画</th>
+                <td>
+                  対象国・地域、顧客層、販売チャネル、商談状況、代理店・現地パートナー、規制・認証、
+                  販売単価、粗利、広告・販促、初年度の販売数量を書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき供給計画</th>
+                <td>
+                  海外向け仕様、品質管理、在庫、物流、返品・クレーム対応、現地需要の変動に対応する生産余力、
+                  ブランド毀損を防ぐ販売先管理を書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「海外富裕層を取り込む」「世界ブランドを目指す」だけでは、売上計画の実現性が見えません。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「台湾・シンガポールの高価格帯小売と飲食店を初期販路にし、既存商談12件のうち4件は見積提出済み。
+                  新施設で年間供給量を1.8倍にし、輸出向け商品の平均単価を国内通常品比1.6倍に設定する。
+                  3年目に海外売上比率を18%まで高める」と書くと、ブランドが売上計画として読めます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          上川大雪酒造株式会社、米沢ミート株式会社、株式会社イズムフーズ、若鶴酒造株式会社は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-logistics-supply-chain" data-review-label="物流・倉庫の書き方">
+        <h2>物流・倉庫は「倉庫を建てる理由」ではなく「売上を逃す制約」を書く</h2>
+        <p>
+          吉田食販の保管能力拡大、スマートビジョンロジスティクスの次世代物流、サン・エキスプレスの精密機器対応倉庫のように、
+          倉庫・物流を成長基盤にする型があります。ここでは、保管場所が足りないという説明だけでは足りません。
+          顧客要求、品質、回転率、配送能力が売上拡大の前提になっていることを示します。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき制約</th>
+                <td>
+                  保管容量、温度帯、入出庫件数、配送頻度、出荷リードタイム、欠品率、繁忙期の外部倉庫費、
+                  品質事故、顧客から求められる納品条件を書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき投資効果</th>
+                <td>
+                  保管量が何倍になるか、出荷可能件数が何件増えるか、品質事故がどう減るか、短納期案件をどれだけ取れるか、
+                  外部委託費や廃棄ロスがどれだけ下がるかを書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「大型倉庫を新設して物流を効率化する」だけでは、不動産投資の説明に見えます。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「冷蔵保管能力が月間800パレットで頭打ちとなり、繁忙期は外部倉庫費が月350万円発生している。
+                  新倉庫で保管能力を2,000パレットに拡大し、温度逸脱リスクを下げ、大手小売向けの週5回納品に対応する。
+                  これにより新規3社の取引条件を満たし、3年目売上を5.5億円上積みする」と書きます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          株式会社吉田食販、株式会社スマートビジョンロジスティクス、株式会社サン・エキスプレスは
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-gx-circular" data-review-label="GX・資源循環の書き方">
+        <h2>GX・資源循環は「社会性」と「収益性」を同時に書く</h2>
+        <p>
+          永田紙業の循環システム、萬年のスマートリサイクル工場、フォースの廃棄物リサイクル、暁運送の危険物リサイクル関連投資のように、
+          環境・資源循環を事業成長へつなげる型があります。この型は、環境によいという説明だけでは弱く、
+          回収、処理、販売、法令対応、地域課題を事業モデルとして示す必要があります。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき社会課題</th>
+                <td>
+                  地域で処理困難な廃棄物、既存処理の不足、埋立・輸送コスト、排出事業者の困りごと、
+                  法令・許認可、脱炭素・再資源化のニーズを書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき収益構造</th>
+                <td>
+                  回収量、処理能力、再資源化率、処理単価、再生品の販売先、設備稼働率、
+                  原価、許認可取得状況、取引先候補を具体化します。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「環境負荷を低減し、地域に貢献する」だけでは、補助事業としての売上・付加価値が見えません。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「地域内で年間1.2万トン発生する混合廃棄物のうち、現状は県外処理が多く輸送費が高い。
+                  新設備で月1,000トンを処理し、再資源化率を40%から85%へ引き上げる。
+                  排出事業者20社と基本合意を進め、再生材は建材・土木用途で販売する」と書くと、社会性と収益性が両立します。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          永田紙業株式会社、株式会社萬年、株式会社フォース、暁運送株式会社は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-regional-experience" data-review-label="地域・観光・体験価値の書き方">
+        <h2>地域・観光・体験価値は「施設」ではなく「単価が上がる仕組み」を書く</h2>
+        <p>
+          カワムラホームの住宅体験施設、PAPABUBBLE JAPANの体験型スイーツ、本陣平野屋の海外富裕層向け観光、
+          日本の窓の地域活性化型プロジェクトのように、体験価値を成長の核にする型があります。
+          この型では、施設整備の説明よりも、顧客体験が客単価、稼働率、販路拡大にどう効くかを書きます。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき顧客像</th>
+                <td>
+                  国内外のターゲット、価格帯、来訪動機、予約経路、リピート設計、団体・法人需要、
+                  既存サービスとの違いを書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき地域波及</th>
+                <td>
+                  地域雇用、地場産品の利用、周辺事業者との送客、観光消費、地域ブランド、
+                  仕入先・取引先への発注増を数字で示します。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「地域に新しい施設を作り、観光客を呼び込む」だけでは、需要と採算が見えません。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「現状の平均客単価は1.8万円、稼働率は62%だが、体験プログラムと高付加価値客室を組み合わせ、
+                  海外富裕層向け単価を4.5万円に設定する。OTA経由だけでなく旅行会社3社と送客契約を進め、
+                  地場食材の仕入額を3年で2.2倍にする」と書くと、施設投資が売上と地域波及に結びつきます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          株式会社カワムラホーム、株式会社PAPABUBBLE JAPAN、株式会社本陣平野屋、株式会社日本の窓は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>
+          の補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="case-group-application" data-review-label="共同申請・グループ展開の書き方">
+        <h2>共同申請・グループ展開は「役割」と「お金の流れ」を書く</h2>
+        <p>
+          1次採択者には、共同申請参加者やグループ会社が記載されている事例があります。
+          例えば、上川大雪酒造株式会社、日本マリンフーズ有限会社、株式会社ダイイチは、一覧上で共同申請参加者が確認できます。
+          この型は、グループ名を並べるだけでは不十分です。設備を持つ会社、製造する会社、販売する会社、資金を負担する会社、
+          補助事業後に運営する会社の役割を明確にする必要があります。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>書くべき役割分担</th>
+                <td>
+                  設備所有、製造、販売、物流、人材採用、資金負担、知財・ブランド管理、経理処理、補助事業後の運営主体を整理します。
+                </td>
+              </tr>
+              <tr>
+                <th>書くべき管理体制</th>
+                <td>
+                  意思決定会議、責任者、KPI管理、契約関係、利益配分、内部取引価格、補助対象経費の支払主体、
+                  金融機関との協議状況を書きます。
+                </td>
+              </tr>
+              <tr>
+                <th>弱い書き方</th>
+                <td>「グループ一体で取り組む」だけでは、実行責任と資金責任が曖昧です。</td>
+              </tr>
+              <tr>
+                <th>強い書き方例</th>
+                <td>
+                  「設備は製造会社Aが所有し、販売会社Bが既存顧客と新規販路を担当する。
+                  持株会社Cは資金調達と月次KPI管理を担い、設備投資後の内部取引価格は原価率と市場価格を基準に契約化する。
+                  金融機関Dとは借入枠と返済計画を確認済み」と書くと、共同実施の実現性が伝わります。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          上川大雪酒造株式会社は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info250919/1st_list.xlsx">1次公募 採択者一覧Excel</a>、
+          日本マリンフーズ有限会社と株式会社ダイイチは
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info251006/1st_add_list.xlsx">1次公募 追加採択者一覧Excel</a>
+          の共同申請参加者欄と補助事業名を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="proposal-writing-checklist" data-review-label="申請書に落とすチェックリスト">
+        <h2>申請書に落とすチェックリスト</h2>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <th>最初に書く</th>
+                <td>
+                  市場機会、今の制約、制約を外す投資、投資後の売上・付加価値・賃上げを1ページ目でつなげます。
+                  審査者が「なぜこの投資が100億円への道筋なのか」を最初に理解できる構成にします。
+                </td>
+              </tr>
+              <tr>
+                <th>必ず数字にする</th>
+                <td>
+                  生産能力、商談件数、失注額、単価、粗利率、稼働率、処理件数、在庫回転、採用人数、給与増加率、
+                  借入額、返済原資をできるだけ数字で置きます。
+                </td>
+              </tr>
+              <tr>
+                <th>避ける</th>
+                <td>
+                  「設備を更新する」「DXを進める」「地域に貢献する」「海外へ展開する」のような抽象表現だけで終わらせないことです。
+                  必ず、顧客、数量、単価、粗利、実行体制、資金繰りまで書き切ります。
+                </td>
+              </tr>
+              <tr>
+                <th>採択者指標との接続</th>
+                <td>
+                  採択者中央値では、売上高成長率23.7%/年、付加価値増加率25.7%/年、売上高投資比率44.0%、
+                  給与支給総額増加率9.8%/年です。高い目標値だけでなく、その目標を達成できる受注・設備・人員・資金の根拠を置きます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          <strong>参照元:</strong>
+          採択者中央値、売上高成長率、付加価値増加率、売上高投資比率、給与支給総額増加率は
+          <a href="https://growth-100-oku.smrj.go.jp/documents/info/info251006/1st_add_index.pdf">1次公募 各種指標PDF</a>
+          を参照しています。
+        </p>
+      </section>
+
+      <section data-review-target="review-points" data-review-label="審査で見られる点">
+        <h2>審査で見られる点</h2>
+        <ul>
+          <li><strong>成長性:</strong> 売上高100億円超に向かう道筋が、数字と市場の両面で説明できているか。</li>
+          <li><strong>投資効果:</strong> 設備・建物・ソフトウェア投資が売上、付加価値、生産性の向上につながるか。</li>
+          <li><strong>賃上げの実現性:</strong> 4.5%以上の上昇目標が、収益計画と人員計画に支えられているか。</li>
+          <li><strong>実行体制:</strong> 経営陣、現場、金融機関、外部専門家の役割が明確か。</li>
+          <li><strong>波及効果:</strong> 取引先、地域、雇用、サプライチェーンへの効果が見込めるか。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="fit" data-review-label="向いている企業">
+        <h2>向いている企業・向かない企業</h2>
+        <div class="good-fit">
+          <article class="check">
+            <h3>向いている</h3>
+            <ul>
+              <li><strong>売上規模がすでに大きい</strong>、または急成長中で投資余地がある。</li>
+              <li>工場増設、物流拠点整備、量産設備導入など、1億円以上の明確な投資がある。</li>
+              <li>金融機関と資金調達の相談が進められる。</li>
+              <li>賃上げを成長戦略の中に組み込める。</li>
+            </ul>
+          </article>
+          <article class="check">
+            <h3>向かない</h3>
+            <ul>
+              <li>少額のIT導入や通常更新だけをしたい。</li>
+              <li>投資後の売上・利益・賃上げの説明が弱い。</li>
+              <li>交付決定前にすぐ発注しなければならない。</li>
+              <li>後払いに耐える資金繰りがない。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="practical-notes" data-review-label="実務上の注意点">
+        <h2>実務上の注意点</h2>
+        <ul>
+          <li>採択されても、交付決定前に発注・契約したものは原則対象外です。</li>
+          <li>補助金は後払いなので、つなぎ資金や自己資金の計画が重要です。</li>
+          <li>賃上げ目標を達成できない場合、補助金返還が必要になるケースがあります。</li>
+          <li>申請書は「補助金をもらうための書類」ではなく、「100億円企業になるための投資計画」として読まれます。</li>
+        </ul>
+        <div class="note">
+          <strong>準備の優先順位:</strong>
+          まず投資額と資金調達の現実性を確認し、そのうえで100億宣言、事業計画、賃上げ計画を一体で整えるのが無理の少ない進め方です。
+        </div>
+      </section>
+
+      <footer data-review-target="sources" data-review-label="確認元">
+        <h2>確認元</h2>
+        <p>
+          このHTMLは、2026年6月1日時点で確認した公式情報をもとに作成しています。
+          公募期間や要件は更新されるため、申請前には必ず最新の公式資料を確認してください。
+        </p>
+        <ul>
+          <li>
+            <a href="https://growth-100-oku.smrj.go.jp/">100億企業成長ポータル</a>:
+            2次公募の受付終了、有効申請数、審査通知、次回公募予定を確認。
+          </li>
+          <li>
+            <a href="https://www.chusho.meti.go.jp/koukai/hojyokin/kobo/2026/260224001.html">中小企業庁 2次公募開始のお知らせ</a>:
+            2次公募の受付期間、制度概要、電子申請の案内を確認。
+          </li>
+          <li>
+            <a href="https://mirasapo-plus.go.jp/wordpress/wp-content/uploads/2026/02/26135419/2nd_kobo.pdf">2次公募 公募要領PDF</a>:
+            補助率、補助上限、補助対象経費、事業期間、賃上げ要件、審査項目を確認。
+          </li>
+          <li>
+            <a href="https://growth-100-oku.smrj.go.jp/info/info250919.html">1次公募 採択者の公表</a>:
+            2025年9月19日時点の有効申請件数1,270件、採択件数207件、採択倍率約6.1倍を確認。
+          </li>
+          <li>
+            <a href="https://growth-100-oku.smrj.go.jp/info/info251006.html">1次公募 追加採択者の公表</a>:
+            2025年10月6日に追加採択者4件が公表されたことを確認。
+          </li>
+          <li>
+            <a href="https://growth-100-oku.smrj.go.jp/documents/info/info251006/1st_add_index.pdf">1次公募 各種指標PDF</a>:
+            採択者211件、採択倍率約6.0倍、採択者と申請全体の成長率・投資比率・給与増加率・金融機関確認書提出率を確認。
+          </li>
+        </ul>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+          <path d="M12 8v6"></path>
+          <path d="M9 11h6"></path>
+        </svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect width="8" height="4" x="8" y="2" rx="1"></rect>
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+          <path d="M8 12h8"></path>
+          <path d="M8 16h5"></path>
+        </svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = { comments: load().map(normalize).filter((comment) => byId.has(comment.target)), activeCommentId: null, activeTarget: null, draft: null };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            // localStorage が使えない環境でも、その場の編集は続けられるようにする。
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.activeTarget = target;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.activeTarget = comment.target;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+
+        $("#review-toggle").addEventListener("click", () => {
+          setReviewMode(!document.body.classList.contains("review-mode"));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            state.comments.push({ id, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.activeTarget = nextDraft.target;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try {
+            await navigator.clipboard.writeText($("#review-export-text").value);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
