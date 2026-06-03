@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/claude-code-dynamic-workflows-explanation.html
 - https://knao124.github.io/public/agentic-stack-claude-vertex-ai.html
 - https://knao124.github.io/public/x-post-summary-skill-guide.html
 - https://knao124.github.io/public/gcp-pr-preview-qa-environment.html
@@ -28,6 +29,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/claude-code-dynamic-workflows-explanation.html` : Claude Code Dynamic workflows の仕組みと使い分けの解説
 - `/agentic-stack-claude-vertex-ai.html` : Claude on Vertex AI のAgentic Stack動画を詳細に読み解く解説
 - `/x-post-summary-skill-guide.html` : X投稿要約Skillの接続方法とApp-only tokenの始め方をまとめた解説
 - `/gcp-pr-preview-qa-environment.html` : GCPで作るブランチ環境の解説

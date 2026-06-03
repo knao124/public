@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Code Dynamic Workflows 解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --panel-soft: #f8fafc;
+        --text: #1f2937;
+        --muted: #5b6470;
+        --accent: #2563eb;
+        --accent-strong: #1d4ed8;
+        --note: #f59e0b;
+        --ok: #0f766e;
+        --warn: #b45309;
+        --border: #d8dee8;
+        --code-bg: #eef2f7;
+        --shadow: rgba(31, 41, 55, 0.08);
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.72;
+      }
+
+      a {
+        color: var(--accent-strong);
+      }
+
+      .page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 36px 20px 96px;
+      }
+
+      header,
+      section,
+      footer {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 14px 36px var(--shadow);
+      }
+
+      header {
+        padding: 32px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        font-size: 2rem;
+        line-height: 1.25;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        font-size: 1.35rem;
+        line-height: 1.35;
+        margin-bottom: 12px;
+      }
+
+      h3 {
+        font-size: 1.05rem;
+        margin-bottom: 8px;
+      }
+
+      p:last-child,
+      ul:last-child,
+      ol:last-child {
+        margin-bottom: 0;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--ok);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        margin-bottom: 10px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .mini-card {
+        background: var(--panel-soft);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .mini-card strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin: 18px 0 4px;
+      }
+
+      .flow-step {
+        min-height: 118px;
+        background: var(--panel-soft);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .flow-step .num {
+        display: inline-grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .comparison {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+        background: #fff;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f1f5f9;
+        font-size: 0.94rem;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code,
+      pre {
+        background: var(--code-bg);
+        border-radius: 8px;
+      }
+
+      code {
+        padding: 0.12em 0.32em;
+      }
+
+      pre {
+        overflow-x: auto;
+        padding: 16px;
+        margin: 12px 0 0;
+        line-height: 1.55;
+      }
+
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #eff6ff;
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-top: 14px;
+      }
+
+      .warning {
+        border-left-color: var(--warn);
+        background: #fff7ed;
+      }
+
+      .pill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .pill-list li {
+        border: 1px solid var(--border);
+        background: var(--panel-soft);
+        border-radius: 999px;
+        padding: 6px 10px;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(37, 99, 235, 0.42);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 50;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(31, 41, 55, 0.08);
+      }
+
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 15;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-size: 0.82rem;
+        font-weight: 800;
+        line-height: 28px;
+        text-align: center;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(17, 24, 39, 0.18);
+        cursor: pointer;
+      }
+
+      body.review-mode .review-pin {
+        display: block;
+      }
+
+      .review-panel {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 60;
+        display: none;
+        width: min(360px, calc(100vw - 36px));
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        box-shadow: 0 20px 48px rgba(31, 41, 55, 0.2);
+      }
+
+      .review-panel.open {
+        display: block;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .review-export {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, 0.45);
+      }
+
+      .review-export.open {
+        display: flex;
+      }
+
+      .review-export-box {
+        width: min(760px, 100%);
+        max-height: min(80vh, 720px);
+        overflow: auto;
+        background: var(--panel);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        padding: 18px;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+      }
+
+      .review-export textarea {
+        min-height: 260px;
+        white-space: pre;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.86rem;
+      }
+
+      @media (max-width: 820px) {
+        .summary-grid,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        header {
+          padding: 24px;
+        }
+
+        h1 {
+          font-size: 1.55rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header data-review-target="header" data-review-label="タイトルと対象">
+        <div class="eyebrow">Claude Code Docs / Dynamic workflows</div>
+        <h1>Claude Code の Dynamic workflows は「大量のサブエージェント運用をコード化する仕組み」</h1>
+        <p class="muted">
+          生成日時: 2026-06-03 09:31 JST / 対象:
+          <a href="https://code.claude.com/docs/en/workflows">https://code.claude.com/docs/en/workflows</a>
+        </p>
+        <p>
+          このページは、Claude Code で多数のサブエージェントを使う作業を、Claude が書く JavaScript の
+          ワークフロースクリプトとして実行・監視・再利用する方法を説明している。狙いは「1 回の会話で順番に頼む」から、
+          「計画、分岐、集約、検証をスクリプトに持たせて背景実行する」へ移すこと。
+        </p>
+        <div class="summary-grid">
+          <div class="mini-card">
+            <strong>いつ使うか</strong>
+            <span>大規模調査、全体監査、数百ファイル規模の移行、複数視点での計画レビュー。</span>
+          </div>
+          <div class="mini-card">
+            <strong>何が違うか</strong>
+            <span>オーケストレーションが Claude の会話ではなく、実行されるスクリプトに入る。</span>
+          </div>
+          <div class="mini-card">
+            <strong>注意点</strong>
+            <span>多くのエージェントを起動するので、通常の会話よりトークンと時間を使う。</span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section data-review-target="before-reading" data-review-label="読む前の前提">
+          <h2>読む前の前提</h2>
+          <p>
+            ここでの「ワークフロー」は、一般的な CI/CD の YAML ではなく、Claude Code がタスクに応じて生成する
+            JavaScript の制御スクリプトを指す。スクリプト自体はファイル操作やシェル実行を直接行わず、サブエージェントを起動し、
+            それぞれの結果を変数として保持しながら次の段階へ進める。
+          </p>
+          <div class="callout warning">
+            <strong>利用条件:</strong>
+            ドキュメント上では research preview 扱い。Claude Code v2.1.154 以降が必要で、有料プラン、Anthropic API、
+            Amazon Bedrock、Google Cloud Vertex AI、Microsoft Foundry で利用できる。Pro では <code>/config</code> の
+            Dynamic workflows 行から有効化する。
+          </div>
+          <ul>
+            <li><strong>単位:</strong> 1 つのワークフロー実行。内部に複数フェーズと多数のエージェントを持てる。</li>
+            <li><strong>実行者:</strong> ランタイムがスクリプトをバックグラウンド実行し、各作業はサブエージェントが担当する。</li>
+            <li><strong>成果物:</strong> 最終レポート、変更計画、監査結果、保存された再利用コマンドなど。</li>
+          </ul>
+        </section>
+
+        <section data-review-target="mental-model" data-review-label="中核の考え方">
+          <h2>中核の考え方</h2>
+          <p>
+            Dynamic workflows の価値は、単に「並列にたくさん呼べる」ことではなく、作業の進め方を再実行可能なコードに落とせる点にある。
+            たとえば、複数エージェントが別々に調査し、別エージェントが矛盾をチェックし、生き残った主張だけを最終レポートにまとめる、
+            という品質パターンを毎回同じ形で走らせられる。
+          </p>
+          <div class="callout">
+            <strong>会話型の委任との違い:</strong>
+            サブエージェントやスキルでは、次に何をするかを Claude がターンごとに判断する。ワークフローでは、ループ、分岐、
+            中間結果の保持、再試行の構造がスクリプト側にある。
+          </div>
+        </section>
+
+        <section data-review-target="comparison" data-review-label="使い分け比較">
+          <h2>サブエージェント、スキル、Agent teams との使い分け</h2>
+          <div class="comparison">
+            <table>
+              <thead>
+                <tr>
+                  <th>選択肢</th>
+                  <th>計画を持つ場所</th>
+                  <th>向いている規模</th>
+                  <th>繰り返しやすいもの</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>サブエージェント</td>
+                  <td>Claude の会話コンテキスト</td>
+                  <td>数個の独立タスク</td>
+                  <td>ワーカー定義</td>
+                </tr>
+                <tr>
+                  <td>スキル</td>
+                  <td>Claude が従う手順書</td>
+                  <td>決まった作業手順</td>
+                  <td>手順とルール</td>
+                </tr>
+                <tr>
+                  <td>Agent teams</td>
+                  <td>リードエージェント</td>
+                  <td>少数の長時間ピア作業</td>
+                  <td>チーム構成</td>
+                </tr>
+                <tr>
+                  <td>Dynamic workflows</td>
+                  <td>ランタイムが実行するスクリプト</td>
+                  <td>数十から数百のエージェント</td>
+                  <td>オーケストレーションそのもの</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">
+            判断基準は「たくさん動かすか」だけではなく、「中間結果を会話コンテキストではなくコードの変数として扱いたいか」。
+          </p>
+        </section>
+
+        <section data-review-target="run-bundled" data-review-label="組み込みワークフロー">
+          <h2>まず試すなら <code>/deep-research</code></h2>
+          <p>
+            Claude Code には、調査用の組み込みワークフローとして <code>/deep-research</code> がある。質問を渡すと、複数の角度で
+            Web 検索し、ソースを取得し、主張を照合して、引用付きのレポートを返す。途中のエージェント作業は背景で進む。
+          </p>
+          <pre><code>/deep-research What changed in the Node.js permission model between v20 and v22?</code></pre>
+          <div class="flow">
+            <div class="flow-step">
+              <span class="num">1</span>
+              <strong>実行</strong>
+              <p>質問を付けてコマンドを入力する。</p>
+            </div>
+            <div class="flow-step">
+              <span class="num">2</span>
+              <strong>承認</strong>
+              <p>計画と実行許可を確認する。</p>
+            </div>
+            <div class="flow-step">
+              <span class="num">3</span>
+              <strong>監視</strong>
+              <p><code>/workflows</code> でフェーズとエージェントを追う。</p>
+            </div>
+            <div class="flow-step">
+              <span class="num">4</span>
+              <strong>詳細確認</strong>
+              <p>各エージェントのプロンプト、ツール呼び出し、結果を見る。</p>
+            </div>
+            <div class="flow-step">
+              <span class="num">5</span>
+              <strong>レポート</strong>
+              <p>照合済みの主張だけを含む最終結果を読む。</p>
+            </div>
+          </div>
+        </section>
+
+        <section data-review-target="author-workflow" data-review-label="Claude に書かせる方法">
+          <h2>自分のタスク用ワークフローを書かせる</h2>
+          <p>
+            単発で使いたい場合は、プロンプトで「workflow を使って」「run a workflow」などと頼むか、
+            <code>ultracode:</code> を付ける。Claude は通常のターン進行ではなく、タスク用のワークフロースクリプトを生成して実行する。
+          </p>
+          <pre><code>ultracode: audit every API endpoint under src/routes/ for missing auth checks</code></pre>
+          <p>
+            セッション全体で Claude に判断させたい場合は <code>/effort ultracode</code> を使う。これは高い推論努力と自動ワークフロー化を
+            組み合わせる設定なので、通常作業よりトークンも時間も重くなる。
+          </p>
+          <div class="callout warning">
+            <strong>実務上の目安:</strong>
+            毎回必要なわけではない。1 ディレクトリだけの修正や明確な単発バグなら、普通の会話やサブエージェントで十分なことが多い。
+          </div>
+        </section>
+
+        <section data-review-target="approval" data-review-label="承認と権限">
+          <h2>承認と権限のポイント</h2>
+          <p>
+            CLI では実行前に、フェーズ計画を見て実行、今後同じワークフローを自動承認、スクリプト表示、キャンセルを選べる。
+            Desktop app では、ワークフロー名、フェーズ、トークン使用への注意を含む承認カードが出る。
+          </p>
+          <ul>
+            <li>ワークフローが起動するサブエージェントは <code>acceptEdits</code> モードで動き、ツール allowlist を継承する。</li>
+            <li>ファイル編集は自動承認される。</li>
+            <li>allowlist にないシェル、Web fetch、MCP ツールは途中で確認を求めることがある。</li>
+            <li>長時間実行する前に、必要なコマンドを allowlist に入れておくと止まりにくい。</li>
+          </ul>
+        </section>
+
+        <section data-review-target="save-reuse" data-review-label="保存と再利用">
+          <h2>うまくいった実行はコマンドとして保存できる</h2>
+          <p>
+            <code>/workflows</code> で実行を選び、<code>s</code> を押すと、その実行のスクリプトを保存できる。保存先は
+            プロジェクト共有の <code>.claude/workflows/</code> か、自分専用の <code>~/.claude/workflows/</code>。
+            保存後は <code>/<name></code> として呼び出せる。
+          </p>
+          <p>
+            保存済みワークフローには <code>args</code> として入力を渡せる。たとえば issue 番号のリストや対象パスを渡し、
+            スクリプト側では構造化データとして扱える。
+          </p>
+        </section>
+
+        <section data-review-target="runtime-limits" data-review-label="実行モデルと制限">
+          <h2>実行モデルと制限</h2>
+          <p>
+            ワークフローランタイムは、会話とは別の隔離環境でスクリプトを実行する。中間結果は Claude の会話コンテキストではなく、
+            スクリプト変数やランタイムの管理情報として扱われる。実行スクリプトはセッション配下の
+            <code>~/.claude/projects/</code> に書かれ、必要なら読んだり差分確認したりできる。
+          </p>
+          <ul class="pill-list">
+            <li>実行中のユーザー入力は不可</li>
+            <li>スクリプト自体は FS / shell に直接アクセスしない</li>
+            <li>同時実行は最大 16 エージェント</li>
+            <li>1 実行あたり最大 1,000 エージェント</li>
+            <li>停止後の再開は同じセッション内で有効</li>
+          </ul>
+        </section>
+
+        <section data-review-target="cost-management" data-review-label="コスト管理">
+          <h2>コスト管理</h2>
+          <p>
+            ワークフローは多数のエージェントを起動するため、通常の会話より利用量が大きくなりやすい。大きなタスクをいきなり全体に
+            かけるのではなく、まず狭い範囲で試すのが安全。<code>/workflows</code> ではフェーズやエージェントごとのトークン使用を確認でき、
+            途中停止もできる。
+          </p>
+          <div class="callout">
+            <strong>おすすめの始め方:</strong>
+            「全 repo」ではなく「1 ディレクトリ」、「幅広い調査」ではなく「絞った問い」で試し、結果の品質と使用量を見てから広げる。
+          </div>
+        </section>
+
+        <section data-review-target="disable" data-review-label="無効化">
+          <h2>使わない場合の無効化</h2>
+          <p>
+            Dynamic workflows は CLI、Desktop app、IDE extensions、<code>claude -p</code>、Agent SDK で使える。無効化するには
+            <code>/config</code> の Dynamic workflows をオフにする、<code>~/.claude/settings.json</code> に
+            <code>"disableWorkflows": true</code> を設定する、または <code>CLAUDE_CODE_DISABLE_WORKFLOWS=1</code> を使う。
+            組織全体では managed settings や管理画面から無効化できる。
+          </p>
+        </section>
+
+        <section data-review-target="practical-reading" data-review-label="実務での読み方">
+          <h2>実務での読み方</h2>
+          <p>
+            この機能は「常に最上位の作業モード」ではなく、大規模な並列性、再利用可能な検証パターン、背景実行、再開性が必要なときの
+            選択肢として読むのがよい。特に監査、移行、調査のように、同じ問いを多面から見て、結果を突き合わせるタスクで効く。
+          </p>
+          <p>
+            逆に、ユーザーの途中判断が何度も必要な作業、コストを厳密に抑えたい作業、局所的で明確な修正には過剰になりやすい。
+          </p>
+        </section>
+      </main>
+
+      <footer data-review-target="sources" data-review-label="参照元">
+        <h2>参照元</h2>
+        <p>
+          Anthropic の Claude Code Docs「Orchestrate subagents at scale with dynamic workflows」を確認し、機能の目的、
+          <code>/deep-research</code>、<code>ultracode</code>、承認、保存、実行制限、コスト、無効化の説明をこの解説に反映した。
+        </p>
+        <p>
+          Source:
+          <a href="https://code.claude.com/docs/en/workflows">https://code.claude.com/docs/en/workflows</a>
+        </p>
+      </footer>
+    </div>
+
+    <div class="review-toolbar" aria-label="レビュー操作">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+          <path d="M8 10h8"></path>
+          <path d="M8 14h5"></path>
+        </svg>
+        コメント
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <path d="M7 10l5 5 5-5"></path>
+          <path d="M12 15V3"></path>
+        </svg>
+        改善プロンプト
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" aria-live="polite">
+      <h3 id="review-panel-title">コメント</h3>
+      <p id="review-panel-meta" class="muted"></p>
+      <textarea id="review-text" placeholder="コメントを書く"></textarea>
+      <div class="review-actions">
+        <button id="review-delete" type="button">削除</button>
+        <span>
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="button">保存</button>
+        </span>
+      </div>
+    </aside>
+
+    <div id="review-export-dialog" class="review-export" role="dialog" aria-modal="true" aria-labelledby="review-export-title">
+      <div class="review-export-box">
+        <h3 id="review-export-title">改善プロンプト</h3>
+        <p class="muted">コメント位置と対象 ID を含むプロンプトです。</p>
+        <textarea id="review-export-text" readonly></textarea>
+        <div class="review-actions">
+          <button id="review-export-close" type="button">閉じる</button>
+          <button id="review-copy" class="primary" type="button">コピー</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const storageKey = "codex-review:" + location.pathname + ":" + document.title;
+        const body = document.body;
+        const toggleButton = document.getElementById("review-toggle");
+        const exportButton = document.getElementById("review-export");
+        const panel = document.getElementById("review-panel");
+        const panelTitle = document.getElementById("review-panel-title");
+        const panelMeta = document.getElementById("review-panel-meta");
+        const textInput = document.getElementById("review-text");
+        const saveButton = document.getElementById("review-save");
+        const closeButton = document.getElementById("review-close");
+        const deleteButton = document.getElementById("review-delete");
+        const exportDialog = document.getElementById("review-export-dialog");
+        const exportText = document.getElementById("review-export-text");
+        const exportClose = document.getElementById("review-export-close");
+        const copyButton = document.getElementById("review-copy");
+        const targets = Array.from(document.querySelectorAll("[data-review-target]"));
+        let comments = loadComments();
+        let activeId = null;
+
+        function loadComments() {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]");
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (_error) {
+            return [];
+          }
+        }
+
+        function saveComments() {
+          localStorage.setItem(storageKey, JSON.stringify(comments));
+        }
+
+        function byId(id) {
+          return comments.find((comment) => comment.id === id);
+        }
+
+        function targetFor(comment) {
+          return document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+        }
+
+        function renderPins() {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          comments.forEach((comment, index) => {
+            const target = targetFor(comment);
+            if (!target) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin";
+            pin.textContent = String(index + 1);
+            pin.style.left = comment.x + "%";
+            pin.style.top = comment.y + "%";
+            pin.setAttribute("aria-label", "コメント " + (index + 1));
+            pin.addEventListener("click", (event) => {
+              event.stopPropagation();
+              openPanel(comment.id);
+            });
+            target.appendChild(pin);
+          });
+        }
+
+        function setReviewMode(enabled) {
+          body.classList.toggle("review-mode", enabled);
+          toggleButton.setAttribute("aria-pressed", String(enabled));
+          if (!enabled) closePanel();
+        }
+
+        function openPanel(id) {
+          const comment = byId(id);
+          if (!comment) return;
+          activeId = id;
+          panelTitle.textContent = "コメント";
+          panelMeta.textContent = comment.label + " / " + comment.targetId + " / x:" + comment.x.toFixed(1) + "% y:" + comment.y.toFixed(1) + "%";
+          textInput.value = comment.text || "";
+          panel.classList.add("open");
+          textInput.focus();
+        }
+
+        function closePanel() {
+          activeId = null;
+          panel.classList.remove("open");
+        }
+
+        function createComment(target, event) {
+          if (!body.classList.contains("review-mode")) return;
+          if (event.target.closest(".review-pin")) return;
+          const rect = target.getBoundingClientRect();
+          const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+          const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+          const comment = {
+            id: "c-" + Date.now() + "-" + Math.random().toString(16).slice(2),
+            targetId: target.dataset.reviewTarget,
+            label: target.dataset.reviewLabel || target.dataset.reviewTarget,
+            x,
+            y,
+            text: ""
+          };
+          comments.push(comment);
+          saveComments();
+          renderPins();
+          openPanel(comment.id);
+        }
+
+        function buildPrompt() {
+          const lines = [
+            "次の HTML 解説を改善してください。",
+            "対象ページ: https://code.claude.com/docs/en/workflows",
+            "コメントは target id と相対座標で示します。該当コンポーネントの説明、構成、粒度、表現を必要に応じて修正してください。",
+            "",
+            "comments:"
+          ];
+          if (comments.length === 0) {
+            lines.push("- なし");
+          } else {
+            comments.forEach((comment, index) => {
+              lines.push(
+                "- #" +
+                  (index + 1) +
+                  " {target: " +
+                  comment.targetId +
+                  ", label: " +
+                  comment.label +
+                  ", x: " +
+                  comment.x.toFixed(1) +
+                  ", y: " +
+                  comment.y.toFixed(1) +
+                  "} " +
+                  (comment.text || "(空コメント)")
+              );
+            });
+          }
+          return lines.join("\n");
+        }
+
+        targets.forEach((target) => {
+          target.addEventListener("click", (event) => createComment(target, event));
+        });
+
+        toggleButton.addEventListener("click", () => {
+          setReviewMode(!body.classList.contains("review-mode"));
+        });
+
+        saveButton.addEventListener("click", () => {
+          const comment = byId(activeId);
+          if (!comment) return;
+          comment.text = textInput.value.trim();
+          saveComments();
+          renderPins();
+          closePanel();
+        });
+
+        deleteButton.addEventListener("click", () => {
+          if (!activeId) return;
+          comments = comments.filter((comment) => comment.id !== activeId);
+          saveComments();
+          renderPins();
+          closePanel();
+        });
+
+        closeButton.addEventListener("click", closePanel);
+
+        exportButton.addEventListener("click", () => {
+          exportText.value = buildPrompt();
+          exportDialog.classList.add("open");
+          exportText.focus();
+          exportText.select();
+        });
+
+        exportClose.addEventListener("click", () => {
+          exportDialog.classList.remove("open");
+        });
+
+        copyButton.addEventListener("click", async () => {
+          exportText.value = buildPrompt();
+          exportText.select();
+          try {
+            await navigator.clipboard.writeText(exportText.value);
+            copyButton.textContent = "コピー済み";
+            setTimeout(() => (copyButton.textContent = "コピー"), 1200);
+          } catch (_error) {
+            document.execCommand("copy");
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            setReviewMode(false);
+            exportDialog.classList.remove("open");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
