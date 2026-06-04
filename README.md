@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/telework-subsidy-report.html
 - https://knao124.github.io/public/chusho-growth-subsidy-explainer.html
 - https://knao124.github.io/public/claude-code-dynamic-workflows-explanation.html
 - https://knao124.github.io/public/agentic-stack-claude-vertex-ai.html
@@ -30,6 +31,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/telework-subsidy-report.html` : テレワーク・リモートワーク関連の大型補助金をまとめた調査レポート
 - `/chusho-growth-subsidy-explainer.html` : 中小企業成長加速化補助金の制度概要、1次採択事例、申請書の書き方をまとめた解説
 - `/claude-code-dynamic-workflows-explanation.html` : Claude Code Dynamic workflows の仕組みと使い分けの解説
 - `/agentic-stack-claude-vertex-ai.html` : Claude on Vertex AI のAgentic Stack動画を詳細に読み解く解説
