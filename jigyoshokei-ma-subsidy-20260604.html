@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>事業承継・M&A補助金 第15次公募 解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7f6;
+        --surface: #ffffff;
+        --surface-soft: #eef5f3;
+        --text: #1f2a33;
+        --muted: #66737f;
+        --line: #d7e1df;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+        --amber: #b7791f;
+        --coral: #b4533c;
+        --ink: #13202a;
+        --shadow: 0 18px 44px rgba(31, 42, 51, 0.09);
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%230f766e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.72;
+      }
+
+      a {
+        color: var(--accent-strong);
+        text-underline-offset: 3px;
+      }
+
+      header.hero {
+        background: #0f3d3a;
+        color: #fff;
+        padding: 52px 24px 42px;
+      }
+
+      .hero-inner,
+      main,
+      footer {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .eyebrow {
+        color: #b8dfd9;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0;
+        margin: 0 0 10px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: clamp(28px, 4vw, 46px);
+        margin: 0 0 14px;
+        max-width: 900px;
+      }
+
+      h2 {
+        font-size: clamp(22px, 2.5vw, 30px);
+        margin: 0 0 16px;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin: 0 0 8px;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      .lead {
+        color: #d9f0ed;
+        max-width: 860px;
+        font-size: 17px;
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        border-radius: 8px;
+        padding: 5px 10px;
+        color: #effbf9;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 13px;
+      }
+
+      main {
+        padding: 26px 0 88px;
+      }
+
+      section,
+      article,
+      footer {
+        position: relative;
+        margin: 0 0 18px;
+      }
+
+      section {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .section-intro {
+        color: var(--muted);
+        max-width: 880px;
+      }
+
+      .summary-grid,
+      .frame-grid,
+      .check-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .frame-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 16px;
+      }
+
+      .check-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 14px;
+      }
+
+      .stat,
+      .frame-card,
+      .check-card,
+      .note-box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 16px;
+      }
+
+      .stat {
+        background: var(--surface-soft);
+      }
+
+      .stat b,
+      .frame-card b,
+      .check-card b {
+        display: block;
+        color: var(--ink);
+        line-height: 1.35;
+      }
+
+      .stat span,
+      .frame-card span,
+      .check-card span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .frame-card strong {
+        color: var(--accent-strong);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin-top: 18px;
+        background: #fff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 920px;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+        text-align: left;
+      }
+
+      th {
+        background: #e8f1ef;
+        color: #24343d;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      td small {
+        color: var(--muted);
+        display: block;
+        line-height: 1.55;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 8px;
+        border: 1px solid #cbdad7;
+        background: #f8fbfa;
+        padding: 2px 7px;
+        margin: 2px 4px 2px 0;
+        font-size: 12px;
+        color: #284047;
+        white-space: nowrap;
+      }
+
+      .note-box {
+        border-left: 5px solid var(--amber);
+        margin-top: 16px;
+        background: #fffaf0;
+      }
+
+      .warning {
+        border-left-color: var(--coral);
+        background: #fff7f4;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(130px, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .step {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 14px;
+        min-height: 132px;
+      }
+
+      .step-num {
+        display: inline-grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 9px;
+      }
+
+      .step b {
+        display: block;
+        line-height: 1.35;
+      }
+
+      .step span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .source-list {
+        display: grid;
+        gap: 10px;
+        padding: 0;
+        margin: 16px 0 0;
+        list-style: none;
+      }
+
+      .source-list li {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+      }
+
+      .source-list span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      code {
+        background: #edf3f2;
+        padding: 1px 5px;
+        border-radius: 6px;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(15, 118, 110, 0.45);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 30;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(31, 42, 51, 0.12);
+      }
+
+      .review-toolbar button.primary,
+      .review-export button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        color: var(--accent-strong);
+        border-color: var(--accent);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 12;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid #0f766e;
+        border-radius: 999px;
+        background: #f6c453;
+        color: #17242b;
+        font-weight: 800;
+        align-items: center;
+        justify-content: center;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 18px rgba(31, 42, 51, 0.24);
+        cursor: pointer;
+      }
+
+      body.review-mode .review-pin {
+        display: flex;
+      }
+
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 40;
+        display: none;
+        width: min(420px, calc(100% - 32px));
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 22px 60px rgba(31, 42, 51, 0.22);
+      }
+
+      .review-panel {
+        right: 16px;
+        top: 16px;
+        padding: 16px;
+      }
+
+      .review-export {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 18px;
+      }
+
+      .review-panel.open,
+      .review-export.open {
+        display: block;
+      }
+
+      .review-panel h2,
+      .review-export h2 {
+        font-size: 18px;
+        margin: 0 0 10px;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 130px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-export textarea {
+        min-height: 240px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .review-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      .review-label {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      @media (max-width: 900px) {
+        .summary-grid,
+        .frame-grid,
+        .check-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .steps {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        header.hero {
+          padding: 36px 18px 30px;
+        }
+
+        .hero-inner,
+        main,
+        footer {
+          width: min(100% - 24px, 1120px);
+        }
+
+        section {
+          padding: 18px;
+        }
+
+        .summary-grid,
+        .frame-grid,
+        .check-grid,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+
+        .review-toolbar {
+          left: 12px;
+          right: 12px;
+        }
+
+        .review-toolbar button {
+          flex: 1 1 auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Component: header overview -->
+    <header class="hero" data-review-target="hero" data-review-label="タイトルと要約">
+      <div class="hero-inner">
+        <p class="eyebrow">第15次公募・2026年6月4日調査</p>
+        <h1>事業承継・M&A補助金の詳細解説</h1>
+        <p class="lead">
+          中小企業・小規模事業者が、親族内承継・従業員承継・M&A・PMI・廃業後の再チャレンジに使える補助金です。
+          最新の第15次公募では、2026年6月19日から7月24日17:00までJグランツで申請を受け付ける予定です。
+        </p>
+        <div class="hero-meta">
+          <span class="tag">申請はJグランツのみ</span>
+          <span class="tag">GビズIDプライム必須</span>
+          <span class="tag">補助金は原則後払い</span>
+          <span class="tag">交付決定前の契約・発注は原則対象外</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Component: key facts -->
+      <section data-review-target="key-facts" data-review-label="最新公募の要点">
+        <h2>まず押さえる要点</h2>
+        <p class="section-intro">
+          2026年5月22日に第15次公募要領が公表されています。申請期間はまだ始まっていないため、準備段階でGビズID、見積、支援機関、M&A相手先との契約時期を確認するのが実務上の先手です。
+        </p>
+        <div class="summary-grid">
+          <div class="stat">
+            <b>公募回</b>
+            <span>第15次公募。第15次から専門家活用枠に小規模売り手支援類型が追加。</span>
+          </div>
+          <div class="stat">
+            <b>申請受付</b>
+            <span>2026年6月19日(金)から2026年7月24日(金)17:00まで。締切厳守。</span>
+          </div>
+          <div class="stat">
+            <b>補助事業期間</b>
+            <span>2026年9月下旬予定から14カ月以内。詳細は採択後の手引で確認。</span>
+          </div>
+          <div class="stat">
+            <b>支払い</b>
+            <span>事業完了後の精算払い。先に自己資金または融資で支払う設計が必要。</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Component: choosing a frame -->
+      <section data-review-target="frame-choice" data-review-label="枠の選び方">
+        <h2>どの枠を選ぶか</h2>
+        <p class="section-intro">
+          名前にM&Aが入っていますが、買収費用そのものを補助する制度ではありません。承継やM&Aに伴う設備投資、専門家費用、PMI、廃業関連費用の一部を補助する制度です。
+        </p>
+        <div class="frame-grid">
+          <article class="frame-card" data-review-target="frame-succession" data-review-label="事業承継促進枠">
+            <h3><strong>事業承継促進枠</strong></h3>
+            <p>5年以内に親族内承継または従業員承継を予定し、後継者を中心に設備投資や改装などを行うケース。</p>
+            <span>例: 後継者が店舗改装、機械導入、販路開拓を進める。</span>
+          </article>
+          <article class="frame-card" data-review-target="frame-experts" data-review-label="専門家活用枠">
+            <h3><strong>専門家活用枠</strong></h3>
+            <p>M&Aで経営資源を引き継ぐ、または譲り渡すため、FA、仲介、DD、表明保証保険などを使うケース。</p>
+            <span>FA・仲介費用は原則としてM&A支援機関登録制度の登録FA・仲介業者が必要。</span>
+          </article>
+          <article class="frame-card" data-review-target="frame-pmi" data-review-label="PMI推進枠">
+            <h3><strong>PMI推進枠</strong></h3>
+            <p>M&A後、またはM&A予定の買い手が、経営統合を進めるケース。専門家活用と事業統合投資の2類型があります。</p>
+            <span>例: 100日プラン、業務統合、システム統合、拠点統合のための投資。</span>
+          </article>
+          <article class="frame-card" data-review-target="frame-challenge" data-review-label="廃業・再チャレンジ枠">
+            <h3><strong>廃業・再チャレンジ枠</strong></h3>
+            <p>事業承継・M&Aに伴って既存事業を廃業し、株主または個人事業主本人が新たな取組に進むケース。</p>
+            <span>単独申請も可能。他の枠と併用する場合は併用先の申請フォームで扱いが変わります。</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Component: amount table -->
+      <section data-review-target="amount-table" data-review-label="補助率と上限の早見表">
+        <h2>補助率・上限の早見表</h2>
+        <p class="section-intro">
+          上限額は「補助対象経費に補助率を掛けた補助額」の上限です。採択されても、実績報告で契約・支払い・証憑に不備があれば減額されます。
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>枠・類型</th>
+                <th>主な対象</th>
+                <th>補助率</th>
+                <th>補助下限</th>
+                <th>補助上限</th>
+                <th>主な対象経費</th>
+                <th>注意点</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>事業承継促進枠</td>
+                <td>5年以内に親族内承継・従業員承継を予定する中小企業者等</td>
+                <td>小規模事業者等 2/3以内、その他 1/2以内</td>
+                <td>100万円</td>
+                <td>800万円。3%以上の賃上げ要件を満たす場合は1,000万円</td>
+                <td><span class="badge">設備費</span><span class="badge">改装工事</span><span class="badge">外注費</span><span class="badge">委託費</span><span class="badge">産業財産権関連</span></td>
+                <td>認定経営革新等支援機関の確認が必要。譲受対価や土地・資産購入費用は原則対象外。</td>
+              </tr>
+              <tr>
+                <td>専門家活用枠 買い手支援類型</td>
+                <td>M&Aにより経営資源を譲り受ける予定の中小企業者等</td>
+                <td>2/3以内</td>
+                <td>50万円</td>
+                <td>600万円。DD費用を申請する場合は200万円加算で最大800万円</td>
+                <td><span class="badge">FA・仲介費用</span><span class="badge">DD</span><span class="badge">セカンドオピニオン</span><span class="badge">表明保証保険</span><span class="badge">システム利用料</span></td>
+                <td>FA・仲介費用は登録FA・仲介業者の支援に限る。未クロージング時は上限300万円に変更され、原則DD費用のみ。</td>
+              </tr>
+              <tr>
+                <td>専門家活用枠 売り手支援類型</td>
+                <td>M&Aにより株式・経営資源を譲り渡す予定の中小企業者等</td>
+                <td>原則1/2以内。営業利益率低下または赤字等に該当する場合は2/3以内</td>
+                <td>50万円</td>
+                <td>600万円。DD費用を申請する場合は200万円加算で最大800万円</td>
+                <td><span class="badge">FA・仲介費用</span><span class="badge">DD</span><span class="badge">表明保証保険</span><span class="badge">廃業費併用可</span></td>
+                <td>廃業費を併用する場合は最大300万円。ただし経営資源の引継ぎが実現しない場合、廃業費は対象外。</td>
+              </tr>
+              <tr>
+                <td>専門家活用枠 小規模売り手支援類型</td>
+                <td>株式・経営資源を譲り渡す予定の小規模事業者等</td>
+                <td>2/3以内</td>
+                <td>なし</td>
+                <td>450万円。未クロージング時は50万円以内に変更</td>
+                <td><span class="badge">FA・仲介費用</span><span class="badge">着手金</span><span class="badge">システム利用料</span><span class="badge">DD</span><span class="badge">廃業費併用可</span></td>
+                <td>第15次からの新類型。通常の売り手支援類型と同一公募回での申請は不可。廃業費加算は最大150万円。</td>
+              </tr>
+              <tr>
+                <td>専門家活用枠 買い手支援類型 100億企業特例</td>
+                <td>将来の売上高100億円を目指す買い手の大型M&A</td>
+                <td>1,000万円以下は1/2以内、1,000万円超2,000万円以下は1/3以内</td>
+                <td>50万円</td>
+                <td>2,000万円。廃業費併用は最大300万円</td>
+                <td><span class="badge">FA・仲介費用</span><span class="badge">DD</span><span class="badge">大型M&A関連専門家費用</span></td>
+                <td>不採択でも通常の買い手支援類型へ自動移行しない。通常枠と別要領で確認する。</td>
+              </tr>
+              <tr>
+                <td>PMI推進枠 PMI専門家活用類型</td>
+                <td>M&A後または買い手支援類型と同時にPMI専門家を活用する中小企業者等</td>
+                <td>1/2以内</td>
+                <td>50万円</td>
+                <td>150万円</td>
+                <td><span class="badge">謝金</span><span class="badge">旅費</span><span class="badge">PMI専門家への委託費</span></td>
+                <td>同時申請でM&Aがクロージングしない場合、PMI専門家活用費は対象外。</td>
+              </tr>
+              <tr>
+                <td>PMI推進枠 事業統合投資類型</td>
+                <td>M&A後の事業統合に必要な設備投資・外注・委託を行う中小企業者等</td>
+                <td>小規模事業者等 2/3以内、その他 1/2以内。800万円超部分は一律1/2以内</td>
+                <td>100万円</td>
+                <td>800万円。3%以上の賃上げ要件を満たす場合は1,000万円</td>
+                <td><span class="badge">設備費</span><span class="badge">外注費</span><span class="badge">委託費</span></td>
+                <td>M&A仲介手数料、DD費用、M&Aコンサル費用、PMI専門家への手数料はこの類型では対象外。</td>
+              </tr>
+              <tr>
+                <td>廃業・再チャレンジ枠</td>
+                <td>事業承継・M&Aに伴い既存事業を廃業し、再チャレンジする中小企業者等</td>
+                <td>単独申請は2/3以内。併用申請は併用先の補助率に従う</td>
+                <td>50万円</td>
+                <td>300万円</td>
+                <td><span class="badge">廃業支援費</span><span class="badge">在庫廃棄費</span><span class="badge">解体費</span><span class="badge">原状回復費</span><span class="badge">土壌汚染調査費</span></td>
+                <td>廃業支援費の上限は50万円。移転・移設費は併用申請のみ。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note-box">
+          <b>賃上げ上限引き上げは返還リスクがあります。</b>
+          <p>事業承継促進枠とPMI事業統合投資類型では、3%以上の賃上げを申請時までに従業員等へ表明し、事業化状況報告時点で達成・維持する必要があります。未達の場合、上限引き上げ分、最大200万円の返還を求められる扱いです。</p>
+        </div>
+      </section>
+
+      <!-- Component: expenses and exclusions -->
+      <section data-review-target="expenses" data-review-label="対象経費と対象外">
+        <h2>対象経費で間違えやすい点</h2>
+        <div class="check-grid">
+          <div class="check-card">
+            <b>交付決定後に契約・発注・支払い</b>
+            <span>補助対象経費は、交付決定日以降かつ補助事業期間内に契約・発注し、支払いまで完了する経費が原則です。</span>
+          </div>
+          <div class="check-card">
+            <b>証憑で確認できること</b>
+            <span>見積、契約、請求、支払い、成果物、検収などが実績報告で確認できないと減額・対象外になります。</span>
+          </div>
+          <div class="check-card">
+            <b>2者以上の相見積が基本</b>
+            <span>例外はありますが、相見積なしは対象外になりやすいです。専門家費用も契約前に見積取得を設計します。</span>
+          </div>
+        </div>
+        <div class="note-box warning">
+          <b>補助金で買収代金を払う制度ではありません。</b>
+          <p>事業承継促進枠では、被承継者に支払う譲受費用、土地、資産購入費用等は原則補助対象外です。専門家活用枠でも、対象はFA・仲介、DD、表明保証保険等の専門家活用費であり、株式や事業の取得対価そのものではありません。</p>
+        </div>
+      </section>
+
+      <!-- Component: application flow -->
+      <section data-review-target="application-flow" data-review-label="申請準備の流れ">
+        <h2>申請準備の流れ</h2>
+        <p class="section-intro">
+          申請はJグランツのみです。GビズIDプライムの発行は通常1週間程度、混雑時は3週間程度かかると公募要領に明記されています。締切直前に始めると間に合わない可能性があります。
+        </p>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <b>枠を決める</b>
+            <span>承継予定、M&Aの買い手・売り手、PMI、廃業のどれかを先に切り分ける。</span>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <b>GビズIDを確認</b>
+            <span>GビズIDプライム未取得なら先に申請。ID共有や代理入力にも注意。</span>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <b>支援機関を確認</b>
+            <span>事業承継促進は認定経営革新等支援機関、M&A仲介費用は登録FA・仲介業者を確認。</span>
+          </div>
+          <div class="step">
+            <span class="step-num">4</span>
+            <b>見積と契約時期</b>
+            <span>相見積を取り、契約・発注・支払いが補助事業期間内に収まるよう調整。</span>
+          </div>
+          <div class="step">
+            <span class="step-num">5</span>
+            <b>Jグランツ申請</b>
+            <span>申請フォームと必要書類を提出。添付ファイルにパスワードは設定しない。</span>
+          </div>
+          <div class="step">
+            <span class="step-num">6</span>
+            <b>採択後に実行</b>
+            <span>交付申請、交付決定、事業実施、実績報告、確定検査を経て補助金交付。</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Component: screening and risks -->
+      <section data-review-target="screening-risks" data-review-label="審査と落とし穴">
+        <h2>審査で見られることと落とし穴</h2>
+        <div class="check-grid">
+          <div class="check-card">
+            <b>計画の蓋然性</b>
+            <span>補助事業期間内に承継、M&A、PMI、廃業を適切に進められるかが見られます。</span>
+          </div>
+          <div class="check-card">
+            <b>地域経済への貢献</b>
+            <span>雇用維持、地域資源の活用、域外販売、地域波及効果などの説明が重要です。</span>
+          </div>
+          <div class="check-card">
+            <b>費用の妥当性</b>
+            <span>取引価格に対して専門家費用が過大な場合、対象外や減額リスクがあります。</span>
+          </div>
+        </div>
+        <div class="note-box">
+          <b>申請者自身の理解が求められます。</b>
+          <p>公募要領では、Jグランツの入力情報は申請者自身が理解・確認して申請すること、有償の代理作成は行政書士法違反となる可能性があることが示されています。外部支援を使う場合も、成功報酬や契約範囲を自社で確認してください。</p>
+        </div>
+      </section>
+
+      <!-- Component: practical examples -->
+      <section data-review-target="examples" data-review-label="使い方の例">
+        <h2>使い方の例</h2>
+        <div class="frame-grid">
+          <article class="frame-card" data-review-target="example-family" data-review-label="親族内承継の例">
+            <h3>親族内承継で店舗を刷新する</h3>
+            <p>後継者が5年以内に代表を引き継ぐ計画を作り、店舗改装や設備導入で生産性向上を狙うなら、事業承継促進枠を検討します。</p>
+            <span>論点: 認定経営革新等支援機関の確認、3%以上賃上げを狙うか、譲受対価を経費に入れていないか。</span>
+          </article>
+          <article class="frame-card" data-review-target="example-seller" data-review-label="売り手M&Aの例">
+            <h3>小規模事業者が第三者承継を進める</h3>
+            <p>小規模の売り手が仲介会社やM&Aプラットフォームを使って譲渡を進めるなら、小規模売り手支援類型を検討します。</p>
+            <span>論点: 登録FA・仲介業者か、未クロージング時の上限50万円への変更、廃業費併用時の上限150万円。</span>
+          </article>
+          <article class="frame-card" data-review-target="example-buyer" data-review-label="買い手M&Aの例">
+            <h3>買い手がDDと仲介費用を使う</h3>
+            <p>M&A成約に向けてFA・仲介、法務・財務DD、表明保証保険を使うなら、専門家活用枠の買い手支援類型を検討します。</p>
+            <span>論点: 登録FA・仲介業者、DD加算200万円、クロージングしない場合の補助対象経費の限定。</span>
+          </article>
+          <article class="frame-card" data-review-target="example-pmi" data-review-label="PMIの例">
+            <h3>買収後の業務を統合する</h3>
+            <p>買収後に人事、会計、営業、システム、拠点を統合するなら、PMI専門家活用類型または事業統合投資類型を検討します。</p>
+            <span>論点: 専門家費用か設備・外注費かで類型が分かれる。PMI専門家手数料は事業統合投資類型では対象外。</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Component: sources -->
+      <section data-review-target="sources" data-review-label="出典">
+        <h2>出典と確認した内容</h2>
+        <p class="section-intro">
+          このHTMLは2026年6月4日時点の公式情報をもとに作成しました。公募要領は更新される可能性があるため、申請直前に必ず公式サイトの最新版を確認してください。
+        </p>
+        <ul class="source-list">
+          <li>
+            <a href="https://www.chusho.meti.go.jp/koukai/hojyokin/kobo/2026/260522001.html">中小企業庁 第15次公募要領公表ページ</a>
+            <span>受付期間、4枠の概要、補助率・上限の公式サマリー、問い合わせ先を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/">事業承継・M&A補助金 公式サイト</a>
+            <span>第15次公募の各枠ダウンロードページ、FAQ、事務局のお知らせを確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-succession/requirements_succession_15.pdf">事業承継促進枠 公募要領PDF</a>
+            <span>補助事業期間、対象経費、補助上限、賃上げ要件、認定支援機関の確認を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-experts/requirements_experts_15.pdf">専門家活用枠 買い手・売り手支援類型 公募要領PDF</a>
+            <span>FA・仲介、DD、表明保証保険、未クロージング時の上限変更を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-experts/requirements_experts_sb_15.pdf">専門家活用枠 小規模売り手支援類型 公募要領PDF</a>
+            <span>第15次新類型、上限450万円、下限なし、未クロージング時の上限50万円を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-experts/requirements_experts_10bn_15.pdf">専門家活用枠 100億企業特例 公募要領PDF</a>
+            <span>買い手支援類型の上限2,000万円、1,000万円以下と超過部分の補助率を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-pmi/requirements_pmi_experts_15.pdf">PMI専門家活用類型 公募要領PDF</a>
+            <span>PMI専門家費用、補助率1/2、上限150万円、同時申請時の注意を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-pmi/requirements_pmi_investment_15.pdf">PMI事業統合投資類型 公募要領PDF</a>
+            <span>設備費・外注費・委託費、補助上限800万円または1,000万円、対象外経費を確認。</span>
+          </li>
+          <li>
+            <a href="https://shoukei-mahojokin.go.jp/assets/documents/r7h/15-challenge/requirements_challenge_15.pdf">廃業・再チャレンジ枠 公募要領PDF</a>
+            <span>廃業関連費用、単独・併用申請、上限300万円、廃業支援費上限50万円を確認。</span>
+          </li>
+          <li>
+            <a href="https://ma-shienkikan.go.jp/">M&A支援機関登録制度</a>
+            <span>専門家活用枠でFA・仲介費用を補助対象にする際、登録FA・仲介業者が必要になる点を確認。</span>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer data-review-target="footer-note" data-review-label="免責と更新注意">
+      <p>
+        この解説は制度理解と申請準備の整理用です。採択可能性、補助対象経費の最終判断、税務・法務判断を保証するものではありません。実際の申請では、公式公募要領、交付規程、FAQ、採択後の手引書を優先してください。
+      </p>
+    </footer>
+
+    <div class="review-toolbar" aria-label="レビュー操作">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+          <path d="M12 8v6"></path>
+          <path d="M9 11h6"></path>
+        </svg>
+        コメント
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <path d="M7 10l5 5 5-5"></path>
+          <path d="M12 15V3"></path>
+        </svg>
+        改善プロンプト
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" aria-live="polite">
+      <h2>コメント</h2>
+      <div id="review-panel-label" class="review-label"></div>
+      <textarea id="review-text" placeholder="修正したい点を書いてください"></textarea>
+      <div class="review-actions">
+        <button id="review-delete" type="button">削除</button>
+        <button id="review-close" type="button">閉じる</button>
+        <button id="review-save" class="primary" type="button">保存</button>
+      </div>
+    </aside>
+
+    <aside id="review-export-dialog" class="review-export" aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <p class="review-label">コメント位置と対象IDを含むプロンプトです。</p>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </aside>
+
+    <script>
+      (() => {
+        const storageKey = `review-comments:${location.pathname}:${document.title}`;
+        const body = document.body;
+        const toggle = document.getElementById("review-toggle");
+        const exportButton = document.getElementById("review-export");
+        const panel = document.getElementById("review-panel");
+        const panelLabel = document.getElementById("review-panel-label");
+        const textArea = document.getElementById("review-text");
+        const saveButton = document.getElementById("review-save");
+        const deleteButton = document.getElementById("review-delete");
+        const closeButton = document.getElementById("review-close");
+        const exportDialog = document.getElementById("review-export-dialog");
+        const exportText = document.getElementById("review-export-text");
+        const exportClose = document.getElementById("review-export-close");
+        const copyButton = document.getElementById("review-copy");
+        let comments = loadComments();
+        let activeId = null;
+
+        function loadComments() {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        }
+
+        function persist() {
+          localStorage.setItem(storageKey, JSON.stringify(comments));
+        }
+
+        function targetById(targetId) {
+          return document.querySelector(`[data-review-target="${CSS.escape(targetId)}"]`);
+        }
+
+        function renderPins() {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          comments.forEach((comment, index) => {
+            const target = targetById(comment.targetId);
+            if (!target) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin";
+            pin.textContent = String(index + 1);
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `コメント ${index + 1}`);
+            pin.addEventListener("click", (event) => {
+              event.stopPropagation();
+              openPanel(comment.id);
+            });
+            target.appendChild(pin);
+          });
+        }
+
+        function openPanel(commentId) {
+          const comment = comments.find((item) => item.id === commentId);
+          if (!comment) return;
+          activeId = comment.id;
+          panelLabel.textContent = `${comment.label} / x:${Math.round(comment.x)}%, y:${Math.round(comment.y)}%`;
+          textArea.value = comment.text || "";
+          panel.classList.add("open");
+          textArea.focus();
+        }
+
+        function closePanel() {
+          panel.classList.remove("open");
+          activeId = null;
+        }
+
+        function addComment(target, event) {
+          const rect = target.getBoundingClientRect();
+          const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+          const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+          const label = target.dataset.reviewLabel || target.dataset.reviewTarget;
+          const comment = {
+            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            targetId: target.dataset.reviewTarget,
+            label,
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
+            text: ""
+          };
+          comments.push(comment);
+          persist();
+          renderPins();
+          openPanel(comment.id);
+        }
+
+        function buildPrompt() {
+          const records = comments
+            .filter((comment) => (comment.text || "").trim())
+            .map((comment) => ({
+              targetId: comment.targetId,
+              label: comment.label,
+              position: { x: comment.x, y: comment.y },
+              comment: comment.text.trim()
+            }));
+          if (!records.length) {
+            return "このHTML解説に対する改善コメントはまだありません。";
+          }
+          return [
+            "以下のHTML解説を改善してください。コメントは対象IDと相対位置で示しています。",
+            `文書: ${document.title}`,
+            "改善時は、公式情報に基づく正確性、申請者にとっての判断しやすさ、表現の簡潔さを優先してください。",
+            "",
+            JSON.stringify(records, null, 2)
+          ].join("\n");
+        }
+
+        toggle.addEventListener("click", () => {
+          const enabled = !body.classList.contains("review-mode");
+          body.classList.toggle("review-mode", enabled);
+          toggle.setAttribute("aria-pressed", String(enabled));
+          if (!enabled) closePanel();
+        });
+
+        document.addEventListener("click", (event) => {
+          if (!body.classList.contains("review-mode")) return;
+          if (event.target.closest(".review-toolbar, .review-panel, .review-export, .review-pin")) return;
+          const target = event.target.closest("[data-review-target]");
+          if (!target) return;
+          addComment(target, event);
+        });
+
+        saveButton.addEventListener("click", () => {
+          const comment = comments.find((item) => item.id === activeId);
+          if (!comment) return;
+          comment.text = textArea.value;
+          persist();
+          closePanel();
+          renderPins();
+        });
+
+        deleteButton.addEventListener("click", () => {
+          comments = comments.filter((item) => item.id !== activeId);
+          persist();
+          closePanel();
+          renderPins();
+        });
+
+        closeButton.addEventListener("click", closePanel);
+
+        exportButton.addEventListener("click", () => {
+          exportText.value = buildPrompt();
+          exportDialog.classList.add("open");
+          exportText.focus();
+          exportText.select();
+        });
+
+        exportClose.addEventListener("click", () => {
+          exportDialog.classList.remove("open");
+        });
+
+        copyButton.addEventListener("click", async () => {
+          exportText.value = buildPrompt();
+          exportText.focus();
+          exportText.select();
+          try {
+            await navigator.clipboard.writeText(exportText.value);
+            copyButton.textContent = "コピー済み";
+            setTimeout(() => {
+              copyButton.textContent = "コピー";
+            }, 1200);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key !== "Escape") return;
+          body.classList.remove("review-mode");
+          toggle.setAttribute("aria-pressed", "false");
+          closePanel();
+          exportDialog.classList.remove("open");
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>

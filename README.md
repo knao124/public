@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/jigyoshokei-ma-subsidy-20260604.html
 - https://knao124.github.io/public/telework-subsidy-report.html
 - https://knao124.github.io/public/chusho-growth-subsidy-explainer.html
 - https://knao124.github.io/public/claude-code-dynamic-workflows-explanation.html
@@ -31,6 +32,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/jigyoshokei-ma-subsidy-20260604.html` : 事業承継・M&A補助金 第15次公募の制度概要、補助率・上限、申請準備をまとめた解説
 - `/telework-subsidy-report.html` : テレワーク・リモートワーク関連の大型補助金をまとめた調査レポート
 - `/chusho-growth-subsidy-explainer.html` : 中小企業成長加速化補助金の制度概要、1次採択事例、申請書の書き方をまとめた解説
 - `/claude-code-dynamic-workflows-explanation.html` : Claude Code Dynamic workflows の仕組みと使い分けの解説
