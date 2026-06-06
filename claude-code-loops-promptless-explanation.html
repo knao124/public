@@ -108,6 +108,37 @@
         background: #fffbeb;
         border-radius: 6px;
       }
+      .timeline {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .scene {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfcff;
+      }
+      .scene time {
+        display: inline-flex;
+        margin-bottom: 6px;
+        color: var(--accent-2);
+        font-size: 0.9rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+      .scene h3 {
+        font-size: 1.05rem;
+        margin-bottom: 6px;
+      }
+      .quote {
+        margin: 10px 0 0;
+        padding: 10px 12px;
+        border-left: 4px solid var(--accent);
+        background: #eff6ff;
+        border-radius: 6px;
+        color: #1e3a8a;
+      }
       a { color: var(--accent); }
       [data-review-target] { position: relative; }
       body.review-mode [data-review-target] {
@@ -238,7 +269,7 @@
   <body>
     <main>
       <header data-review-target="summary" data-review-label="要約">
-        <p class="muted">Generated: 2026-06-06 12:03 JST</p>
+        <p class="muted">Generated: 2026-06-06 12:03 JST / Updated: 2026-06-06 14:53 JST</p>
         <h1>「ループでプロンプトがいらなくなる」は、何が変わる話か</h1>
         <p><span class="tag">Claude Code / Boris Cherny インタビューの読み解き</span></p>
         <p>
@@ -246,6 +277,182 @@
           人間が毎回その場で命令文を書く代わりに、あらかじめ作ったループが状況を見て、Claudeに渡す次の指示を生成し続ける、という意味です。
         </p>
       </header>
+
+      <section data-review-target="video-detail" data-review-label="動画の具体的な内容">
+        <h2>まず、この動画は何を言っているか</h2>
+        <p>
+          この動画は、AnthropicのBoris Chernyが、Claude Codeの誕生、社内での使われ方、Claude Coworkへ広がった理由、
+          そして「人間が毎回プロンプトを書く」段階から「ループがClaudeに次の仕事を渡す」段階へ移る見通しを話すインタビューです。
+          ただの製品紹介ではなく、AIで組織・職能・プロダクト開発の単位がどう変わるかを、具体例を使って説明しています。
+        </p>
+        <p class="note">
+          以下は逐語全文ではありません。動画の構成・論点・発言例を追い直せるように、時刻、登場する例、主張の順番を残した詳細メモです。
+        </p>
+        <div class="timeline">
+          <article class="scene" data-review-target="video-hook" data-review-label="冒頭の主張">
+            <time>00:00 - 00:19</time>
+            <h3>冒頭で結論を先に出す</h3>
+            <p>
+              Borisは、以前は5から10個ほどのClaudeセッションを並列に動かし、人間がClaudeにコードを書かせるプロンプトを出していた、と話す。
+              しかし今はさらに抽象度が上がり、自分がClaudeへ直接指示するのではなく、ループがClaudeに指示し、何をすべきかもある程度判断しているという。
+              ここで動画全体の中心テーマである「ループを書くことが仕事になる」が提示される。
+            </p>
+            <p class="quote">短い引用: “I don't prompt Claude anymore.” / “My job is to write loops.”</p>
+          </article>
+
+          <article class="scene" data-review-target="video-origin" data-review-label="Claude Codeの起源">
+            <time>00:34 - 01:46</time>
+            <h3>Claude CodeはLabsチームの試作から生まれた</h3>
+            <p>
+              Borisは、2024年後半にAnthropicのLabsチームへ入り、次の大きなプロダクトを探しながら、モデルのフロンティアを押し広げる役割だったと説明する。
+              当時は、モデルにはできることが多いのに、それを受け止める製品がないという「プロダクトの余白」があった。
+              コーディング領域には補完ツールや質問に答えるエージェントはあったが、実際にコードを書くエージェントとしてはまだ弱かった。
+              そこで、思い切ってコーディングエージェントを作ったが、初期版は自分のコードの10から20%程度しか任せられなかった、と振り返る。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-safety" data-review-label="AI安全性とコーディング">
+            <time>01:46 - 04:55</time>
+            <h3>Anthropicがなぜコーディングを重視するか</h3>
+            <p>
+              司会者が、Claude Code以前からAnthropicではコーディングがどれほど重要だったのかを聞く。
+              Borisは、AnthropicはAI safetyの研究のために存在しており、tool use、computer use、codingは研究上ずっと重要だったと答える。
+              モデルは安全性を実験室的に評価するだけでなく、実際に使われる環境でどう振る舞うかを見なければならない。
+              そのためには、人が使いたくなるほど有用にする必要があり、コーディングはモデルが世界と相互作用する自然な用途だという。
+            </p>
+            <p>
+              さらに、コードは詩や翻訳より検証しやすいとも言う。コンパイル、テスト、pass/failがあり、正しい解の空間も比較的制約されている。
+              Hofstadterの話を引き合いに出し、詩の翻訳には美しさや韻律のような曖昧な判断があるが、コーディングは商業的価値も高く、企業顧客にも直結するため、
+              Anthropicのビジネスと安全性研究の両方に合うと説明する。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-model-product" data-review-label="モデル進化と製品改善">
+            <time>05:02 - 08:01</time>
+            <h3>改善の主因はモデルだが、製品側のハーネスも重要</h3>
+            <p>
+              MetaでDevToolsに関わった経験について聞かれると、BorisはDevToolsを本業ではなく、プロダクトを作る途中で自分たちの開発体験をよくするための副産物として作ってきた、と言う。
+              Claude Codeも「まず自分たちのために作り、結果として他人にも役立つものになった」という姿勢で始まった。
+            </p>
+            <p>
+              初期は10%程度しか任せられなかったものが、なぜ半年ほどで「もうコードを書いていない」という状態になったのかという問いに対し、
+              Borisは、根本的にはモデルの性能向上が大きいと答える。加えて、CLIから始まり、デスクトップ、モバイル、iOS/Android、Slack、GitHubなど、
+              エンジニアが好む使い方に合わせて入口を増やしたこと、plan modeなどの機能が生まれたことも説明する。
+              ただし、自分のコードの何割をモデルが書くかという段階的な変化を考えると、最大の変数はモデルだった、という整理になる。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-company-metrics" data-review-label="社内利用と生産性">
+            <time>07:47 - 10:16</time>
+            <h3>Anthropic社内ではClaude Codeがフィードバックループになっている</h3>
+            <p>
+              Anthropicでは、モデル研究者もプロダクト開発者も毎日Claude Codeを使っているため、製品利用の経験がモデル改善にも戻っていく、と説明する。
+              司会者は、外から見るとAnthropicの出荷速度が上がっているように見えるが、どれほどClaude Codeのおかげなのかと聞く。
+              Borisは、売上、利用量、コード量など多くのチャートが指数関数的に伸びているとし、Claude Codeリリース後、コード行数やPull Request数は数百%単位で伸びたと話す。
+              以前共有された「エンジニア1人あたり3倍」という数字も、すでに古いという。
+            </p>
+            <p>
+              さらに、新人の立ち上がり時間の例を出す。通常、組織が大きくなると、新人が既存エンジニアに質問し、その分だけ既存エンジニアの生産性が落ちる。
+              しかしAnthropicでは、データベースの問い合わせ方を聞かれたら、Claude CodeのコードベースでClaudeを開き、データベース問い合わせ用のskillを使わせればよい。
+              そのため、新人のランプアップは数週間ではなく2日程度になった、と説明する。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-abstraction" data-review-label="抽象度の上昇">
+            <time>10:24 - 11:59</time>
+            <h3>「コードを書く」の定義が上のレイヤーへ移っている</h3>
+            <p>
+              司会者が、新しく採用したエンジニアは何人が実際にコードを書いたのかと聞くと、Borisは「何をコードを書くと呼ぶのか」と問い返す。
+              祖父の時代はパンチカード、父の世代はアセンブリ、自分の時代はPythonやIDEの補完だったように、プログラミングは常により高い抽象度へ移ってきたという。
+            </p>
+            <p>
+              1年前はIDEで補完を使いながらコードを書いていたが、ある時期にはIDEを使わなくなってアンインストールした。
+              その後は5から10個のClaudeセッションを並列に動かし、Claudeにコードを書かせること自体が自分のコーディングになった。
+              そして現在は、さらに一段上がり、ループがClaudeに指示し、次に何をすべきかを考える。自分の役割は、そのループを設計することだという。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-generalists" data-review-label="職能の統合">
+            <time>12:01 - 14:27</time>
+            <h3>求める人材は専門職よりgeneralistへ寄っている</h3>
+            <p>
+              Anthropicのエンジニアリングチームに入りたい人をどう評価するか、という問いに対して、BorisはClaude Codeチームではgeneralistを好むと答える。
+              従来のように、ユーザーリサーチャーが話を聞き、デザイナーがモックを作り、PMがスコープし、エンジニアが実装するという分業ではなく、
+              エンジニアがユーザーと話し、スコープし、デザインし、データを引き、ダッシュボードも作るようになっている。
+              役割が溶けて「builder」に近づいている、という主張である。
+            </p>
+            <p>
+              司会者側も、AcquiredのインフラがClaude Codeへ急速に移っている例を出す。
+              音声ポッドキャストをYouTubeに上げるには動画が必要で、以前は黒画面MP4だった。トランスクリプトを入れるとよいが、人間に頼むと1週間かかる。
+              そこでClaude Codeとスクリプトを使い、音声からトランスクリプト付きの動画素材を作るような流れが生まれた、という例が出る。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-cowork" data-review-label="Claude Coworkの起源">
+            <time>14:35 - 18:21</time>
+            <h3>Claude Coworkは「ターミナルを開きたくない人」への拡張</h3>
+            <p>
+              Claude Coworkの話では、司会者が「Claude Codeの力は欲しいが、ターミナルやnpmやコマンドを扱いたくない人のほうが市場は大きいのでは」と聞く。
+              Borisは、最初はClaude Codeがターミナル専用だったにもかかわらず、データサイエンティストが自力でNode.js、Claude Code、API keyを用意し、データ分析に使っていた例を話す。
+              翌週には複数のデータサイエンティストが複数のClaude Codeウィンドウで分析していたという。
+            </p>
+            <p>
+              さらに、Twitter上でClaude Codeをトマト栽培に使う人を見たことが、非エンジニアにも広がり始めた兆候だったと話す。
+              需要が強くなったので製品化を検討し、Claude Coworkは8日から9日ほどで作られ、しかも100% Claude Codeを使って作られたという。
+              SlackベースやWebベースの試作も試したが、Slack botは気持ちよく作るのが難しく、ブラウザ内だけだとファイルシステムや手元のツールに触れないため、よい感触にならなかったと説明する。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-tools" data-review-label="ツール利用と世界への接続">
+            <time>18:34 - 20:23</time>
+            <h3>モデルはコードとツールを通じて世界に触る</h3>
+            <p>
+              司会者は、Claudeのチャット画面でも大量のPython、HTML、CSS、JavaScriptが生成され、Claude Codeという製品を直接使わずにClaude Code的な処理が行われていると話す。
+              Borisは、リアルタイム推論で計算するのか、モデルにプログラムを書かせて繰り返し実行できるようにするのか、という見方を示し、できるだけ後者へ寄せたいと説明する。
+            </p>
+            <p>
+              初期のClaude Codeにはbash toolを渡しただけだったが、モデルはその使い方を自力で把握したという。
+              たとえば「今何の音楽を聴いているか」と聞くと、bash toolを開き、AppleScriptを書く小さなプログラムを作り、音楽プレイヤーを調べて曲名を返した。
+              Borisは、モデルはソフトウェアとして存在し、世界とやり取りする自然な言語がコードであり、ツール使用はモデルがやりたがることだと説明する。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-org" data-review-label="組織設計">
+            <time>20:23 - 24:56</time>
+            <h3>組織では肩書きより実験量とトークンを増やす</h3>
+            <p>
+              文化と組織設計の話では、Anthropicの「Member of Technical Staff」という肩書きについて聞かれる。
+              Borisは、最初はSlackで相手がデザイナーなのかエンジニアなのかわからず不便だったが、いまは好ましいと考えている。
+              seniorやprincipalのような肩書きがあると、悪いアイデアでも周囲が遠慮して従うことがある。肩書きで上下を強めず、同じ土俵で反論できる文化が重要だという。
+            </p>
+            <p>
+              また、経験20年や30年のエンジニアは古い習慣をunlearnする必要がある一方、新卒がClaude Codeの使い方で自分に新しいことを教える場合もあると話す。
+              創業者や企業への助言としては、全員にできるだけ多くのトークンを与えて実験させること、4人必要に見える仕事に2人を置き、残りは自動化とトークンで解かせることを提案する。
+              その結果、初期コストは上がるが、繰り返し作業が自動化され、継続コストは下がるという考え方である。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-taste" data-review-label="tasteと価値観">
+            <time>25:20 - 29:12</time>
+            <h3>最後はproduct tasteも浸食され、valuesが残る</h3>
+            <p>
+              職能については、PM、デザイナー、エンジニアのような肩書きへの誇りが揺らぐのでは、という問いが出る。
+              Borisは、自分自身もエンジニアでありながら、事業、プロダクト、ユーザーリサーチ、デザインの帽子をかぶってきたので、いまはgeneralistの黄金期だと答える。
+            </p>
+            <p>
+              tasteについて聞かれると、Borisは、自分には関数型プログラミングが好きで、コードベースにクラスを入れたくないという趣味があったが、
+              モデルがコードを書くようになるとクラスも書くようになり、結果としてビジネス成果が速く達成され、コードも悪くなかったと話す。
+              つまり、自分のtasteが特別だと思うたびに、モデルにそれを相対化されるという。
+            </p>
+            <p>
+              現在は「プロダクトのtaste」が人間側の優位性だと言われるが、それも将来的には消えていく可能性があると見る。
+              すでに数百のClaudeセッションがTwitterの反応、GitHub issue、Slackなどを見て次に作るものを探しており、今は良いアイデアが一部でも、
+              数カ月後には多くが良くなるかもしれないという。最後に、人間がモデルに教える最終的なものはvalues、つまりよいモデルであるための価値観だと締める。
+            </p>
+            <p class="quote">短い引用: “product taste”</p>
+          </article>
+        </div>
+      </section>
 
       <section data-review-target="before-reading" data-review-label="前提">
         <h2>前提: ここでのループは単なる while 文ではない</h2>
