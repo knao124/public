@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Codeの「ループでプロンプトがいらなくなる」を読む</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --ink: #1f2937;
+        --muted: #64748b;
+        --line: #d8dee9;
+        --accent: #2563eb;
+        --accent-2: #0f766e;
+        --warn: #f59e0b;
+        --soft: #eef2f7;
+        --code: #f3f4f6;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+        line-height: 1.75;
+      }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 40px 20px 96px;
+      }
+      header, section, footer {
+        position: relative;
+        margin: 0 0 16px;
+        padding: 24px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      }
+      h1, h2, h3 { line-height: 1.35; margin: 0 0 12px; }
+      h1 { font-size: clamp(1.7rem, 3vw, 2.4rem); }
+      h2 { font-size: 1.35rem; }
+      p { margin: 0 0 12px; }
+      ul, ol { margin: 0; padding-left: 1.35rem; }
+      li + li { margin-top: 8px; }
+      code {
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.1em 0.35em;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      pre {
+        overflow-x: auto;
+        margin: 12px 0 0;
+        padding: 16px;
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        line-height: 1.55;
+      }
+      .muted { color: var(--muted); }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #075985;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfcff;
+      }
+      .box h3 { font-size: 1rem; }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .step {
+        min-height: 112px;
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--accent-2);
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8fafc;
+      }
+      .step strong { display: block; margin-bottom: 6px; }
+      .note {
+        border-left: 4px solid var(--warn);
+        padding: 12px 14px;
+        background: #fffbeb;
+        border-radius: 6px;
+      }
+      a { color: var(--accent); }
+      [data-review-target] { position: relative; }
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(37, 99, 235, 0.45);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--ink);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--warn);
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .review-comment {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      .review-comment p { white-space: pre-wrap; }
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      [hidden] { display: none !important; }
+      @media (max-width: 720px) {
+        main { padding: 24px 12px 96px; }
+        header, section, footer { padding: 18px; }
+        .grid, .flow { grid-template-columns: 1fr; }
+        .review-toolbar { left: 12px; right: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="要約">
+        <p class="muted">Generated: 2026-06-06 12:03 JST</p>
+        <h1>「ループでプロンプトがいらなくなる」は、何が変わる話か</h1>
+        <p><span class="tag">Claude Code / Boris Cherny インタビューの読み解き</span></p>
+        <p>
+          結論から言うと、「プロンプトが不要になる」は、人間の意図が不要になるという意味ではありません。
+          人間が毎回その場で命令文を書く代わりに、あらかじめ作ったループが状況を見て、Claudeに渡す次の指示を生成し続ける、という意味です。
+        </p>
+      </header>
+
+      <section data-review-target="before-reading" data-review-label="前提">
+        <h2>前提: ここでのループは単なる while 文ではない</h2>
+        <p>
+          ここでの「ループ」は、コード上の反復処理だけを指していません。実務上は、目的・入力・判定基準・実行手段を持った小さなワークフローです。
+          たとえば「GitHub issueを読む、候補タスクを選ぶ、Claudeに実装方針を作らせる、結果を確認する、ダメなら次の修正指示を出す」までを回す単位です。
+        </p>
+        <p class="note">
+          つまり、プロンプトを書く場所が「チャット欄」から「ループの設計」に移ります。
+        </p>
+      </section>
+
+      <section data-review-target="stage-model" data-review-label="段階モデル">
+        <h2>3段階で見るとわかりやすい</h2>
+        <div class="grid">
+          <article class="box" data-review-target="stage-manual" data-review-label="段階1: 手作業">
+            <h3>1. 人がコードを書く</h3>
+            <p>IDEで人間が主にコードを書く。AIは補完や相談役。AIへの指示は補助的です。</p>
+          </article>
+          <article class="box" data-review-target="stage-prompting" data-review-label="段階2: 人がプロンプトを書く">
+            <h3>2. 人がClaudeに都度指示する</h3>
+            <p>人間が「この関数を直して」「テストを追加して」と毎回プロンプトを書く。複数のClaudeセッションを並列に動かすこともあります。</p>
+          </article>
+          <article class="box" data-review-target="stage-looping" data-review-label="段階3: ループがプロンプトを書く">
+            <h3>3. ループがClaudeに次の指示を出す</h3>
+            <p>人間が毎回プロンプトを書くのではなく、ループが状況を読み、次にClaudeへ渡す仕事を作ります。</p>
+          </article>
+          <article class="box" data-review-target="stage-design" data-review-label="人間の仕事">
+            <h3>人間の仕事は消えない</h3>
+            <p>人間は「何を回すか」「成功条件は何か」「止める条件は何か」を設計します。Borisの言う仕事はここです。</p>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="loop-flow" data-review-label="ループの中身">
+        <h2>ループの中身</h2>
+        <p>典型的には、次の4つが回ります。</p>
+        <div class="flow">
+          <div class="step" data-review-target="flow-observe" data-review-label="観察">
+            <strong>1. 観察</strong>
+            Issue、PR、Slack、ログ、テスト結果、ユーザーフィードバックなどを見る。
+          </div>
+          <div class="step" data-review-target="flow-decide" data-review-label="判断">
+            <strong>2. 判断</strong>
+            何をClaudeに任せるか、どの情報を渡すか、どの順で処理するかを決める。
+          </div>
+          <div class="step" data-review-target="flow-prompt" data-review-label="指示生成">
+            <strong>3. 指示生成</strong>
+            Claudeに渡すプロンプト、制約、期待出力、検証方法を組み立てる。
+          </div>
+          <div class="step" data-review-target="flow-check" data-review-label="確認">
+            <strong>4. 確認</strong>
+            結果をテスト・レビュー・差分・メトリクスで見て、次の周回へ進むか止める。
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="example" data-review-label="具体例">
+        <h2>具体例: 「バグを直して」と毎回言わない</h2>
+        <p>人が都度プロンプトを書く場合はこうなります。</p>
+        <pre data-review-target="manual-example" data-review-label="手動プロンプト例"><code>このissueを読んで原因を推測して。
+次に該当ファイルを探して。
+修正案を出して。
+テストを書いて。
+失敗したのでログを見て直して。</code></pre>
+        <p>ループ化すると、人は次のような設計をします。</p>
+        <pre data-review-target="loop-example" data-review-label="ループ設計例"><code>目的: 未解決issueから小さなバグ修正候補を見つける
+入力: GitHub issue、直近ログ、関連テスト、既存コード
+Claudeへの依頼: 原因仮説、修正案、テスト案、差分レビュー
+検証: テストが通る、差分が小さい、仕様逸脱がない
+停止条件: 2回失敗、影響範囲が大きい、権限が必要、人間レビューが必要</code></pre>
+        <p>
+          この状態になると、人間は毎回「次はログを見て」「次はテストして」と書かなくてもよくなります。
+          ループが失敗結果を見て、次のClaudeへの依頼を作るからです。
+        </p>
+      </section>
+
+      <section data-review-target="why-it-feels-promptless" data-review-label="プロンプト不要に見える理由">
+        <h2>なぜ「プロンプトがいらない」ように見えるのか</h2>
+        <ul>
+          <li>人間が書く単発プロンプトは減る。代わりに、ループが毎回の依頼文を作る。</li>
+          <li>人間は作業単位ではなく、仕組み単位で指示する。「このPRを直して」ではなく「この種類のPR修正を回す」です。</li>
+          <li>複数セッションを同時に動かせる。各Claudeは個別のタスクを処理し、ループが結果を集めます。</li>
+          <li>価値が出るのは、Claudeの能力だけでなく、観察・制約・検証・停止条件をどう組むかです。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="not-magic" data-review-label="誤解しやすい点">
+        <h2>ただし、魔法ではない</h2>
+        <p>ループ化しても、人間の判断が完全に消えるわけではありません。むしろ設計責任は上流に移ります。</p>
+        <ul>
+          <li>悪いループは、悪いプロンプトを高速に大量生産します。</li>
+          <li>成功条件が曖昧だと、Claudeは「それっぽい進捗」を作りやすいです。</li>
+          <li>止める条件がないと、誤った方向に自動で進み続けます。</li>
+          <li>権限、セキュリティ、顧客影響がある作業は、人間レビューをループに組み込む必要があります。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="how-to-use" data-review-label="実務で試す順番">
+        <h2>実務で試すなら、小さいループから</h2>
+        <ol>
+          <li>まず「繰り返し発生するが、失敗しても被害が小さい作業」を選ぶ。</li>
+          <li>Claudeに渡す材料を固定する。例: issue本文、関連ファイル、テストログ。</li>
+          <li>期待出力を固定する。例: 原因仮説、修正案、検証コマンド、リスク。</li>
+          <li>検証と停止条件を先に決める。例: テスト失敗2回で停止、人間レビュー必須。</li>
+          <li>結果を見て、プロンプトではなくループ設計を直す。</li>
+        </ol>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参照">
+        <h2>参照したもの</h2>
+        <p>
+          Source: <a href="https://x.com/0xCodez/status/2062464183409545224?s=20">X投稿の動画</a>。
+          音声から作成したローカルトランスクリプト: <code>/tmp/x-2062464183409545224-transcript-corrected.txt</code>。
+        </p>
+        <p class="muted">
+          根拠箇所: 11:37-11:54 付近で、都度Claudeへ指示する段階から、ループがClaudeへ指示する段階への移行を説明している。
+          28:10 付近では、多数のClaudeセッションがフィードバックやGitHub issueなどを見て次に作るものを探す、という使い方が語られている。
+        </p>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = {
+          comments: load().map(normalize).filter((comment) => byId.has(comment.target)),
+          activeCommentId: null,
+          draft: null,
+        };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            /* localStorage may be unavailable for file URLs in some browsers. */
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            state.comments.push({
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              target: current.target,
+              x: current.x,
+              y: current.y,
+              text,
+            });
+          }
+          state.activeCommentId = null;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          const text = $("#review-export-text").value;
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            $("#review-export-text").focus();
+            $("#review-export-text").select();
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>

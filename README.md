@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/claude-code-loops-promptless-explanation.html
 - https://knao124.github.io/public/honsya-iten-hojokin-20260604.html
 - https://knao124.github.io/public/jigyoshokei-ma-subsidy-20260604.html
 - https://knao124.github.io/public/telework-subsidy-report.html
@@ -33,6 +34,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/claude-code-loops-promptless-explanation.html` : Claude Code の「ループでプロンプトがいらなくなる」考え方を読み解く解説
 - `/honsya-iten-hojokin-20260604.html` : 本社移転で狙える大型補助金・優遇策を、横浜・鎌倉・逗子・千代田・品川の候補も含めてまとめた解説
 - `/jigyoshokei-ma-subsidy-20260604.html` : 事業承継・M&A補助金 第15次公募の制度概要、補助率・上限、申請準備をまとめた解説
 - `/telework-subsidy-report.html` : テレワーク・リモートワーク関連の大型補助金をまとめた調査レポート
