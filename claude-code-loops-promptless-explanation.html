@@ -269,14 +269,29 @@
   <body>
     <main>
       <header data-review-target="summary" data-review-label="要約">
-        <p class="muted">Generated: 2026-06-06 12:03 JST / Updated: 2026-06-06 14:53 JST</p>
+        <p class="muted">Generated: 2026-06-06 12:03 JST / Updated: 2026-06-06 15:08 JST</p>
         <h1>「ループでプロンプトがいらなくなる」は、何が変わる話か</h1>
         <p><span class="tag">Claude Code / Boris Cherny インタビューの読み解き</span></p>
         <p>
-          結論から言うと、「プロンプトが不要になる」は、人間の意図が不要になるという意味ではありません。
-          人間が毎回その場で命令文を書く代わりに、あらかじめ作ったループが状況を見て、Claudeに渡す次の指示を生成し続ける、という意味です。
+          この記事は、Xに投稿された約30分のClaude Code関連インタビュー動画を、音声トランスクリプトをもとに読み解くためのメモです。
+          前半では動画全体で何が語られたかを時刻付きで再構成し、後半では中心論点である「人間が毎回プロンプトを書く段階」から
+          「ループがClaudeに次の仕事を渡す段階」への移行を、実務でどう理解すればよいかに分解します。
+          単なる要約ではなく、Boris Chernyが出した数字、社内利用例、Claude Coworkの背景、組織設計への示唆まで追えるようにしています。
         </p>
       </header>
+
+      <section data-review-target="source-x" data-review-label="引用元のX投稿">
+        <h2>引用元のX投稿</h2>
+        <p>
+          引用元は、Codez（<code>@0xCodez</code>）によるX投稿
+          <a href="https://x.com/0xCodez/status/2062464183409545224?s=20">https://x.com/0xCodez/status/2062464183409545224?s=20</a>
+          に添付された動画です。投稿IDは <code>2062464183409545224</code> です。
+        </p>
+        <p>
+          投稿本文では、Claude Code creatorが「もうClaudeにプロンプトしていない。ループを書いている」という趣旨を話している動画として紹介されています。
+          このページでは、その投稿に添付された約29分52秒の動画から音声を取得し、ローカルで作成した英語トランスクリプトをもとに内容を整理しています。
+        </p>
+      </section>
 
       <section data-review-target="video-detail" data-review-label="動画の具体的な内容">
         <h2>まず、この動画は何を言っているか</h2>
@@ -562,10 +577,9 @@ Claudeへの依頼: 原因仮説、修正案、テスト案、差分レビュー
         </ol>
       </section>
 
-      <footer data-review-target="references" data-review-label="参照">
-        <h2>参照したもの</h2>
+      <footer data-review-target="references" data-review-label="補足">
+        <h2>補足</h2>
         <p>
-          Source: <a href="https://x.com/0xCodez/status/2062464183409545224?s=20">X投稿の動画</a>。
           音声から作成したローカルトランスクリプト: <code>/tmp/x-2062464183409545224-transcript-corrected.txt</code>。
         </p>
         <p class="muted">
