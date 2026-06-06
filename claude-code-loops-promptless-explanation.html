@@ -47,12 +47,18 @@
       p { margin: 0 0 12px; }
       ul, ol { margin: 0; padding-left: 1.35rem; }
       li + li { margin-top: 8px; }
+      a {
+        color: var(--accent);
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
       code {
         background: var(--code);
         border: 1px solid var(--line);
         border-radius: 6px;
         padding: 0.1em 0.35em;
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        overflow-wrap: anywhere;
       }
       pre {
         overflow-x: auto;
@@ -62,6 +68,14 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         line-height: 1.55;
+      }
+      pre code {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        border: 0;
+        padding: 0;
+        overflow-wrap: normal;
       }
       .muted { color: var(--muted); }
       .tag {
@@ -139,7 +153,6 @@
         border-radius: 6px;
         color: #1e3a8a;
       }
-      a { color: var(--accent); }
       [data-review-target] { position: relative; }
       body.review-mode [data-review-target] {
         outline: 2px dashed rgba(37, 99, 235, 0.45);
