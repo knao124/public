@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Codeをオートパイロット化する: /loop、Routines、agentsを読む</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --ink: #1f2937;
+        --muted: #64748b;
+        --line: #d8dee9;
+        --accent: #2563eb;
+        --accent-2: #0f766e;
+        --warn: #f59e0b;
+        --soft: #eef2f7;
+        --code: #f3f4f6;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+        line-height: 1.75;
+      }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 40px 20px 96px;
+      }
+      header, section, footer {
+        position: relative;
+        margin: 0 0 16px;
+        padding: 24px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      }
+      h1, h2, h3 { line-height: 1.35; margin: 0 0 12px; }
+      h1 { font-size: clamp(1.7rem, 3vw, 2.4rem); }
+      h2 { font-size: 1.35rem; }
+      p { margin: 0 0 12px; }
+      ul, ol { margin: 0; padding-left: 1.35rem; }
+      li + li { margin-top: 8px; }
+      a {
+        color: var(--accent);
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      code {
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.1em 0.35em;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        overflow-wrap: anywhere;
+      }
+      pre {
+        overflow-x: auto;
+        margin: 12px 0 0;
+        padding: 16px;
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        line-height: 1.55;
+      }
+      pre code {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        border: 0;
+        padding: 0;
+        overflow-wrap: normal;
+      }
+      .muted { color: var(--muted); }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #075985;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfcff;
+      }
+      .box h3 { font-size: 1rem; }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .step {
+        min-height: 112px;
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--accent-2);
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8fafc;
+      }
+      .step strong { display: block; margin-bottom: 6px; }
+      .note {
+        border-left: 4px solid var(--warn);
+        padding: 12px 14px;
+        background: #fffbeb;
+        border-radius: 6px;
+      }
+      .timeline {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .scene {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfcff;
+      }
+      .scene time {
+        display: inline-flex;
+        margin-bottom: 6px;
+        color: var(--accent-2);
+        font-size: 0.9rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+      .scene h3 {
+        font-size: 1.05rem;
+        margin-bottom: 6px;
+      }
+      .quote {
+        margin: 10px 0 0;
+        padding: 10px 12px;
+        border-left: 4px solid var(--accent);
+        background: #eff6ff;
+        border-radius: 6px;
+        color: #1e3a8a;
+      }
+      [data-review-target] { position: relative; }
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(37, 99, 235, 0.45);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--ink);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--warn);
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .review-comment {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      .review-comment p { white-space: pre-wrap; }
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      [hidden] { display: none !important; }
+      @media (max-width: 720px) {
+        main { padding: 24px 12px 96px; }
+        header, section, footer { padding: 18px; }
+        .grid, .flow { grid-template-columns: 1fr; }
+        .review-toolbar { left: 12px; right: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="要約">
+        <p class="muted">Generated: 2026-06-06 21:06 JST</p>
+        <h1>Claude Codeをオートパイロット化する: /loop、Routines、agentsの意味</h1>
+        <p><span class="tag">Claude Code / Boris Cherny Q&amp;Aの読み解き</span></p>
+        <p>
+          この記事は、Xに投稿された約24分15秒のClaude Code関連動画を、音声トランスクリプトをもとに記事化したものです。
+          テーマは、Claude Codeを「人間が毎回プロンプトする開発支援ツール」として使う段階から、
+          <code>/loop</code>、server-side routines、subagents、MCP、Computer Useを組み合わせ、
+          反復・並列・監視・報告まで自動で回す基盤として使う段階へ移っている、という話です。
+          前半では動画の発言順を時刻付きで追い、後半では実務でどう設計に落とすかを整理します。
+        </p>
+      </header>
+
+      <section data-review-target="source-x" data-review-label="引用元のX投稿">
+        <h2>引用元のX投稿</h2>
+        <p>
+          引用元は、Movez（<code>@0xMovez</code>）によるX投稿
+          <a href="https://x.com/0xMovez/status/2062970118033023115?s=20">https://x.com/0xMovez/status/2062970118033023115?s=20</a>
+          に添付された動画です。投稿IDは <code>2062970118033023115</code> です。
+        </p>
+        <p>
+          投稿は、Boris Chernyが日常のClaude Code運用として、Claude、loops、routines、agents、dynamic workflowsをどう組み合わせているかを紹介する内容です。
+          表示上は、Codez（<code>@0xCodez</code>）による、<code>/loop</code> とRoutinesを使ってClaudeを自動運用する趣旨の記事カードを引用した投稿として見えます。
+        </p>
+      </section>
+
+      <section data-review-target="video-detail" data-review-label="動画の具体的な内容">
+        <h2>まず、この動画は何を言っているか</h2>
+        <p>
+          動画の中核は、Borisが自分の仕事を「Claudeに一つずつ命令すること」から
+          「Claudeが次の仕事を自動で見つけ、繰り返し実行し、必要ならSlackやCIやPRへ戻す仕組みを作ること」へ移している、という説明です。
+          その具体例として、5から10個ほどのClaudeセッション、各セッション配下の多数のagents、夜間に走る深い作業、PR監視、CI修復、Twitterフィードバックのクラスタリングが挙げられます。
+        </p>
+        <p class="note">
+          以下は逐語全文ではありません。動画を再構成できるように、時刻、話題の順序、出てきた数字、例、主張のつながりを残した詳細メモです。
+          公開ページにはフルトランスクリプトを載せず、短い引用だけにしています。
+        </p>
+        <div class="timeline">
+          <article class="scene" data-review-target="video-hook" data-review-label="冒頭のループ説明">
+            <time>00:00 - 00:35</time>
+            <h3>冒頭で /loop の正体を説明する</h3>
+            <p>
+              Borisは、最近もっとも使うようになったものとして <code>/loop</code> を挙げる。
+              仕組みは難しいものではなく、Claudeにcronを使わせ、未来の時点に繰り返しジョブを予約させるものだと説明する。
+              そのうえで、自分は通常5から10個ほどのセッションを持ち、各セッションに複数のagentsがいて、現在は数百agentsが動いているという。
+              夜にはさらに深い作業をさせるため、数千単位のagentsが走ることもある、という導入になっている。
+            </p>
+            <p class="quote">短い引用: “What I mostly use now is loops.”</p>
+          </article>
+
+          <article class="scene" data-review-target="video-intro" data-review-label="登壇の導入">
+            <time>00:37 - 02:19</time>
+            <h3>会場の利用状況を確認し、Borisの背景を置く</h3>
+            <p>
+              司会者は、会場の多くがClaude Codeを使っていることを確認し、Borisを「builderの作り方を変えている人物」として紹介する。
+              Borisは長年コードを書き、TypeScriptの本も書いた人物だが、2026年に入ってから自分ではほとんどコードを書いていない、という文脈が置かれる。
+              会場にはCLI、desktop、VS Code、JetBrains IDEなどの利用状況を挙手で聞き、Boris自身は最近iOS利用が中心だと補足する。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-origin" data-review-label="Claude Codeの起源">
+            <time>02:19 - 04:43</time>
+            <h3>Claude Codeは「次のモデル」を待つプロダクトとして始まった</h3>
+            <p>
+              Borisは、2024年後半にAnthropic Labsという小さなインキュベータ的チームへ入り、そこでClaude Code、MCP、desktop appが作られたと説明する。
+              当時の問題意識は、モデルにはできることがあるのに、それを製品がまだ受け止めていない「product overhang」だった。
+              コーディングでは、IDEの補完で一行ずつTabで進める体験が主流だったが、Borisたちは、agentがコード全体を書く段階へ進めるはずだと見た。
+            </p>
+            <p>
+              ただし、最初の半年はほとんど機能せず、Boris自身のコードでも10%程度しか任せられなかった。
+              初期リリース時も爆発的成長ではなく、Opus 4が出た2025年5月ごろから伸びが始まり、その後のモデル更新ごとに加速したという。
+              つまり、現在のClaude Codeは、まだPMFしていない時期に「次のモデルなら成立する」と見込んで作った製品だった、という説明である。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-coding-solved" data-review-label="coding is solvedの意味">
+            <time>04:49 - 06:32</time>
+            <h3>「coding is solved」は、Boris本人の作業では100%に近いという意味</h3>
+            <p>
+              司会者が、Borisの「coding is solved」という発言の意味を尋ねる。
+              Borisは会場に、手書き100%の人、agentで100%書く人、その中間の人を挙手させ、会場としてはまだ半分程度だと見る。
+              しかし自分にとっては100%であり、Claude CodeのコードベースはTypeScriptとReactで、モデルにとって分布上よく見た領域なので相性がよかったと説明する。
+            </p>
+            <p>
+              Claude Codeチームでは2025年10月から11月ごろには、モデルがコードの100%を書ける状態になったという。
+              Boris自身は通常、1日に数十PRを出し、前週には試しに1日150PRまで押し上げた日があった。
+              一方で、大きく複雑なコードベース、珍しい言語、モデルが苦手な領域ではまだ解けていないため、一般論として完全に終わったとは言っていない。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-personal-setup" data-review-label="個人セットアップ">
+            <time>06:32 - 08:30</time>
+            <h3>個人セットアップは phone、sessions、agents、loops、routinesで構成される</h3>
+            <p>
+              Borisは、自分の現在の仕事の多くをスマホから行っていると話す。
+              Claudeアプリの左側にcode tabがあり、そこに複数のセッションが並ぶ。
+              通常は5から10セッション、それぞれにagentsがぶら下がり、数百agentsが常時動き、夜には数千agentsが深い作業をする。
+            </p>
+            <p>
+              その管理方法として、まずsubagentsに仕事を分担させる使い方があり、さらに最近は <code>/loop</code> を多用しているという。
+              <code>/loop</code> は、Claudeがcronで繰り返しジョブを作り、1分ごと、5分ごと、毎日など任意の周期で実行する。
+              Borisは、PRを見守ってCI修復やrebaseをするloop、CI全体を健全に保つloop、Twitterのフィードバックを30分ごとに集めてクラスタリングするloopなどを動かしている。
+              Routinesはこのserver-side版で、ラップトップを閉じても継続する、と説明される。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-teams" data-review-label="チームの変化">
+            <time>08:31 - 10:05</time>
+            <h3>チームは専門職の寄せ集めから、越境するgeneralistへ寄る</h3>
+            <p>
+              将来のチーム像について、Borisは予測は難しいと前置きしながら、generalistが増えると話す。
+              ここで言うgeneralistは、iOS、web、serverを横断するだけのエンジニアではない。
+              product、design、data science、engineeringをまたぐcross-disciplinaryな人のことだという。
+            </p>
+            <p>
+              Claude Codeチームでは、engineering manager、product manager、designer、data scientist、finance担当、user researcherまで全員がコードを書く。
+              各人が専門性を持ちながら、Claude Codeを使って実装・分析・検証に入る。
+              そのため、従来の「PMが仕様を書き、designerがモックを作り、engineerが実装する」という線引きは薄くなる。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-saas" data-review-label="SaaSpocalypse">
+            <time>10:06 - 12:38</time>
+            <h3>SaaSpocalypseは、既存SaaSの防御力を部分的に崩す</h3>
+            <p>
+              コードを書くコストが10倍から100倍安くなるとSaaSの価値はどうなるのか、という問いに対し、Borisは「Seven Powers」の枠組みで答える。
+              AIによって、switching costsは弱まる。モデルが移行作業やデータ変換を助けるため、ある製品から別製品へ乗り換えやすくなるからである。
+              process powerも弱まる。従来は複雑な業務フロー自体が参入障壁だったが、Claudeがプロセスを理解し、目標まで反復できるようになるからである。
+            </p>
+            <p>
+              一方で、network effects、scale economies、cornered resourcesのような力はAIで簡単には消えない。
+              もう一つの大きな変化として、今後10年で既存企業を破壊するスタートアップの数が10倍規模に増える可能性を挙げる。
+              大企業は既存プロセス、人材再教育、社内抵抗を抱えるが、新しいチームはAI-nativeな業務前提で最初から組めるため、正面から競争できるという見立てである。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-model-product" data-review-label="モデルとプロダクト">
+            <time>12:48 - 14:35</time>
+            <h3>成功要因はモデルだけではないが、モデル進化でharnessの比重は下がる</h3>
+            <p>
+              Claude Codeの成功がモデルによるものか、プロダクト判断によるものかを聞かれ、Borisは混合だと答える。
+              半年前ならモデルとプロダクトは50対50くらいだったかもしれない、という見方を示す。
+              彼はYCで繰り返し言われる「人が愛するものを作る」という原則に触れ、全日使っても気持ちよい細部が必要だと説明する。
+            </p>
+            <p>
+              ただし、モデルが強くなるほどharnessの重要性は下がる。
+              これからの製品側の仕事は、loopsをfirst-classにすること、たくさんのagentsを走らせやすくすること、subagentsなどの抽象を自然にすることへ移る。
+              さらに将来は、prompt injection対策、静的なコマンド検証、permission mode、human in the loopのような安全機構も、モデルの整合性が上がるほど今より比重が下がる、という予測を述べる。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-democratization" data-review-label="ソフトウェアの民主化">
+            <time>14:42 - 17:02</time>
+            <h3>ソフトウェア作成は読み書きのような一般技能になる</h3>
+            <p>
+              会場から、Claude Codeはソフトウェア作成を文化的に民主化したのではないか、と質問が出る。
+              Borisは強く同意し、将来のソフトウェア作成はMicrosoft Officeを使えるという程度ではなく、テキストメッセージを送れるくらい一般的な技能になると見る。
+            </p>
+            <p>
+              彼は1400年代ヨーロッパの印刷機を例に出す。
+              印刷機以前は読み書きできる人が限られ、本は高価だったが、印刷によって出版量が爆発し、本のコストが下がり、識字率が長期的に上がった。
+              同じことがソフトウェアで、しかももっと速く起きるという見立てである。
+              その帰結として、会計ソフトを作る最適な人はエンジニアではなく会計士になるかもしれない。
+              コーディングが簡単になると、難しいのはドメイン理解だからである。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-anthropic-lead" data-review-label="Anthropicの先行性">
+            <time>17:03 - 18:52</time>
+            <h3>Anthropicのリードはモデル秘密ではなく、組織プロセスにある</h3>
+            <p>
+              Anthropicは社内で先のモデルやagentを使っているから未来にいるのか、という質問に対し、Borisは社内でも基本的に外部ユーザーと同じモデルを使うと答える。
+              dogfoodingを重視しており、自分たちが出しているものを自分たちで使う。
+              モデル側のギャップより、プロダクト側・組織側のギャップのほうが大きいという整理になる。
+            </p>
+            <p>
+              AnthropicではClaudeを文字通りあらゆる作業に使っており、Claude同士がSlackで会話し、loopで動く別のClaudeに不明点を聞くこともある。
+              手書きコードは社内にほぼなく、SQLもモデルが書く。
+              先行しているのは技術アクセスではなく、仕事の進め方、組織構造、プロセスをモデル前提に変えていることだという。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-multi-agent" data-review-label="multi-agentとharness">
+            <time>18:52 - 20:21</time>
+            <h3>multi-agentは、製品側のプロンプトとモデル側の自然な並列化で進む</h3>
+            <p>
+              会場から、<code>/batch</code>、<code>/loop</code>、sub-teams、teamsのようなmulti-agent機能について質問が出る。
+              Borisは、製品側ではモデルが並列作業しやすいようにプロンプトを調整している、と説明する。
+              ただし、モデルが強くなると、並列化は自然に起きるようになるとも言う。
+            </p>
+            <p>
+              例として、データクエリを依頼したとき、モデルがデータの時間変化に気づき、loopを開始して30分ごとにレポートすると判断する場面が出る。
+              そのレポートをSlackで送ってほしいと言うと、Slack MCPを使って送る。
+              Borisの見方では、ユーザーが道具の持ち方を学ぶ負担を負うのではなく、モデルと製品が自然にそうできるべきである。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-cloud-local" data-review-label="cloudとlocal">
+            <time>20:21 - 21:31</time>
+            <h3>cloudかlocalかは、最終的にモデルが判断する</h3>
+            <p>
+              クラウド上のClaudeやCodexに頼る流れと、ローカルagentやopen weight modelを使う流れのどちらへ向かうのか、という質問が出る。
+              Borisは、根本的にはそれは重要でなくなる、と答える。
+              数年後にはモデルがコードを書き、agentを起動し、環境を作るようになり、必要ならローカルモデルを使うと自分で判断するからだという。
+            </p>
+            <p>
+              つまり、どの計算資源を選ぶか、どこにagentを置くかは、エンジニアが毎回決める設計判断ではなくなる。
+              人間は目的と制約を与え、実行環境の選択はモデル側へ寄っていく、という見方である。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-cowork-tools" data-review-label="Coworkとツールアクセス">
+            <time>21:39 - 23:15</time>
+            <h3>CoworkではMCPが基本解で、Computer Useが補完になる</h3>
+            <p>
+              Claude Codeは、開発者のlocal toolやworkflowを活用できたことが強みだった。
+              一方、一般のknowledge workではSalesforce、Google Docs、Google Calendarのようなcloud toolが多い。
+              Claude Coworkに十分なアクセスを与えるにはどうするか、という質問に対し、Borisは一番単純な答えはMCPだと答える。
+            </p>
+            <p>
+              Claude.aiでつなぐMCP connectorを、Cowork、Claude CLI、Claude Codeからも使えるようにする。
+              MCPがないシステムではComputer Useがcatch-allになる。
+              Computer Useは遅いが、4.7ではかなり多くのソフトウェアを扱える。
+              ただしモデルにとっては、MCP、CLI、API、Computer Useの違いは本質ではなく、最終的にはtokenとprogrammatic accessとして扱われる。
+            </p>
+          </article>
+
+          <article class="scene" data-review-target="video-future-products" data-review-label="今後伸びるプロダクト">
+            <time>23:25 - 24:13</time>
+            <h3>モデルが良くなるほど価値が増す製品領域</h3>
+            <p>
+              最後に、モデルが半年から1年で良くなったとき、今作るとより面白くなるプロダクトは何かと聞かれる。
+              Borisは、Claude Designを例に挙げる。
+              現時点でも良いが、今後さらに良くなる領域だという。
+            </p>
+            <p>
+              さらに、Claude Codeで数週間以内に出る機能がいくつかあると示唆し、
+              <code>/loop</code>、batch、agentsの大規模並列化、Computer Useのような領域は、モデル性能が上がるほど価値が増すと締める。
+              動画全体として、Claude Codeは単なるIDE補助ではなく、仕事を分解し、並列に実行し、継続的に戻してくる運用基盤へ向かっている、というメッセージになる。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="before-reading" data-review-label="前提">
+        <h2>前提: ここでのオートパイロットは「放置」ではない</h2>
+        <p>
+          この動画で重要なのは、Claudeに大きな命令を一回投げて終わり、という話ではないことです。
+          Borisの構成は、session、agent、loop、routine、MCP、Computer Useを組み合わせて、仕事を小さく分け、周期的に観察し、必要な道具を使い、結果を報告させる仕組みです。
+        </p>
+        <p class="note">
+          つまり、人間の役割は「次のプロンプトを書く」から「どの反復を走らせるか、どこで止めるか、何を人間レビューへ戻すかを設計する」へ移ります。
+        </p>
+      </section>
+
+      <section data-review-target="stack-model" data-review-label="構成モデル">
+        <h2>5つの部品で見るとわかりやすい</h2>
+        <div class="grid">
+          <article class="box" data-review-target="part-session" data-review-label="Session">
+            <h3>1. Session</h3>
+            <p>作業の大きな単位。BorisはスマホのClaude app内で、複数のcode sessionを並行して持つと説明している。</p>
+          </article>
+          <article class="box" data-review-target="part-agent" data-review-label="Agents">
+            <h3>2. Agents</h3>
+            <p>session配下で具体的なタスクを担う実行者。数百から数千単位に増えることで、深い作業や探索を並列化する。</p>
+          </article>
+          <article class="box" data-review-target="part-loop" data-review-label="/loop">
+            <h3>3. /loop</h3>
+            <p>Claudeにcronで繰り返しジョブを作らせる仕組み。PR監視、CI修復、feedback集計のような周期作業に向く。</p>
+          </article>
+          <article class="box" data-review-target="part-routine" data-review-label="Routines">
+            <h3>4. Routines</h3>
+            <p><code>/loop</code> のserver-side版。端末を閉じても継続するため、仕事を個人の端末寿命から切り離せる。</p>
+          </article>
+          <article class="box" data-review-target="part-tools" data-review-label="MCPとComputer Use">
+            <h3>5. MCP / Computer Use</h3>
+            <p>Salesforce、Docs、Calendar、Slackなどに接続する手段。MCPが基本で、未対応ツールはComputer Useが補う。</p>
+          </article>
+          <article class="box" data-review-target="part-human" data-review-label="Human review">
+            <h3>人間の責務</h3>
+            <p>目的、権限、検証、停止条件を設計する。高リスク作業ではhuman reviewを抜かず、ループに戻す境界を決める。</p>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="loop-flow" data-review-label="オートパイロットの流れ">
+        <h2>オートパイロットの流れ</h2>
+        <p>動画の話を実務フローに直すと、典型的には次の4つが回ります。</p>
+        <div class="flow">
+          <div class="step" data-review-target="flow-observe" data-review-label="観察">
+            <strong>1. 観察</strong>
+            PR、CI、ログ、Slack、X、顧客フィードバック、データの時間変化を見る。
+          </div>
+          <div class="step" data-review-target="flow-schedule" data-review-label="周期化">
+            <strong>2. 周期化</strong>
+            1分ごと、5分ごと、30分ごと、毎日など、仕事に合った間隔で繰り返す。
+          </div>
+          <div class="step" data-review-target="flow-delegate" data-review-label="分担">
+            <strong>3. 分担</strong>
+            subagentsやbatchで、修正、調査、要約、検証、報告を別々に走らせる。
+          </div>
+          <div class="step" data-review-target="flow-report" data-review-label="報告と停止">
+            <strong>4. 報告と停止</strong>
+            Slack、PR、issue、レポートへ戻す。権限や失敗回数で人間に返す。
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="example" data-review-label="具体例">
+        <h2>具体例: PR babysitterをどう設計するか</h2>
+        <p>手動運用だと、人間が毎回Claudeへ次の指示を書きます。</p>
+        <pre data-review-target="manual-example" data-review-label="手動プロンプト例"><code>このPRのCI結果を見て。
+失敗ログを読んで原因を推測して。
+修正案を作って。
+rebaseが必要ならやって。
+直ったら結果をPRにコメントして。</code></pre>
+        <p>ループ化すると、人間は次のような反復単位を作ります。</p>
+        <pre data-review-target="loop-example" data-review-label="ループ設計例"><code>目的: 自分のPRを常にmerge可能な状態へ近づける
+周期: 5分ごと
+入力: GitHub PR、CI結果、失敗ログ、branch状態
+Claudeの仕事: 原因分類、軽微修正、rebase、再実行、報告
+許可: テスト実行、rebase、限定範囲の修正commit
+停止: 2回連続失敗、仕様判断、権限不足、差分が大きい
+報告: PRコメントまたはSlackに要約を送る</code></pre>
+        <p>
+          この構成では、人間は「次はログを見て」「次はrebaseして」と言わない。
+          ループが観察し、Claudeへ次の仕事を渡し、結果を見て続行か停止を決める。
+          Routines化すれば、端末を閉じた後も同じ監視が続く。
+        </p>
+      </section>
+
+      <section data-review-target="why-promptless" data-review-label="プロンプトレスに見える理由">
+        <h2>なぜプロンプトレスに見えるのか</h2>
+        <ul>
+          <li>人間の単発プロンプトが、loopやroutineの設計へ移る。</li>
+          <li>Claudeがcron、MCP、Slack、GitHub、CIなどを使い、観察と報告まで自分で回す。</li>
+          <li>agentを大量に並べることで、調査、実装、検証、分類、報告が同時進行になる。</li>
+          <li>強いモデルほど、どこで並列化すべきか、どこでloopを開始すべきかを自然に判断する。</li>
+          <li>人間は細かい作業指示より、目的、制約、権限、レビュー境界を与える側へ寄る。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="business-implication" data-review-label="ビジネス上の意味">
+        <h2>ビジネス上は、開発速度だけでなく防御力の前提が変わる</h2>
+        <p>
+          BorisのSaaSpocalypse論で重要なのは、すべてのSaaSが消えるという単純な話ではありません。
+          switching costsやprocess powerのように、移行作業や業務プロセスの複雑さで守られていた領域は、AIによって弱くなる可能性があるという話です。
+          一方で、network effects、scale economies、cornered resourcesのような防御力は残りやすい。
+        </p>
+        <p>
+          そのため、AI-nativeな新規チームは、既存企業が抱える業務変更・教育・社内抵抗なしに、最初からloopとagents前提で働ける。
+          ここが「小さなスタートアップが大企業と正面衝突できる」理由として語られています。
+        </p>
+      </section>
+
+      <section data-review-target="not-magic" data-review-label="誤解しやすい点">
+        <h2>ただし、魔法ではない</h2>
+        <p>オートパイロット化は、責任が消えることではありません。責任の置き場所が、個別プロンプトから運用設計へ移ります。</p>
+        <ul>
+          <li>目的が曖昧なloopは、曖昧な作業を高速に増やす。</li>
+          <li>権限設計が雑だと、不要な変更や情報アクセスが発生する。</li>
+          <li>停止条件がないroutineは、失敗を繰り返し続ける。</li>
+          <li>CI、データ、顧客情報、請求、権限変更などは、人間レビューの境界を先に決める必要がある。</li>
+          <li>モデルが将来より安全になるとしても、現時点の運用ではログ、差分、承認、rollback設計が必要です。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="how-to-use" data-review-label="実務で試す順番">
+        <h2>実務で試すなら、この順番</h2>
+        <ol>
+          <li>失敗しても被害が小さく、頻度が高い作業を選ぶ。例: PR監視、CI失敗分類、feedback集計。</li>
+          <li>Claudeに見せる入力を固定する。例: PR URL、CIログ、直近commit、関連issue。</li>
+          <li>許可する操作を限定する。例: テスト実行、コメント作成、軽微な修正branch作成。</li>
+          <li>停止条件を先に書く。例: 2回失敗、差分が大きい、仕様判断が必要、権限不足。</li>
+          <li>報告先を決める。例: Slack、PRコメント、日次レポート。</li>
+          <li>単発promptを直すのではなく、loopの入力・周期・停止条件を直す。</li>
+        </ol>
+      </section>
+
+      <footer data-review-target="references" data-review-label="補足">
+        <h2>補足</h2>
+        <p>
+          音声ファイル: <code>/tmp/x-2062970118033023115-audio-32k.mp4</code>。
+          ローカルトランスクリプト: <code>/tmp/x-2062970118033023115-transcript-corrected.txt</code>。
+        </p>
+        <p class="muted">
+          トランスクリプトは、X投稿に添付された動画の音声を取得し、ローカルで自動文字起こししたものです。
+          本文では、00:00-08:30の個人セットアップ、18:52-20:21のmulti-agent説明、21:39-23:15のMCP/Computer Use説明を特に重視しています。
+          文字起こしには自動補正が含まれるため、厳密な逐語録ではありません。
+        </p>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = {
+          comments: load().map(normalize).filter((comment) => byId.has(comment.target)),
+          activeCommentId: null,
+          draft: null,
+        };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            /* localStorage may be unavailable for file URLs in some browsers. */
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            state.comments.push({
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              target: current.target,
+              x: current.x,
+              y: current.y,
+              text,
+            });
+          }
+          state.activeCommentId = null;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          const text = $("#review-export-text").value;
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            $("#review-export-text").focus();
+            $("#review-export-text").select();
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
