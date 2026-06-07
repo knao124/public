@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex Plugins Deep Dive: Presentations / Product Design</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fa;
+        --panel: #ffffff;
+        --ink: #1f242d;
+        --muted: #66717e;
+        --line: #d9e0ea;
+        --navy: #0b1f33;
+        --blue: #1f6feb;
+        --blue-soft: #eaf2ff;
+        --green: #176f4d;
+        --green-soft: #e8f7ef;
+        --coral: #c43e1c;
+        --coral-soft: #fff0ea;
+        --amber: #9a5b00;
+        --amber-soft: #fff6dd;
+        --code: #eef2f7;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%231f6feb' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+        line-height: 1.75;
+      }
+      a { color: var(--blue); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      nav {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow: auto;
+        padding: 28px 20px;
+        border-right: 1px solid var(--line);
+        background: #fbfcfe;
+      }
+      nav strong {
+        display: block;
+        margin-bottom: 12px;
+        font-size: 15px;
+      }
+      nav a {
+        display: block;
+        padding: 8px 0;
+        color: #344054;
+        font-size: 14px;
+      }
+      main {
+        max-width: 1120px;
+        padding: 42px 32px 96px;
+      }
+      header, section, footer {
+        position: relative;
+        margin: 0 0 18px;
+        padding: 26px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(31, 36, 45, 0.06);
+      }
+      h1, h2, h3 {
+        line-height: 1.25;
+        margin: 0 0 12px;
+      }
+      h1 {
+        font-size: clamp(30px, 4vw, 48px);
+        letter-spacing: 0;
+      }
+      h2 { font-size: 27px; }
+      h3 { font-size: 20px; margin-top: 18px; }
+      p { margin: 0 0 12px; }
+      ul { margin: 8px 0 0; padding-left: 22px; }
+      li { margin: 6px 0; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 14px;
+      }
+      th, td {
+        vertical-align: top;
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+      }
+      th { background: #f0f3f8; }
+      code {
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: var(--code);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      pre {
+        overflow: auto;
+        padding: 14px;
+        border-radius: 8px;
+        background: var(--code);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+      }
+      .muted { color: var(--muted); }
+      .lead { font-size: 19px; color: #394150; }
+      .kicker {
+        display: inline-flex;
+        margin-bottom: 10px;
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .tri {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfcfe;
+      }
+      .blue { border-color: #b8cff7; background: var(--blue-soft); }
+      .green { border-color: #b9e3cb; background: var(--green-soft); }
+      .coral { border-color: #f1c4b6; background: var(--coral-soft); }
+      .amber { border-color: #ead28b; background: var(--amber-soft); }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        margin: 3px 5px 3px 0;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: #eef2f7;
+        color: #344054;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .tag.blue { color: var(--blue); background: var(--blue-soft); border: 0; }
+      .tag.green { color: var(--green); background: var(--green-soft); border: 0; }
+      .tag.coral { color: var(--coral); background: var(--coral-soft); border: 0; }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .step {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfe;
+        padding: 13px;
+        min-height: 112px;
+      }
+      .step b {
+        display: block;
+        color: var(--blue);
+        margin-bottom: 6px;
+      }
+      .note {
+        border-left: 4px solid var(--blue);
+        background: var(--blue-soft);
+        padding: 12px 14px;
+        border-radius: 8px;
+      }
+      .warn {
+        border-left-color: var(--amber);
+        background: var(--amber-soft);
+      }
+      [data-review-target] { position: relative; }
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(31, 111, 235, 0.42);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--ink);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .review-toolbar button.primary,
+      .review-export button.primary {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: #fff;
+      }
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--blue);
+        border-radius: 999px;
+        background: #f5b849;
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(430px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+      }
+      .hidden { display: none; }
+      .button-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      @media (max-width: 880px) {
+        .shell { display: block; }
+        nav {
+          position: static;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        main { padding: 24px 16px 88px; }
+        .grid, .tri, .flow { grid-template-columns: 1fr; }
+        header, section, footer { padding: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <nav>
+        <strong>Plugin Deep Dive</strong>
+        <a href="#summary">全体像</a>
+        <a href="#presentations">Presentations</a>
+        <a href="#presentations-flow">Presentations の実行契約</a>
+        <a href="#product-design">Product Design</a>
+        <a href="#product-design-router">Product Design のルーター</a>
+        <a href="#compare">2つの違い</a>
+        <a href="#sources">確認した内容</a>
+      </nav>
+      <main>
+        <header id="summary" data-review-target="summary" data-review-label="全体像">
+          <span class="kicker">Codex plugin inspection</span>
+          <h1>Presentations と Product Design の中身を読む</h1>
+          <p class="lead">
+            どちらも「plugin」だが、設計思想は違う。Presentations はファイルタイプ特化の制作 runtime、Product Design は複数 skill を束ねたプロダクトデザイン workflow router として動く。
+          </p>
+          <div class="grid">
+            <div class="box blue">
+              <h3>Presentations</h3>
+              <p>PowerPoint / PPTX / Google Slides 向けのデッキ作成、編集、レンダー、検証、エクスポートに特化。</p>
+              <span class="tag blue">1 skill</span>
+              <span class="tag blue">primary runtime bundled</span>
+              <span class="tag blue">artifact-tool</span>
+            </div>
+            <div class="box green">
+              <h3>Product Design</h3>
+              <p>アイデア、URL、スクリーンショット、Figma、既存コードから、調査、監査、方向性探索、プロトタイプ作成、共有までをルーティング。</p>
+              <span class="tag green">11 skills</span>
+              <span class="tag green">role-specific plugin</span>
+              <span class="tag green">prototype workflow</span>
+            </div>
+          </div>
+          <p class="note warn">
+            このHTMLはローカルにインストール済みの plugin 本体を一次情報として読んでいる。Product Design は公式 role-specific plugin として導入済み。Presentations は Codex primary runtime に同梱されている。
+          </p>
+        </header>
+
+        <section id="presentations" data-review-target="presentations-overview" data-review-label="Presentations 概要">
+          <h2>Presentations は何か</h2>
+          <p>
+            Presentations は、Codex が「スライド」「deck」「PowerPoint」「PPTX」「Google Slides」などの語を見たときに、プレゼン資料作成として扱うためのファイルタイプ wrapper plugin。
+            中核は <code>Presentations</code> skill 1つで、編集可能な PowerPoint デッキを作ることに強く寄せられている。
+          </p>
+          <table>
+            <tr><th>項目</th><th>確認内容</th></tr>
+            <tr><td>plugin name</td><td><code>presentations</code></td></tr>
+            <tr><td>version</td><td><code>26.601.10930</code></td></tr>
+            <tr><td>capabilities</td><td><code>Interactive</code>, <code>Write</code></td></tr>
+            <tr><td>含まれる skill</td><td><code>Presentations</code></td></tr>
+            <tr><td>主な成果物</td><td>編集可能な <code>.pptx</code>、レンダー済みプレビュー、レイアウト検証、Google Slides handoff 方針</td></tr>
+          </table>
+          <h3>一言でいうと</h3>
+          <p class="note">
+            「スライドの文章案を書く plugin」ではなく、「資料作成を production workflow として扱い、PPTX をレンダーして検証してから渡す plugin」。
+          </p>
+        </section>
+
+        <section id="presentations-flow" data-review-target="presentations-flow" data-review-label="Presentations 実行契約">
+          <h2>Presentations の実行契約</h2>
+          <p>
+            skill の中身はかなり厳格で、単に <code>pptx</code> を吐けば完了ではない。タスクモードを決め、ストーリーを抽出し、claim spine と design system を固定し、レンダーと QA を通してから最終出力に進む。
+          </p>
+          <div class="flow">
+            <div class="step"><b>1. Mode</b>create / template-following / targeted-edit を選ぶ。</div>
+            <div class="step"><b>2. Story</b>ソースから主張と根拠を抽出する。</div>
+            <div class="step"><b>3. System</b>色、余白、密度、レイアウトリズムを固定する。</div>
+            <div class="step"><b>4. Build</b><code>artifact-tool presentation JSX</code> で編集可能な slide module を作る。</div>
+            <div class="step"><b>5. QA</b>PNG preview、layout JSON、contact sheet を見て弱いスライドを直す。</div>
+          </div>
+          <h3>重要な制約</h3>
+          <ul>
+            <li>通常作成では 1 slide module ごとに <code>presentation.slides.add()</code> する。</li>
+            <li>テンプレ準拠では白紙から似せない。元 PPTX を import して複製 slide を編集する。</li>
+            <li>Python、直接 OOXML 編集、LibreOffice save-as に最終成果物を任せない。</li>
+            <li>最終納品前に scratch artifacts を消し、最終 <code>.pptx</code> だけを残す契約がある。</li>
+          </ul>
+          <pre>Presentations = task mode + claim spine + design system + editable build + render QA + PPTX export</pre>
+        </section>
+
+        <section data-review-target="presentations-when" data-review-label="Presentations の使いどころ">
+          <h2>Presentations を使うとき</h2>
+          <div class="grid">
+            <div class="box">
+              <h3>向いている</h3>
+              <ul>
+                <li>投資家向け、業績、戦略、プロダクト説明、技術説明の deck</li>
+                <li>既存テンプレに沿った PPTX の編集</li>
+                <li>レンダー確認込みで見た目を整えたい資料</li>
+                <li>最終ファイルとして PowerPoint が必要な作業</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>向いていない</h3>
+              <ul>
+                <li>単にスライド構成だけ欲しい軽い相談</li>
+                <li>データの出典がなく、見栄え優先で数字を埋めたい依頼</li>
+                <li>Google Slides へ直接保存したいが connector がないケース</li>
+                <li>テンプレを無視して自由に作りたいが、元デッキ準拠を求める依頼</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="product-design" data-review-target="product-design-overview" data-review-label="Product Design 概要">
+          <h2>Product Design は何か</h2>
+          <p>
+            Product Design は、早期アイデア、ライブURL、静的スクリーンショット、既存プロトタイプ、保存済みのデザイン文脈を、チームがレビューできるプロトタイプや監査結果に変える plugin。
+            1つの巨大 skill ではなく、目的別 skill をルーターが振り分ける構造になっている。
+          </p>
+          <table>
+            <tr><th>項目</th><th>確認内容</th></tr>
+            <tr><td>plugin name</td><td><code>product-design</code></td></tr>
+            <tr><td>version</td><td><code>0.1.41</code></td></tr>
+            <tr><td>capabilities</td><td><code>Interactive</code>, <code>Read</code>, <code>Write</code></td></tr>
+            <tr><td>apps</td><td><code>.app.json</code> に <code>sites</code> binding。現インストールでは ID が placeholder のまま。</td></tr>
+            <tr><td>主な成果物</td><td>UX research、flow audit、3方向の visual ideation、URL clone、image-to-code prototype、share URL</td></tr>
+          </table>
+          <p class="note warn">
+            現在のローカル copy では <code>.app.json</code> の <code>sites.id</code> が <code>REPLACE_WITH_SITES_APP_OR_CONNECTOR_ID</code> のまま。つまり prototype 制作自体は読めるが、Sites 共有は追加セットアップなしでは完了しない可能性が高い。
+          </p>
+        </section>
+
+        <section id="product-design-router" data-review-target="product-design-router" data-review-label="Product Design ルーター">
+          <h2>Product Design のルーター構造</h2>
+          <p>
+            入口は <code>index</code> skill。ユーザーが <code>@Product Design</code> と呼ぶか、設計、監査、調査、プロトタイプ、URL clone、image-to-code、share などを頼むと、この router が適切な focused skill に流す。
+          </p>
+          <div class="tri">
+            <div class="box green"><h3>Context系</h3><p><code>user-context</code> と <code>get-context</code> が、保存済み参照と今回のbriefを確定する。</p></div>
+            <div class="box blue"><h3>Explore系</h3><p><code>research</code>、<code>audit</code>、<code>ideate</code> が、調査、監査、3方向の視覚案を担当する。</p></div>
+            <div class="box coral"><h3>Build / Share系</h3><p><code>prototype</code>、<code>url-to-code</code>、<code>image-to-code</code>、<code>design-qa</code>、<code>share</code> が実装と共有を担当する。</p></div>
+          </div>
+          <h3>Product Design の skill 一覧</h3>
+          <table>
+            <tr><th>skill</th><th>役割</th><th>止める条件</th></tr>
+            <tr><td><code>index</code></td><td>全体ルーティング。 broad request を focused skill に振り分ける。</td><td>自分では成果物を作らない。</td></tr>
+            <tr><td><code>user-context</code></td><td>保存済み product/design context の読み書き。</td><td>保存済み情報を無関係に全部読まない。</td></tr>
+            <tr><td><code>get-context</code></td><td>brief gate。何を、何に合わせ、どこまで動かすかを確認。</td><td>文脈が足りない間は実装しない。</td></tr>
+            <tr><td><code>ideate</code></td><td>Image Gen で visual direction を作る。</td><td>brief 未確認では生成しない。</td></tr>
+            <tr><td><code>prototype</code></td><td>プロトタイプ作成 workflow の選択。</td><td>visual target なしでは build しない。</td></tr>
+            <tr><td><code>url-to-code</code></td><td>URL を frontend-only local app として再現。</td><td>権限・利用規約・source capture が確認できない場合は止まる。</td></tr>
+            <tr><td><code>image-to-code</code></td><td>選択済み画像や mockup を responsive frontend にする。</td><td>選択済み visual target がないと開始しない。</td></tr>
+            <tr><td><code>design-qa</code></td><td>source visual と実装 screenshot を比較し、差分修正を出す。</td><td>source と implementation を同じ状態で比較できないと blocked。</td></tr>
+            <tr><td><code>audit</code></td><td>product flow を screenshot evidence 付きで監査。</td><td>スクショだけで確認不能な限界を明示する。</td></tr>
+            <tr><td><code>research</code></td><td>UX friction を公開ソースなどから調査。</td><td>観測 evidence と inference を混ぜない。</td></tr>
+            <tr><td><code>share</code></td><td>選択済み deployment target で prototype を共有。</td><td>target 未選択、または tool 不在なら共有完了と主張しない。</td></tr>
+          </table>
+        </section>
+
+        <section data-review-target="product-design-guardrails" data-review-label="Product Design ガードレール">
+          <h2>Product Design の重要なガードレール</h2>
+          <p>この plugin の肝は、デザイナーっぽく自由に作ることではなく、作り始める前に evidence と visual target を固定すること。</p>
+          <div class="grid">
+            <div class="box">
+              <h3>No visual target, no build</h3>
+              <p>brief は visual target ではない。URL、スクリーンショット、Figma frame、選択済み Image Gen 案などが必要。</p>
+            </div>
+            <div class="box">
+              <h3>Get context first</h3>
+              <p>設計、build、clone、redesign、prototype では <code>get-context</code> を先に通す。</p>
+            </div>
+            <div class="box">
+              <h3>Evidence-backed QA</h3>
+              <p>source image と実装 screenshot を同じ比較入力に置いて、見える差分から直す。</p>
+            </div>
+            <div class="box">
+              <h3>Real assets</h3>
+              <p>見える asset を ASCII、placeholder、手描きSVG、CSS art でごまかさない。必要なら Image Gen を使う。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="compare" data-review-target="comparison" data-review-label="2つの違い">
+          <h2>2つの plugin の違い</h2>
+          <table>
+            <tr><th>観点</th><th>Presentations</th><th>Product Design</th></tr>
+            <tr><td>中心成果物</td><td>編集可能な PPTX deck</td><td>プロトタイプ、監査、調査、視覚案、共有URL</td></tr>
+            <tr><td>構造</td><td>1 skill と多数の helper scripts / profiles</td><td>router + 11 focused skills + prototype template</td></tr>
+            <tr><td>最初に確認すること</td><td>task mode、source story、deck profile</td><td>product brief、visual source、interactivity、user context</td></tr>
+            <tr><td>QA</td><td>render preview、layout JSON、contact sheet、rubric</td><td>source visual と implementation screenshot の同一状態比較</td></tr>
+            <tr><td>止める条件</td><td>テンプレ fidelity や source metric が満たせないと止まる</td><td>visual target 不在、capture 失敗、share target 未選択で止まる</td></tr>
+            <tr><td>現環境の注意</td><td>すでに installed/enabled。PPTX 作成可能。</td><td>installed/enabled だが Sites app id は placeholder。</td></tr>
+          </table>
+          <p class="note">
+            つまり、Presentations は「資料ファイル制作の専門家」、Product Design は「プロダクトUI作業のディレクター兼プロトタイパー」。同じ plugin でも、役割の粒度が違う。
+          </p>
+        </section>
+
+        <footer id="sources" data-review-target="sources" data-review-label="確認した内容">
+          <h2>確認した内容</h2>
+          <ul>
+            <li><code>~/.codex/plugins/cache/openai-primary-runtime/presentations/26.601.10930/.codex-plugin/plugin.json</code>: Presentations の manifest、version、capability、default prompt。</li>
+            <li><code>~/.codex/plugins/cache/openai-primary-runtime/presentations/26.601.10930/skills/presentations/SKILL.md</code>: operating contract、mandatory workflow、task mode、deck profile、cleanup contract。</li>
+            <li><code>~/.codex/plugins/cache/role-specific-plugins/product-design/0.1.41/.codex-plugin/plugin.json</code>: Product Design の manifest、apps binding、default prompt。</li>
+            <li><code>~/.codex/plugins/cache/role-specific-plugins/product-design/0.1.41/skills/*/SKILL.md</code>: Product Design の router と 11 focused skills。</li>
+            <li><code>references/critical-overrides.md</code>: brief gate、visual target gate、asset/QA rules。</li>
+            <li>公開用 hosting connector はこの会話内では使えないため、このページはローカルHTTPサーバーで公開する。</li>
+          </ul>
+        </footer>
+      </main>
+    </div>
+
+    <div class="review-toolbar">
+      <button id="review-toggle" type="button" aria-pressed="false" class="primary">
+        <svg class="review-icon" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        コメント
+      </button>
+      <button id="review-export" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>
+        改善プロンプト
+      </button>
+    </div>
+    <div id="review-panel" class="review-panel hidden" role="dialog" aria-label="コメント編集">
+      <h2>コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <textarea id="review-comment-text" placeholder="コメントを書く"></textarea>
+      <div class="button-row">
+        <button id="review-save" type="button" class="primary">保存</button>
+        <button id="review-delete" type="button">削除</button>
+        <button id="review-close" type="button">閉じる</button>
+      </div>
+    </div>
+    <div id="review-export-dialog" class="review-export hidden" role="dialog" aria-label="改善プロンプト">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="button-row">
+        <button id="review-copy" type="button" class="primary">コピー</button>
+        <button id="review-export-close" type="button">閉じる</button>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const storageKey = "review-comments:" + location.pathname + ":" + document.title;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const toggle = document.getElementById("review-toggle");
+        const exportButton = document.getElementById("review-export");
+        const panel = document.getElementById("review-panel");
+        const panelTarget = document.getElementById("review-panel-target");
+        const commentText = document.getElementById("review-comment-text");
+        const saveButton = document.getElementById("review-save");
+        const deleteButton = document.getElementById("review-delete");
+        const closeButton = document.getElementById("review-close");
+        const exportDialog = document.getElementById("review-export-dialog");
+        const exportText = document.getElementById("review-export-text");
+        const copyButton = document.getElementById("review-copy");
+        const exportCloseButton = document.getElementById("review-export-close");
+        let comments = load();
+        let activeId = null;
+
+        function load() {
+          try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); }
+          catch { return []; }
+        }
+        function persist() { localStorage.setItem(storageKey, JSON.stringify(comments)); }
+        function isReviewMode() { return document.body.classList.contains("review-mode"); }
+        function setReviewMode(value) {
+          document.body.classList.toggle("review-mode", value);
+          toggle.setAttribute("aria-pressed", String(value));
+        }
+        function renderPins() {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          comments.forEach((comment, index) => {
+            const target = document.querySelector(`[data-review-target="${CSS.escape(comment.targetId)}"]`);
+            if (!target) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.textContent = String(index + 1);
+            pin.style.left = comment.x + "%";
+            pin.style.top = comment.y + "%";
+            pin.addEventListener("click", (event) => {
+              event.stopPropagation();
+              openPanel(comment.id);
+            });
+            target.appendChild(pin);
+          });
+        }
+        function openPanel(id) {
+          activeId = id;
+          const comment = comments.find((item) => item.id === id);
+          if (!comment) return;
+          panelTarget.textContent = `${comment.label} / ${comment.targetId} / x:${comment.x.toFixed(1)}%, y:${comment.y.toFixed(1)}%`;
+          commentText.value = comment.text || "";
+          panel.classList.remove("hidden");
+          commentText.focus();
+        }
+        function closePanel() {
+          panel.classList.add("hidden");
+          activeId = null;
+        }
+        function createComment(target, event) {
+          if (!isReviewMode()) return;
+          if (event.target.closest(".review-pin")) return;
+          const rect = target.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 100;
+          const y = ((event.clientY - rect.top) / rect.height) * 100;
+          const id = "c-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+          comments.push({
+            id,
+            targetId: target.dataset.reviewTarget,
+            label: target.dataset.reviewLabel || target.dataset.reviewTarget,
+            x: Math.max(0, Math.min(100, x)),
+            y: Math.max(0, Math.min(100, y)),
+            text: ""
+          });
+          persist();
+          renderPins();
+          openPanel(id);
+        }
+        targets.forEach((target) => target.addEventListener("click", (event) => createComment(target, event)));
+        toggle.addEventListener("click", () => setReviewMode(!isReviewMode()));
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            setReviewMode(false);
+            closePanel();
+            exportDialog.classList.add("hidden");
+          }
+        });
+        saveButton.addEventListener("click", () => {
+          const comment = comments.find((item) => item.id === activeId);
+          if (!comment) return;
+          comment.text = commentText.value.trim();
+          persist();
+          renderPins();
+          closePanel();
+        });
+        deleteButton.addEventListener("click", () => {
+          comments = comments.filter((item) => item.id !== activeId);
+          persist();
+          renderPins();
+          closePanel();
+        });
+        closeButton.addEventListener("click", closePanel);
+        function buildPrompt() {
+          const records = comments
+            .filter((item) => item.text && item.text.trim())
+            .map((item) => ({
+              target_id: item.targetId,
+              label: item.label,
+              x_percent: Number(item.x.toFixed(1)),
+              y_percent: Number(item.y.toFixed(1)),
+              comment: item.text.trim()
+            }));
+          return [
+            "次のHTML解説を改善してください。",
+            "対象: Codex plugin deep dive for Presentations and Product Design",
+            "コメントは target_id と座標を優先して反映してください。",
+            "",
+            JSON.stringify(records, null, 2)
+          ].join("\n");
+        }
+        exportButton.addEventListener("click", () => {
+          exportText.value = buildPrompt();
+          exportDialog.classList.remove("hidden");
+          exportText.focus();
+          exportText.select();
+        });
+        copyButton.addEventListener("click", async () => {
+          exportText.value = buildPrompt();
+          exportText.select();
+          try { await navigator.clipboard.writeText(exportText.value); }
+          catch { document.execCommand("copy"); }
+        });
+        exportCloseButton.addEventListener("click", () => exportDialog.classList.add("hidden"));
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
