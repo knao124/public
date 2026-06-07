@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenTelemetry公式ブログ: LLM Callの中身を見る</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f5f7fa;
+  --panel: #ffffff;
+  --text: #1f2937;
+  --muted: #5b6470;
+  --border: #d7dde7;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --note: #f59e0b;
+  --soft: #eef2f7;
+  --good: #0f766e;
+  --warn: #b45309;
+  --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+}
+a { color: var(--accent-strong); }
+main {
+  max-width: 1020px;
+  margin: 0 auto;
+  padding: 32px 20px 96px;
+}
+header, section, footer, article {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 0 0 16px;
+  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+}
+h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1 { margin: 0 0 12px; font-size: 2rem; }
+h2 { margin: 0 0 12px; font-size: 1.35rem; }
+h3 { margin: 20px 0 8px; font-size: 1.05rem; }
+p { margin: 0 0 12px; }
+p:last-child { margin-bottom: 0; }
+.muted { color: var(--muted); }
+.meta-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  gap: 8px 16px;
+  margin-top: 18px;
+  font-size: 0.95rem;
+}
+.meta-grid dt { color: var(--muted); }
+.meta-grid dd { margin: 0; }
+.summary {
+  font-size: 1.05rem;
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+}
+.toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.toc a, .card-list a {
+  display: block;
+  text-decoration: none;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 0.86rem;
+}
+.callout {
+  background: #fff8eb;
+  border-color: #f3d59b;
+}
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+}
+.card-list article {
+  margin: 0;
+  box-shadow: none;
+}
+.card-list h2 {
+  font-size: 1.05rem;
+}
+.source-list {
+  padding-left: 1.2rem;
+}
+[data-review-target] { position: relative; }
+body.review-mode [data-review-target] {
+  outline: 2px dashed rgba(37, 99, 235, 0.42);
+  outline-offset: 4px;
+  cursor: var(--comment-cursor);
+}
+.review-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.review-toolbar button, .review-panel button, .review-export button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.review-toolbar button.primary, .review-panel button.primary, .review-export button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.review-toolbar button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.review-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.review-pin {
+  position: absolute;
+  z-index: 20;
+  display: none;
+  min-width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--note);
+  color: #111827;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.25);
+  cursor: pointer;
+}
+body.review-mode .review-pin { display: block; }
+.review-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 72px;
+  width: min(380px, calc(100vw - 32px));
+  z-index: 40;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 18px 50px rgba(31, 41, 55, 0.22);
+}
+.panel-head, .panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.review-panel textarea, .review-export textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+.review-export {
+  width: min(760px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
+@media (max-width: 640px) {
+  main { padding: 20px 12px 110px; }
+  h1 { font-size: 1.55rem; }
+  header, section, footer, article { padding: 18px; }
+  .meta-grid { grid-template-columns: 1fr; gap: 4px; }
+}</style>
+</head>
+<body>
+  <main>
+    <header data-review-target="header" data-review-label="ヘッダー">
+      <p class="tag">公式ブログ・実践紹介</p>
+      <h1>OpenTelemetry公式ブログ: LLM Callの中身を見る</h1>
+      <p class="summary">この公式ブログは、VS Code Copilotなどのagent interactionがOTel trace、metrics、eventsとして見える例を通じて、GenAI telemetryの実用像を示します。</p>
+      <dl class="meta-grid">
+        <dt>資料名</dt><dd>Inside the LLM Call: GenAI Observability with OpenTelemetry</dd>
+        <dt>URL</dt><dd><a href="https://opentelemetry.io/blog/2026/genai-observability/">https://opentelemetry.io/blog/2026/genai-observability/</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
+        <dt>取得方法</dt><dd>OpenTelemetry公式ブログをブラウズしてVS Code Copilot、Aspire Dashboard、trace viewerの流れを確認</dd>
+        <dt>注意</dt><dd>ブログは2026年5月時点の例。具体的なツール設定は更新される可能性がある。</dd>
+      </dl>
+    </header>
+    <section data-review-target="before-reading" data-review-label="読む前の地図">
+      <h2>読む前の地図</h2>
+      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
+      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
+      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
+<li><a href="#qa-pattern">Agent QAへの読み替え</a></li>
+<li><a href="#implementation">実装時の要点</a></li>
+<li><a href="#risks">注意点</a></li></ul>
+    </section>
+    
+    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
+      <h2>まず、この資料は何を言っているか</h2>
+      <p>ブログは、agentが45秒かかったときに、原因がmodelなのか、tool callなのか、retry loopなのか分からない問題を出発点にしています。OpenTelemetry GenAI semantic conventionsにより、その内部連鎖をtraceとして見ることができます。</p>
+<p>例ではVS Code Copilotからtelemetryを出し、Aspire Dashboardでtrace、metrics、structured logsを確認します。top-levelのinvoke_agent span、その下のchat span、execute_tool spanという構造が示されます。</p>
+<p>content captureはデフォルトでは無効で、promptやtool argumentsを取るには明示的に有効化する必要がある、という安全面も説明されています。</p>
+    </section>
+
+    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="QAへの接続">
+      <h2>Agent QAへの読み替え</h2>
+      <p>このブログは、開発者向けagentでも、agent実行をspan treeとして記録できることを示しています。QA agentやcoding agentを評価する場合も、最初に必要なのは同じく実行木です。</p>
+<p>QAでは、trace viewerで見るだけでなく、span treeを機械的に評価します。invoke_agentの下に必要なtool spanがあるか、retry loopがないか、tokenやdurationが閾値内か、error spanがないかを検査します。</p>
+<p>ローカルdashboardで可視化してから評価器を作る流れがよいです。いきなりCI gateを作るより、まず人間がtraceを見て、どのspan属性が評価に使えるか確認します。</p>
+    </section>
+
+    <section id="implementation" data-review-target="implementation" data-review-label="実装要点">
+      <h2>実装時の要点</h2>
+      <p>ローカルでOTLP collectorやdashboardを立て、開発中のagent traceをすぐ見る環境を用意すると、instrumentationの品質が上がります。traceが空、親子関係が崩れる、contentが欠けるなどを早期に見つけられます。</p>
+<p>agentの遅延調査では、durationだけでなくspanの順序と反復を見るべきです。長いLLM call、遅いtool call、同じtoolの繰り返し、失敗後のretryが別々に見えると対策が変わります。</p>
+<p>QA用には、trace idをPR、scenario id、commit SHA、prompt versionと紐づけます。これにより、どの変更でagentの行動が変わったか追跡できます。</p>
+    </section>
+
+    <section id="risks" data-review-target="risks" data-review-label="注意点">
+      <h2>注意点</h2>
+      <p>coding assistant系のOTel出力は、必ずしも全ツールが期待するGenAI semantic conventions通りではありません。AgentEvalsなどに直接食わせる前に、shapeを確認する必要があります。</p>
+<p>content captureを有効にすると、ソースコード、プロンプト、秘密情報がtraceに入る可能性があります。公開可能なHTMLやCI artifactに貼る前に必ずredactionします。</p>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と使い方">
+      <h2>出典と使い方</h2>
+      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
+      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    </footer>
+  </main>
+  
+<div class="review-toolbar">
+  <button id="review-toggle" type="button" aria-pressed="false"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>コメント</button>
+  <button id="review-export" class="primary" type="button"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>改善プロンプト</button>
+</div>
+<aside id="review-panel" class="review-panel" hidden>
+  <div class="panel-head"><strong id="review-panel-title">コメント</strong><button type="button" id="review-close">閉じる</button></div>
+  <textarea id="review-text" rows="7" placeholder="この部分へのコメント"></textarea>
+  <div class="panel-actions">
+    <button type="button" id="review-save" class="primary">保存</button>
+    <button type="button" id="review-delete">削除</button>
+  </div>
+</aside>
+<dialog id="review-export-dialog" class="review-export">
+  <form method="dialog">
+    <h2>改善プロンプト</h2>
+    <p class="muted">コメント位置と対象IDだけを使って、このHTMLの改善依頼を組み立てます。</p>
+    <textarea id="review-export-text" rows="12"></textarea>
+    <div class="panel-actions">
+      <button type="button" id="review-copy" class="primary">コピー</button>
+      <button value="close">閉じる</button>
+    </div>
+  </form>
+</dialog>
+<script>
+(function () {
+  const docKey = "review-comments:" + location.pathname + ":" + document.title;
+  const toggle = document.getElementById("review-toggle");
+  const exportButton = document.getElementById("review-export");
+  const panel = document.getElementById("review-panel");
+  const panelTitle = document.getElementById("review-panel-title");
+  const text = document.getElementById("review-text");
+  const save = document.getElementById("review-save");
+  const del = document.getElementById("review-delete");
+  const close = document.getElementById("review-close");
+  const dialog = document.getElementById("review-export-dialog");
+  const exportText = document.getElementById("review-export-text");
+  const copy = document.getElementById("review-copy");
+  let comments = [];
+  let activeId = null;
+  try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
+
+  function targetLabel(targetId) {
+    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
+    return el ? el.getAttribute("data-review-label") || targetId : targetId;
+  }
+  function persist() {
+    localStorage.setItem(docKey, JSON.stringify(comments));
+  }
+  function renderPins() {
+    document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+    comments.forEach((comment, index) => {
+      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      if (!target) return;
+      const pin = document.createElement("button");
+      pin.type = "button";
+      pin.className = "review-pin";
+      pin.textContent = String(index + 1);
+      pin.style.left = comment.x + "%";
+      pin.style.top = comment.y + "%";
+      pin.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openPanel(comment.id);
+      });
+      target.appendChild(pin);
+    });
+  }
+  function openPanel(id) {
+    activeId = id;
+    const comment = comments.find((item) => item.id === id);
+    if (!comment) return;
+    panelTitle.textContent = "コメント: " + targetLabel(comment.targetId);
+    text.value = comment.text || "";
+    panel.hidden = false;
+    text.focus();
+  }
+  function closePanel() {
+    panel.hidden = true;
+    activeId = null;
+  }
+  function setReviewMode(on) {
+    document.body.classList.toggle("review-mode", on);
+    toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    if (!on) closePanel();
+  }
+  toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setReviewMode(false);
+  });
+  document.querySelectorAll("[data-review-target]").forEach((target) => {
+    target.addEventListener("click", (event) => {
+      if (!document.body.classList.contains("review-mode")) return;
+      if (event.target.closest(".review-pin")) return;
+      const rect = target.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+      const comment = {
+        id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2),
+        targetId: target.getAttribute("data-review-target"),
+        label: target.getAttribute("data-review-label") || "",
+        x: Math.round(x * 10) / 10,
+        y: Math.round(y * 10) / 10,
+        text: ""
+      };
+      comments.push(comment);
+      persist();
+      renderPins();
+      openPanel(comment.id);
+      event.stopPropagation();
+    });
+  });
+  save.addEventListener("click", () => {
+    const comment = comments.find((item) => item.id === activeId);
+    if (comment) {
+      comment.text = text.value.trim();
+      persist();
+      renderPins();
+    }
+    closePanel();
+  });
+  del.addEventListener("click", () => {
+    comments = comments.filter((item) => item.id !== activeId);
+    persist();
+    renderPins();
+    closePanel();
+  });
+  close.addEventListener("click", closePanel);
+  exportButton.addEventListener("click", () => {
+    const records = comments.filter((c) => c.text && c.text.trim()).map((c) => ({
+      targetId: c.targetId,
+      label: c.label || targetLabel(c.targetId),
+      x: c.x,
+      y: c.y,
+      comment: c.text.trim()
+    }));
+    exportText.value = [
+      "次のHTML解説を改善してください。",
+      "対象: " + document.title,
+      "コメントは {targetId, label, x, y, comment} です。本文の該当コンポーネントを探し、意図を保ったまま改善してください。",
+      JSON.stringify(records, null, 2)
+    ].join("\n\n");
+    dialog.showModal();
+    exportText.select();
+  });
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(exportText.value); copy.textContent = "コピー済み"; }
+    catch (_) { exportText.focus(); exportText.select(); }
+  });
+  renderPins();
+})();
+</script>
+</body>
+</html>

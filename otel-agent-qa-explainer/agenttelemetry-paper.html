@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AgentTelemetry論文: OTel GenAIだけでは見えないAgent故障</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f5f7fa;
+  --panel: #ffffff;
+  --text: #1f2937;
+  --muted: #5b6470;
+  --border: #d7dde7;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --note: #f59e0b;
+  --soft: #eef2f7;
+  --good: #0f766e;
+  --warn: #b45309;
+  --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+}
+a { color: var(--accent-strong); }
+main {
+  max-width: 1020px;
+  margin: 0 auto;
+  padding: 32px 20px 96px;
+}
+header, section, footer, article {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 0 0 16px;
+  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+}
+h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1 { margin: 0 0 12px; font-size: 2rem; }
+h2 { margin: 0 0 12px; font-size: 1.35rem; }
+h3 { margin: 20px 0 8px; font-size: 1.05rem; }
+p { margin: 0 0 12px; }
+p:last-child { margin-bottom: 0; }
+.muted { color: var(--muted); }
+.meta-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  gap: 8px 16px;
+  margin-top: 18px;
+  font-size: 0.95rem;
+}
+.meta-grid dt { color: var(--muted); }
+.meta-grid dd { margin: 0; }
+.summary {
+  font-size: 1.05rem;
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+}
+.toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.toc a, .card-list a {
+  display: block;
+  text-decoration: none;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 0.86rem;
+}
+.callout {
+  background: #fff8eb;
+  border-color: #f3d59b;
+}
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+}
+.card-list article {
+  margin: 0;
+  box-shadow: none;
+}
+.card-list h2 {
+  font-size: 1.05rem;
+}
+.source-list {
+  padding-left: 1.2rem;
+}
+[data-review-target] { position: relative; }
+body.review-mode [data-review-target] {
+  outline: 2px dashed rgba(37, 99, 235, 0.42);
+  outline-offset: 4px;
+  cursor: var(--comment-cursor);
+}
+.review-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.review-toolbar button, .review-panel button, .review-export button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.review-toolbar button.primary, .review-panel button.primary, .review-export button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.review-toolbar button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.review-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.review-pin {
+  position: absolute;
+  z-index: 20;
+  display: none;
+  min-width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--note);
+  color: #111827;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.25);
+  cursor: pointer;
+}
+body.review-mode .review-pin { display: block; }
+.review-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 72px;
+  width: min(380px, calc(100vw - 32px));
+  z-index: 40;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 18px 50px rgba(31, 41, 55, 0.22);
+}
+.panel-head, .panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.review-panel textarea, .review-export textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+.review-export {
+  width: min(760px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
+@media (max-width: 640px) {
+  main { padding: 20px 12px 110px; }
+  h1 { font-size: 1.55rem; }
+  header, section, footer, article { padding: 18px; }
+  .meta-grid { grid-template-columns: 1fr; gap: 4px; }
+}</style>
+</head>
+<body>
+  <main>
+    <header data-review-target="header" data-review-label="ヘッダー">
+      <p class="tag">論文・benchmark toolkit</p>
+      <h1>AgentTelemetry論文: OTel GenAIだけでは見えないAgent故障</h1>
+      <p class="summary">AgentTelemetryは、通常のOTelやOTel GenAIではplanning、reasoning、guardrail、delegation、memoryが見えにくく、agent特有のfault検出が不足すると主張します。</p>
+      <dl class="meta-grid">
+        <dt>資料名</dt><dd>AgentTelemetry: A Fault Detection Benchmark and Toolkit for LLM Agent Observability</dd>
+        <dt>URL</dt><dd><a href="https://openreview.net/pdf?id=owdmAYFk6k">https://openreview.net/pdf?id=owdmAYFk6k</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
+        <dt>取得方法</dt><dd>OpenReview PDFをブラウズしてfault taxonomy、span taxonomy、benchmark規模、主要結果を確認</dd>
+        <dt>注意</dt><dd>匿名投稿PDFの内容に基づく。標準仕様ではなく、agent observability拡張の研究提案として読む。</dd>
+      </dl>
+    </header>
+    <section data-review-target="before-reading" data-review-label="読む前の地図">
+      <h2>読む前の地図</h2>
+      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
+      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
+      <ul class="toc"><li><a href="#what-it-says">まず、この論文は何を言っているか</a></li>
+<li><a href="#qa-pattern">QA設計で使うべき故障分類</a></li>
+<li><a href="#implementation">実装への落とし込み</a></li>
+<li><a href="#risks">注意点</a></li></ul>
+    </section>
+    
+    <section id="what-it-says" data-review-target="what-it-says" data-review-label="論文の主張">
+      <h2>まず、この論文は何を言っているか</h2>
+      <p>論文は、OpenTelemetry GenAI semantic conventionsがLLM invocation、tool execution、retrievalなどを扱える一方で、agent orchestrationの重要フェーズを十分に表現できないと主張します。</p>
+<p>不足しているとされるフェーズは、planning、reasoning、safety monitoring、inter-agent delegation、memory managementです。これらが見えないと、reasoning loop、guardrail bypass、planning failure、memory corruptionなどが検出しにくくなります。</p>
+<p>提案は9種類のagent-specific span kindと14種類のfault taxonomyです。LLM_CALL、TOOL_CALL、RETRIEVALに加え、PLANNING、REASONING、GUARD_RAIL、DELEGATION、MEMORYなどを導入します。</p>
+    </section>
+
+    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="故障分類">
+      <h2>QA設計で使うべき故障分類</h2>
+      <p>実務で特に使いやすいfaultは、wrong tool、infinite loop、context overflow、cost explosion、tool failure、timeout、stale retrieval、guardrail bypass、planning failure、reasoning loop、memory corruptionです。</p>
+<p>これらは最終回答だけでは見えません。例えばreasoning loopは回答が遅いだけに見えるかもしれませんが、REASONING spanや同一tool callの反復を見ると原因が分かります。</p>
+<p>QA基盤では、faultごとに必要なspan kindを逆算します。検出したい故障がmemory corruptionなら、memory read/writeをtraceしなければ評価器は作れません。</p>
+    </section>
+
+    <section id="implementation" data-review-target="implementation" data-review-label="実装要点">
+      <h2>実装への落とし込み</h2>
+      <p>OpenTelemetryの標準spanに独自属性として`agenttelemetry.span.kind`のような分類を追加する発想は実務でも使えます。標準OTLP backendとの互換性を保ちながら、agent固有の意味を足せます。</p>
+<p>fault detectionはpost-hoc分析だけでなく、SpanProcessorやstream処理でリアルタイムに行えます。例えば同一tool callが3回以上続いたらloop疑い、cost閾値超過でcircuit breaker、といった運用です。</p>
+<p>agent frameworkごとに取れるhookが違うため、callback、monkey patch、manual APIの3種類を使い分ける必要があります。最初から全フェーズを自動計測できると期待しない方がよいです。</p>
+    </section>
+
+    <section id="risks" data-review-target="risks" data-review-label="注意点">
+      <h2>注意点</h2>
+      <p>reasoningやchain-of-thoughtの扱いには注意が必要です。モデルや提供元によっては内部推論を保存できない、保存すべきでない場合があります。代わりに、計画、観測、自己検証結果など公開可能な中間状態をspan化する設計が現実的です。</p>
+<p>独自span taxonomyを作ると評価は強くなりますが、標準から離れすぎるとbackendや他ツールとの互換性が落ちます。標準の`gen_ai.*`を土台にし、足りない部分だけ独自属性で補うのが安全です。</p>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と使い方">
+      <h2>出典と使い方</h2>
+      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
+      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    </footer>
+  </main>
+  
+<div class="review-toolbar">
+  <button id="review-toggle" type="button" aria-pressed="false"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>コメント</button>
+  <button id="review-export" class="primary" type="button"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>改善プロンプト</button>
+</div>
+<aside id="review-panel" class="review-panel" hidden>
+  <div class="panel-head"><strong id="review-panel-title">コメント</strong><button type="button" id="review-close">閉じる</button></div>
+  <textarea id="review-text" rows="7" placeholder="この部分へのコメント"></textarea>
+  <div class="panel-actions">
+    <button type="button" id="review-save" class="primary">保存</button>
+    <button type="button" id="review-delete">削除</button>
+  </div>
+</aside>
+<dialog id="review-export-dialog" class="review-export">
+  <form method="dialog">
+    <h2>改善プロンプト</h2>
+    <p class="muted">コメント位置と対象IDだけを使って、このHTMLの改善依頼を組み立てます。</p>
+    <textarea id="review-export-text" rows="12"></textarea>
+    <div class="panel-actions">
+      <button type="button" id="review-copy" class="primary">コピー</button>
+      <button value="close">閉じる</button>
+    </div>
+  </form>
+</dialog>
+<script>
+(function () {
+  const docKey = "review-comments:" + location.pathname + ":" + document.title;
+  const toggle = document.getElementById("review-toggle");
+  const exportButton = document.getElementById("review-export");
+  const panel = document.getElementById("review-panel");
+  const panelTitle = document.getElementById("review-panel-title");
+  const text = document.getElementById("review-text");
+  const save = document.getElementById("review-save");
+  const del = document.getElementById("review-delete");
+  const close = document.getElementById("review-close");
+  const dialog = document.getElementById("review-export-dialog");
+  const exportText = document.getElementById("review-export-text");
+  const copy = document.getElementById("review-copy");
+  let comments = [];
+  let activeId = null;
+  try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
+
+  function targetLabel(targetId) {
+    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
+    return el ? el.getAttribute("data-review-label") || targetId : targetId;
+  }
+  function persist() {
+    localStorage.setItem(docKey, JSON.stringify(comments));
+  }
+  function renderPins() {
+    document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+    comments.forEach((comment, index) => {
+      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      if (!target) return;
+      const pin = document.createElement("button");
+      pin.type = "button";
+      pin.className = "review-pin";
+      pin.textContent = String(index + 1);
+      pin.style.left = comment.x + "%";
+      pin.style.top = comment.y + "%";
+      pin.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openPanel(comment.id);
+      });
+      target.appendChild(pin);
+    });
+  }
+  function openPanel(id) {
+    activeId = id;
+    const comment = comments.find((item) => item.id === id);
+    if (!comment) return;
+    panelTitle.textContent = "コメント: " + targetLabel(comment.targetId);
+    text.value = comment.text || "";
+    panel.hidden = false;
+    text.focus();
+  }
+  function closePanel() {
+    panel.hidden = true;
+    activeId = null;
+  }
+  function setReviewMode(on) {
+    document.body.classList.toggle("review-mode", on);
+    toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    if (!on) closePanel();
+  }
+  toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setReviewMode(false);
+  });
+  document.querySelectorAll("[data-review-target]").forEach((target) => {
+    target.addEventListener("click", (event) => {
+      if (!document.body.classList.contains("review-mode")) return;
+      if (event.target.closest(".review-pin")) return;
+      const rect = target.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+      const comment = {
+        id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2),
+        targetId: target.getAttribute("data-review-target"),
+        label: target.getAttribute("data-review-label") || "",
+        x: Math.round(x * 10) / 10,
+        y: Math.round(y * 10) / 10,
+        text: ""
+      };
+      comments.push(comment);
+      persist();
+      renderPins();
+      openPanel(comment.id);
+      event.stopPropagation();
+    });
+  });
+  save.addEventListener("click", () => {
+    const comment = comments.find((item) => item.id === activeId);
+    if (comment) {
+      comment.text = text.value.trim();
+      persist();
+      renderPins();
+    }
+    closePanel();
+  });
+  del.addEventListener("click", () => {
+    comments = comments.filter((item) => item.id !== activeId);
+    persist();
+    renderPins();
+    closePanel();
+  });
+  close.addEventListener("click", closePanel);
+  exportButton.addEventListener("click", () => {
+    const records = comments.filter((c) => c.text && c.text.trim()).map((c) => ({
+      targetId: c.targetId,
+      label: c.label || targetLabel(c.targetId),
+      x: c.x,
+      y: c.y,
+      comment: c.text.trim()
+    }));
+    exportText.value = [
+      "次のHTML解説を改善してください。",
+      "対象: " + document.title,
+      "コメントは {targetId, label, x, y, comment} です。本文の該当コンポーネントを探し、意図を保ったまま改善してください。",
+      JSON.stringify(records, null, 2)
+    ].join("\n\n");
+    dialog.showModal();
+    exportText.select();
+  });
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(exportText.value); copy.textContent = "コピー済み"; }
+    catch (_) { exportText.focus(); exportText.select(); }
+  });
+  renderPins();
+})();
+</script>
+</body>
+</html>
