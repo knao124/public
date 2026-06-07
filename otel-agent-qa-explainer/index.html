@@ -3,697 +3,502 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenTelemetry Agent QA資料 読む順番インデックス</title>
+  <title>OpenTelemetry Agent QA資料 詳細解説インデックス</title>
   <style>
-    :root {
-      color-scheme: light;
-      --bg: #f5f7fa;
-      --panel: #ffffff;
-      --text: #1f2937;
-      --muted: #5b6470;
-      --border: #d7dde7;
-      --accent: #2563eb;
-      --accent-strong: #1d4ed8;
-      --note: #f59e0b;
-      --soft: #eef2f7;
-      --header: #e8f0fe;
-      --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
-    }
-    main {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 32px 20px 96px;
-    }
-    header, section, footer {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-      margin: 0 0 16px;
-      box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
-    }
-    h1, h2 { line-height: 1.35; letter-spacing: 0; margin-top: 0; }
-    h1 { font-size: 2rem; margin-bottom: 12px; }
-    h2 { font-size: 1.28rem; margin-bottom: 12px; }
-    p { margin: 0 0 12px; }
-    p:last-child { margin-bottom: 0; }
-    a { color: var(--accent-strong); }
-    .summary {
-      border-left: 4px solid var(--accent);
-      padding-left: 14px;
-      font-size: 1.03rem;
-    }
-    .muted { color: var(--muted); }
-    .meta {
-      display: grid;
-      grid-template-columns: minmax(140px, 0.2fr) 1fr;
-      gap: 8px 16px;
-      margin-top: 18px;
-    }
-    .meta dt { color: var(--muted); }
-    .meta dd { margin: 0; }
-    .chips {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    .chip, .stage {
-      display: inline-flex;
-      align-items: center;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 3px 10px;
-      background: var(--soft);
-      color: var(--muted);
-      font-size: 0.88rem;
-      white-space: nowrap;
-    }
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-    table {
-      width: 100%;
-      min-width: 1100px;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    th, td {
-      border-bottom: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      padding: 12px;
-      vertical-align: top;
-      text-align: left;
-    }
-    th:last-child, td:last-child { border-right: 0; }
-    tr:last-child td { border-bottom: 0; }
-    th {
-      background: var(--header);
-      color: #233044;
-      font-size: 0.92rem;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    td { font-size: 0.94rem; }
-    .num {
-      width: 52px;
-      text-align: right;
-      font-weight: 700;
-      color: var(--accent-strong);
-    }
-    .links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .links a {
-      display: inline-flex;
-      text-decoration: none;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 3px 8px;
-      background: var(--soft);
-      font-size: 0.86rem;
-    }
-    [data-review-target] { position: relative; }
-    body.review-mode [data-review-target] {
-      outline: 2px dashed rgba(37, 99, 235, 0.42);
-      outline-offset: 4px;
-      cursor: var(--comment-cursor);
-    }
-    .review-toolbar {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      z-index: 30;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    .review-toolbar button, .review-panel button, .review-export button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--text);
-      padding: 8px 12px;
-      font: inherit;
-      cursor: pointer;
-    }
-    .review-toolbar button.primary, .review-panel button.primary, .review-export button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-    .review-toolbar button[aria-pressed="true"] {
-      border-color: var(--accent);
-      color: var(--accent-strong);
-    }
-    .review-icon {
-      width: 18px;
-      height: 18px;
-      flex: 0 0 auto;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .review-pin {
-      position: absolute;
-      z-index: 20;
-      display: none;
-      min-width: 28px;
-      height: 28px;
-      transform: translate(-50%, -50%);
-      border: 1px solid var(--accent);
-      border-radius: 999px;
-      background: var(--note);
-      color: #111827;
-      font-weight: 700;
-      box-shadow: 0 8px 20px rgba(31, 41, 55, 0.25);
-      cursor: pointer;
-    }
-    body.review-mode .review-pin { display: block; }
-    .review-panel {
-      position: fixed;
-      right: 16px;
-      bottom: 72px;
-      width: min(380px, calc(100vw - 32px));
-      z-index: 40;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      box-shadow: 0 18px 50px rgba(31, 41, 55, 0.22);
-    }
-    .panel-head, .panel-actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .review-panel textarea, .review-export textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      font: inherit;
-    }
-    .review-export {
-      width: min(760px, calc(100vw - 32px));
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-    }
-    .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-    @media (max-width: 760px) {
-      main { padding: 20px 12px 110px; }
-      h1 { font-size: 1.55rem; }
-      header, section, footer { padding: 18px; }
-      .meta { grid-template-columns: 1fr; gap: 4px; }
-    }
-  </style>
+:root {
+  color-scheme: light;
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --text: #1f2937;
+  --muted: #5b6470;
+  --border: #d7dde7;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --note: #f59e0b;
+  --soft: #eef2f7;
+  --quote: #f9fafb;
+  --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.78;
+}
+a { color: var(--accent-strong); }
+main {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 32px 20px 100px;
+}
+header, section, footer, article {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 26px;
+  margin: 0 0 16px;
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
+}
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
+h1 { margin: 0 0 12px; font-size: 2rem; }
+h2 { margin: 0 0 12px; font-size: 1.35rem; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
+p:last-child { margin-bottom: 0; }
+.muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
+.meta-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
+  gap: 8px 16px;
+  margin-top: 18px;
+  font-size: 0.96rem;
+}
+.meta-grid dt { color: var(--muted); }
+.meta-grid dd { margin: 0; }
+.toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.toc a {
+  display: block;
+  text-decoration: none;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.callout {
+  background: #fff8eb;
+  border-color: #f2d59b;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+.card-grid article {
+  margin: 0;
+  box-shadow: none;
+}
+.card-grid h2 {
+  font-size: 1.05rem;
+}
+[data-review-target] { position: relative; }
+body.review-mode [data-review-target] {
+  outline: 2px dashed rgba(37, 99, 235, 0.42);
+  outline-offset: 4px;
+  cursor: var(--comment-cursor);
+}
+.review-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.review-toolbar button, .review-panel button, .review-export button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.review-toolbar button.primary, .review-panel button.primary, .review-export button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.review-toolbar button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.review-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.review-pin {
+  position: absolute;
+  z-index: 20;
+  display: none;
+  min-width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--note);
+  color: #111827;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.25);
+  cursor: pointer;
+}
+body.review-mode .review-pin { display: block; }
+.review-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 72px;
+  width: min(380px, calc(100vw - 32px));
+  z-index: 40;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 18px 50px rgba(31, 41, 55, 0.22);
+}
+.panel-head, .panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.review-panel textarea, .review-export textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+.review-export {
+  width: min(760px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
+@media (max-width: 700px) {
+  main { padding: 20px 12px 110px; }
+  h1 { font-size: 1.55rem; }
+  header, section, footer, article { padding: 18px; }
+  .meta-grid { grid-template-columns: 1fr; gap: 4px; }
+}</style>
 </head>
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <h1>OpenTelemetry Agent QA資料 読む順番インデックス</h1>
-      <p class="summary">OpenTelemetryを使ってagent自動QAを作るための資料を、読む順番に並べました。各行に「何が書かれているか」「何が学べるか」「いつ読むべきか」をまとめています。</p>
-      <dl class="meta">
-        <dt>作成日時</dt><dd>2026/06/07 20:46 JST</dd>
-        <dt>対象</dt><dd>既存の個別解説HTML 17件</dd>
-        <dt>並べ方</dt><dd>全体像 → 標準schema → 計測 → 実装 → 評価接続 → simulation / trace assertion → eval設計 → 実務運用 → 研究深掘り</dd>
+      <p class="tag">詳細解説インデックス</p>
+      <h1>OpenTelemetry Agent QA資料 詳細解説インデックス</h1>
+      <p class="summary">17資料を、動画解説記事と同じ方針で、資料の流れ・主張・実装手順・QA基盤への落とし込みが追える粒度に作り直しました。</p>
+      <dl class="meta-grid">
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>対象</dt><dd>個別解説17本 + このインデックス</dd>
+        <dt>方針</dt><dd>短い根拠引用、章ごとの詳細な再構成、実装チェックポイント、注意点を各ページに配置</dd>
       </dl>
-      <div class="chips">
-        <span class="chip">OTel trace</span>
-        <span class="chip">Agent evaluation</span>
-        <span class="chip">Simulation QA</span>
-        <span class="chip">Trace-based testing</span>
-      </div>
     </header>
-
-    <section data-review-target="reading-policy" data-review-label="読む順番の方針">
-      <h2>読む順番の方針</h2>
-      <p>最初に標準化とtraceの考え方を押さえ、次にinstrumentationでデータを出し、PhoenixやLangWatchで実装像を掴みます。その後、TracetestとAgentEvalsで自動判定の形を学び、最後にHamel Husainの実務FAQと研究論文で評価設計を深める順番です。</p>
-      <p>短期で試すなら 1 → 2 → 4 → 6 → 13 → 14 を読めば、最小限の実装とCI評価まで到達できます。長期運用まで考えるなら、9、15、16、17を追加してください。</p>
+    <section class="callout" data-review-target="reading-route" data-review-label="読む順番">
+      <h2>読む順番</h2>
+      <p>最初にOpenTelemetryでagent observabilityの全体像とGenAI semantic conventionsを押さえ、次にOpenInferenceやOpenLLMetryで計測層を理解します。その後、Phoenix、LangWatch、Tracetest、AgentEvalsで評価基盤の実装像を掴み、最後にHamel HusainのFAQと研究論文で運用と限界を深掘りします。</p>
+      <p>短期で試すなら 1 → 2 → 4 → 6 → 13 → 14、長期運用まで設計するなら 9 → 15 → 16 → 17 を追加してください。</p>
     </section>
+    <section data-review-target="article-list" data-review-label="詳細解説一覧">
+      <h2>詳細解説一覧</h2>
+      <div class="card-grid">
+    <article data-review-target="card-otel-agent-observability-blog" data-review-label="OpenTelemetry AI Agent Observability: Agent QAの共通土台を作る">
+      <p class="tag">1. 全体像</p>
+      <h2><a href="./otel-agent-observability-blog.html">OpenTelemetry AI Agent Observability: Agent QAの共通土台を作る</a></h2>
+      <p>この資料は、AI agentの観測をOpenTelemetryで標準化する必要性を説明する導入記事です。LLM呼び出しだけではなく、agent application、agent framework、tools、memory、multi-agent協調まで含む実行を、評価と改善に使えるtraceとして扱う発想が中心です。</p>
+      <p class="muted">学び: 最初に読むべき資料です。以降のPhoenix、LangWatch、AgentEvals、Tracetestはすべて「agentの実行過程をtraceで固定し、それを評価する」という前提に立っています。この前提を把握しないと、個別ツールの違いだけを追ってしまいます。</p>
+    </article>
 
-    <section data-review-target="reading-table" data-review-label="読む順番テーブル">
-      <h2>読む順番テーブル</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>順番</th>
-              <th>段階</th>
-              <th>資料</th>
-              <th>何が書かれているか</th>
-              <th>何が学びとして得られるか</th>
-              <th>読むタイミング</th>
-            </tr>
-          </thead>
-          <tbody>
-            
-  <tr>
-    <td class="num">1</td>
-    <td><span class="stage">全体像</span></td>
-    <td>
-      <strong>OpenTelemetry AI Agent Observability</strong>
-      <div class="links">
-        <a href="./otel-agent-observability-blog.html">解説HTML</a>
-        <a href="https://opentelemetry.io/blog/2025/ai-agent-observability/">原資料</a>
-      </div>
-    </td>
-    <td>agent observabilityがなぜ必要か、agent applicationとagent frameworkの違い、telemetryを評価ツールへのfeedback loopとして使う考え方が書かれている。</td>
-    <td>最初に、OTel traceは監視ログではなくagent改善サイクルの共通データ面だと理解できる。vendor lock-inを避ける設計判断の軸も得られる。</td>
-    <td>最初に読む。以後の資料で出てくるtrace、span、evaluationの位置づけが整理される。</td>
-  </tr>
+    <article data-review-target="card-otel-genai-semconv" data-review-label="OpenTelemetry GenAI Semantic Conventions: 評価器が読むspan schema">
+      <p class="tag">2. 標準schema</p>
+      <h2><a href="./otel-genai-semconv.html">OpenTelemetry GenAI Semantic Conventions: 評価器が読むspan schema</a></h2>
+      <p>この仕様は、LLM呼び出し、retrieval、tool executionをOpenTelemetry spanとしてどう表現するかを定義します。agent自動QAでは、評価器が読む属性の名前と意味を揃えるための土台になります。</p>
+      <p class="muted">学び: 評価ツールを見る前に読むべき資料です。何をtraceに残すべきかが曖昧なままAgentEvalsやTracetestを入れても、評価器に必要な属性が足りず、最終回答だけの採点に戻ってしまいます。</p>
+    </article>
 
-  <tr>
-    <td class="num">2</td>
-    <td><span class="stage">標準schema</span></td>
-    <td>
-      <strong>OpenTelemetry GenAI Semantic Conventions</strong>
-      <div class="links">
-        <a href="./otel-genai-semconv.html">解説HTML</a>
-        <a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/">原資料</a>
-      </div>
-    </td>
-    <td>LLM call、retrieval、tool execution、token、model、provider、tool arguments、tool resultなどをspan属性としてどう表すかが書かれている。</td>
-    <td>agent QAの評価器が読む最低限のschemaを学べる。どの属性を取らないとwrong tool、invalid arguments、stale retrievalを検査できないかが分かる。</td>
-    <td>全体像の次。実装や評価ツールを見る前に、共通語彙を押さえる。</td>
-  </tr>
+    <article data-review-target="card-otel-genai-observability-blog" data-review-label="Inside the LLM Call: Agent実行をspan treeとして見る">
+      <p class="tag">3. 可視化例</p>
+      <h2><a href="./otel-genai-observability-blog.html">Inside the LLM Call: Agent実行をspan treeとして見る</a></h2>
+      <p>この公式ブログは、VS Code Copilotなどのagent interactionをOpenTelemetryで可視化し、invoke_agent、chat、execute_toolのようなspan treeとして見る例を示します。仕様を現実の画面とデバッグ手順に接続する資料です。</p>
+      <p class="muted">学び: GenAI semantic conventionsを読んだ直後に読むと、属性名とspan treeが実際の開発体験でどう役立つかが分かります。QA基盤の前に、まずtrace viewerで何を見るべきかを掴めます。</p>
+    </article>
 
-  <tr>
-    <td class="num">3</td>
-    <td><span class="stage">可視化例</span></td>
-    <td>
-      <strong>Inside the LLM Call: GenAI Observability with OpenTelemetry</strong>
-      <div class="links">
-        <a href="./otel-genai-observability-blog.html">解説HTML</a>
-        <a href="https://opentelemetry.io/blog/2026/genai-observability/">原資料</a>
-      </div>
-    </td>
-    <td>VS Code Copilotなどのagent interactionをOTelで出し、invoke_agent、chat、execute_toolのspan treeとして見る例が書かれている。</td>
-    <td>実際のagent実行がどのようなtrace treeに見えるかを掴める。遅延、retry、tool callの原因調査をtraceで行う感覚が得られる。</td>
-    <td>schemaを読んだ直後。抽象仕様を画面上の実例へ接続する。</td>
-  </tr>
+    <article data-review-target="card-openinference" data-review-label="OpenInference: AIアプリをOTel互換traceにそろえる計測層">
+      <p class="tag">4. 計測層</p>
+      <h2><a href="./openinference.html">OpenInference: AIアプリをOTel互換traceにそろえる計測層</a></h2>
+      <p>OpenInferenceは、LLM、retriever、tool、agent frameworkをOpenTelemetry互換のtraceとして出すための仕様とinstrumentation群です。agent QAでは、評価器に入れる前のセンサー層として重要です。</p>
+      <p class="muted">学び: 自前でspanを全部書く前に読むべき資料です。OpenAI、OpenAI Agents、Claude Agent SDK、LangChain、LlamaIndex、CrewAI、Google ADK、AutoGenなど、既存frameworkからどこまで自動計測できるかを判断できます。</p>
+    </article>
 
-  <tr>
-    <td class="num">4</td>
-    <td><span class="stage">計測層</span></td>
-    <td>
-      <strong>OpenInference</strong>
-      <div class="links">
-        <a href="./openinference.html">解説HTML</a>
-        <a href="https://arize-ai.github.io/openinference/">原資料</a>
-      </div>
-    </td>
-    <td>OpenTelemetryを補完して、OpenAI、LangChain、LlamaIndex、CrewAI、Google ADKなど多数のAI frameworkをtrace化するinstrumentation群が書かれている。</td>
-    <td>自前で全spanを実装する前に、どこまで自動計測できるかを判断できる。評価基盤の前段に置くセンサー層の考え方が分かる。</td>
-    <td>標準schemaと可視化例の後。自分のframeworkでどうtraceを出すか検討する段階で読む。</td>
-  </tr>
+    <article data-review-target="card-traceloop-openllmetry" data-review-label="OpenLLMetry / Traceloop: LLM appをOTel pipelineへ乗せる">
+      <p class="tag">5. 計測層</p>
+      <h2><a href="./traceloop-openllmetry.html">OpenLLMetry / Traceloop: LLM appをOTel pipelineへ乗せる</a></h2>
+      <p>OpenLLMetryは、LLM applicationの実行をOpenTelemetry traceとして出すOSS instrumentationです。Tracetest記事の実装例でも使われる、LLM app向けの計測レイヤーです。</p>
+      <p class="muted">学び: OpenInferenceと並べて読むと、AI計測ライブラリの位置づけが分かります。特に既存のOTel collectorやbackendを使い続けながらLLM appを可視化したい場合に参考になります。</p>
+    </article>
 
-  <tr>
-    <td class="num">5</td>
-    <td><span class="stage">計測層</span></td>
-    <td>
-      <strong>OpenLLMetry / Traceloop</strong>
-      <div class="links">
-        <a href="./traceloop-openllmetry.html">解説HTML</a>
-        <a href="https://docs.traceloop.com/docs/openllmetry/introduction">原資料</a>
-      </div>
-    </td>
-    <td>LLM appをOpenTelemetryで監視・debugするためのOSS instrumentationと、OTLP exporterで既存backendへ送る方法が書かれている。</td>
-    <td>OpenInference以外の計測選択肢を理解できる。LLM callを通常のobservability pipelineへ載せる実装パターンを学べる。</td>
-    <td>OpenInferenceと並べて読む。計測ライブラリの比較材料として使う。</td>
-  </tr>
+    <article data-review-target="card-phoenix-tracing-tutorial" data-review-label="Phoenix Tracing Tutorial: Support Agentを部品ごとに評価する">
+      <p class="tag">6. 実装チュートリアル</p>
+      <h2><a href="./phoenix-tracing-tutorial.html">Phoenix Tracing Tutorial: Support Agentを部品ごとに評価する</a></h2>
+      <p>PhoenixのTracing Tutorialは、サポートagentを題材に、LLM call、tool execution、RAG retrieval、session、annotation、LLM-as-Judgeまでを段階的に組み立てる実践教材です。</p>
+      <p class="muted">学び: 計測ライブラリを理解した後、最初に手を動かす資料として最適です。agent QAを最終回答の採点ではなく、分類、検索、tool、生成、sessionの各段階に分ける方法が学べます。</p>
+    </article>
 
-  <tr>
-    <td class="num">6</td>
-    <td><span class="stage">実装チュートリアル</span></td>
-    <td>
-      <strong>Phoenix Tracing Tutorial</strong>
-      <div class="links">
-        <a href="./phoenix-tracing-tutorial.html">解説HTML</a>
-        <a href="https://arize.com/docs/phoenix/tracing">原資料</a>
-      </div>
-    </td>
-    <td>サポートagentを作り、LLM call、tool execution、RAG retrieval、session、annotation、LLM-as-Judgeを段階的に組み立てる流れが書かれている。</td>
-    <td>agentをブラックボックスにしないための最小構成を学べる。trace、annotation、evaluation、sessionをどう接続するかが具体化する。</td>
-    <td>計測層を理解した後。実際に小さなagentで手を動かす入口として読む。</td>
-  </tr>
+    <article data-review-target="card-phoenix-agent-spec-blog" data-review-label="Phoenix + Open Agent Spec: Runtimeを替えても同じ基準で評価する">
+      <p class="tag">7. 実装チュートリアル</p>
+      <h2><a href="./phoenix-agent-spec-blog.html">Phoenix + Open Agent Spec: Runtimeを替えても同じ基準で評価する</a></h2>
+      <p>このブログは、Agent Specで定義したagentをLangGraphとWayFlowなど異なるruntimeで動かし、Phoenixにtraceを送り、同じ評価基準で比較する構成を示します。</p>
+      <p class="muted">学び: Phoenix基礎の次に読む資料です。agent runtimeを変更したり、framework移行を検討したりするとき、最終回答だけでなくtraceとevalで比較する方法が分かります。</p>
+    </article>
 
-  <tr>
-    <td class="num">7</td>
-    <td><span class="stage">実装チュートリアル</span></td>
-    <td>
-      <strong>Phoenix + Open Agent Spec</strong>
-      <div class="links">
-        <a href="./phoenix-agent-spec-blog.html">解説HTML</a>
-        <a href="https://arize.com/blog/add-observability-to-your-open-agent-spec-agents-with-arize-phoenix/">原資料</a>
-      </div>
-    </td>
-    <td>Agent Specで定義したagentをLangGraphとWayFlowで動かし、同じ構造のtraceをPhoenixに送り、programmatic evaluationする例が書かれている。</td>
-    <td>runtime非依存でtraceとevalを揃える設計を学べる。framework移行やruntime比較を最終回答だけでなくtool trajectoryやcostで検証する発想が得られる。</td>
-    <td>Phoenix基礎の次。複数runtimeやagent定義のportable化を考える段階で読む。</td>
-  </tr>
+    <article data-review-target="card-langwatch-otel-guide" data-review-label="LangWatch OTel Integration: 既存traceを評価・simulationへ流す">
+      <p class="tag">8. 評価基盤接続</p>
+      <h2><a href="./langwatch-otel-guide.html">LangWatch OTel Integration: 既存traceを評価・simulationへ流す</a></h2>
+      <p>LangWatchのOTel Integration Guideは、任意言語のOpenTelemetry SDKからLangWatchのOTLP endpointへLLM/agent traceを送る方法を示します。</p>
+      <p class="muted">学び: traceを出せるようになった後に読む資料です。計測したデータを評価・simulation・annotationの画面へ接続する方法が分かります。</p>
+    </article>
 
-  <tr>
-    <td class="num">8</td>
-    <td><span class="stage">評価基盤接続</span></td>
-    <td>
-      <strong>LangWatch OpenTelemetry Integration Guide</strong>
-      <div class="links">
-        <a href="./langwatch-otel-guide.html">解説HTML</a>
-        <a href="https://langwatch.ai/docs/integration/opentelemetry/guide">原資料</a>
-      </div>
-    </td>
-    <td>任意言語のOpenTelemetry SDKからLangWatchのOTLP endpointへLLM tracesを送る手順が書かれている。</td>
-    <td>既存のOTel pipelineを評価・simulation基盤へ接続する方法を学べる。collector、認証、project、trace属性設計の勘所が分かる。</td>
-    <td>traceが出せるようになった後。評価UIや運用基盤へ流し込む段階で読む。</td>
-  </tr>
+    <article data-review-target="card-langwatch-agent-testing" data-review-label="LangWatch Agent Simulations: Multi-turn QAをscenarioとして書く">
+      <p class="tag">9. Simulation QA</p>
+      <h2><a href="./langwatch-agent-testing.html">LangWatch Agent Simulations: Multi-turn QAをscenarioとして書く</a></h2>
+      <p>LangWatch Agent Simulationsは、unit test、component eval、agent simulationの三層でagentを評価し、multi-turn scenarioで会話、tool call、状態遷移を検査する方法を説明します。</p>
+      <p class="muted">学び: toolやretrievalをtraceできるようになった後に読む資料です。agent QAを単発input-outputから、会話全体の振る舞いへ広げる発想が得られます。</p>
+    </article>
 
-  <tr>
-    <td class="num">9</td>
-    <td><span class="stage">Simulation QA</span></td>
-    <td>
-      <strong>LangWatch Agent Simulations</strong>
-      <div class="links">
-        <a href="./langwatch-agent-testing.html">解説HTML</a>
-        <a href="https://docs.langwatch.ai/agent-simulations/introduction">原資料</a>
-      </div>
-    </td>
-    <td>unit test、component eval、agent simulationの3階層と、multi-turn scenarioで中間tool callや状態遷移を検査する方法が書かれている。</td>
-    <td>agentを単発input-outputではなく、会話・tool・状態を持つprocessとしてテストする方法を学べる。production failureをscenario化する発想が得られる。</td>
-    <td>OTel接続の後。multi-turn agentやユーザーシミュレーションをQAに入れる段階で読む。</td>
-  </tr>
+    <article data-review-target="card-tracetest-docs" data-review-label="Tracetest Docs: traceをテスト仕様として使う">
+      <p class="tag">10. Trace assertion</p>
+      <h2><a href="./tracetest-docs.html">Tracetest Docs: traceをテスト仕様として使う</a></h2>
+      <p>Tracetestは、OpenTelemetry traceに対してspanの存在、属性、duration、side effectをassertし、E2Eやintegration testを深く検証するツールです。</p>
+      <p class="muted">学び: LLM judgeに頼らず決定的に検査できる領域を理解するために読みます。agentが正しいtoolを呼んだか、禁止された副作用を起こしていないかを見るのに向いています。</p>
+    </article>
 
-  <tr>
-    <td class="num">10</td>
-    <td><span class="stage">Trace assertion</span></td>
-    <td>
-      <strong>Tracetest Docs</strong>
-      <div class="links">
-        <a href="./tracetest-docs.html">解説HTML</a>
-        <a href="https://docs.tracetest.io/">原資料</a>
-      </div>
-    </td>
-    <td>OpenTelemetry traceに対してspanの存在、属性、duration、side effectをassertし、E2Eやintegration testに使う方法が書かれている。</td>
-    <td>LLM judgeに頼らず決定的に検査できる領域を学べる。tool call、DB write、queue publish、latencyをQA gateにする発想が得られる。</td>
-    <td>simulationと並行して読む。agentの内部経路や外部副作用を厳密に検査したい段階で読む。</td>
-  </tr>
+    <article data-review-target="card-tracetest-llm-apps" data-review-label="Testing LLM Apps with Trace-Based Testing: 外から叩き、内側のtraceを検査する">
+      <p class="tag">11. Trace assertion</p>
+      <h2><a href="./tracetest-llm-apps.html">Testing LLM Apps with Trace-Based Testing: 外から叩き、内側のtraceを検査する</a></h2>
+      <p>この記事は、PlaywrightでLLM appを外側から実行し、OpenTelemetry/OpenLLMetryで内部traceを出し、Tracetestでspan assertionを行う構成を示します。</p>
+      <p class="muted">学び: UI/APIテストとtrace検証を結合する具体例として読みます。agentを外から操作するQAと、内部tool/LLM chainの検査を同時に行う型が分かります。</p>
+    </article>
 
-  <tr>
-    <td class="num">11</td>
-    <td><span class="stage">Trace assertion</span></td>
-    <td>
-      <strong>Testing LLM Apps with Trace-Based Testing</strong>
-      <div class="links">
-        <a href="./tracetest-llm-apps.html">解説HTML</a>
-        <a href="https://tracetest.io/blog/testing-llm-apps-with-trace-based-testing">原資料</a>
-      </div>
-    </td>
-    <td>PlaywrightでLLM APIを叩き、OpenTelemetryとOpenLLMetryでtraceを出し、TracetestでLLM appの内部spanをassertする例が書かれている。</td>
-    <td>外からのQA操作と内側のtrace検証を組み合わせる方法を学べる。UI/APIテストだけでは見えないLLM chainやtool callの検査方法が分かる。</td>
-    <td>Tracetest基礎の次。実際のLLM appテスト構成へ落とす段階で読む。</td>
-  </tr>
+    <article data-review-target="card-agent-evals-spec" data-review-label="Agent Evals Specification: 評価をYAMLで宣言し、レビュー可能にする">
+      <p class="tag">12. Eval設計</p>
+      <h2><a href="./agent-evals-spec.html">Agent Evals Specification: 評価をYAMLで宣言し、レビュー可能にする</a></h2>
+      <p>Agent Evals仕様は、agent評価をYAMLで宣言し、code judge、LLM judge、rubric、tool trajectory、field accuracy、execution metricsなどを組み合わせる考え方を示します。</p>
+      <p class="muted">学び: trace assertionを理解した後に読むと、個別assertionやjudgeを評価仕様としてどう管理するかが分かります。評価基準をリポジトリでレビュー可能にする発想が中心です。</p>
+    </article>
 
-  <tr>
-    <td class="num">12</td>
-    <td><span class="stage">Eval設計</span></td>
-    <td>
-      <strong>Agent Evals Specification</strong>
-      <div class="links">
-        <a href="./agent-evals-spec.html">解説HTML</a>
-        <a href="https://agentevals.io/">原資料</a>
-      </div>
-    </td>
-    <td>agent評価をYAMLで宣言し、code judge、LLM judge、rubric、tool trajectory、field accuracy、execution metricsを組み合わせる考え方が書かれている。</td>
-    <td>評価基準をコード化・レビュー可能にする方法を学べる。最終回答、tool使用、構造化出力、cost/latencyを分けて採点する設計が分かる。</td>
-    <td>trace assertionを理解した後。評価定義をリポジトリで管理したい段階で読む。</td>
-  </tr>
+    <article data-review-target="card-agentevals-overview" data-review-label="AgentEvals Overview: 実行済みOTel traceを採点する">
+      <p class="tag">13. Trace採点</p>
+      <h2><a href="./agentevals-overview.html">AgentEvals Overview: 実行済みOTel traceを採点する</a></h2>
+      <p>AgentEvalsは、OpenTelemetry traceやJaeger JSONを読み、agentを再実行せずにtool trajectory、golden eval set、LLM-as-Judgeなどで採点する発想を示します。</p>
+      <p class="muted">学び: 評価仕様の次に読むと、宣言した期待値を実行済みtraceへ当てるイメージが掴めます。LLMの非決定性と再実行コストを避ける設計が中心です。</p>
+    </article>
 
-  <tr>
-    <td class="num">13</td>
-    <td><span class="stage">Trace採点</span></td>
-    <td>
-      <strong>AgentEvals Overview</strong>
-      <div class="links">
-        <a href="./agentevals-overview.html">解説HTML</a>
-        <a href="https://aevals.ai/">原資料</a>
-      </div>
-    </td>
-    <td>OpenTelemetry traceやJaeger JSONを読み、agentを再実行せずにtool trajectory、golden eval set、LLM-as-Judgeで採点する考え方が書かれている。</td>
-    <td>実行済みtraceをsource of truthにして評価する方法を学べる。非決定性と追加LLMコストを避けながらQAする設計が分かる。</td>
-    <td>評価仕様の次。pre-recorded traceを採点する発想を掴むために読む。</td>
-  </tr>
+    <article data-review-target="card-agentevals-github" data-review-label="agentevals GitHub: CLIでtraceをCI採点する実装詳細">
+      <p class="tag">14. Trace採点</p>
+      <h2><a href="./agentevals-github.html">agentevals GitHub: CLIでtraceをCI採点する実装詳細</a></h2>
+      <p>GitHub READMEは、AgentEvalsをCLIとしてどう動かすか、sample trace、eval set、metrics、CI gate、Web UI、MCP server、対応範囲を具体的に示します。</p>
+      <p class="muted">学び: AgentEvalsの概要を読んだ直後に読む資料です。実際のCI導入、trace file、eval set、metric指定、custom evaluatorの運用が分かります。</p>
+    </article>
 
-  <tr>
-    <td class="num">14</td>
-    <td><span class="stage">Trace採点</span></td>
-    <td>
-      <strong>agentevals GitHub</strong>
-      <div class="links">
-        <a href="./agentevals-github.html">解説HTML</a>
-        <a href="https://github.com/agentevals-dev/agentevals">原資料</a>
-      </div>
-    </td>
-    <td>sample trace、eval set、CLI、CI gate、Web UI、MCP server、対応範囲、coding agent評価への注意が書かれている。</td>
-    <td>AgentEvalsを実際にCIへ組み込む具体手順を学べる。どのtrace shapeなら評価しやすく、どこからは専用変換が必要かも分かる。</td>
-    <td>AgentEvals Overviewの直後。実装・CI連携に進む段階で読む。</td>
-  </tr>
+    <article data-review-target="card-hamel-evals-faq" data-review-label="Hamel Husain LLM Evals FAQ: traceを読んで失敗分類を育てる">
+      <p class="tag">15. 実務運用</p>
+      <h2><a href="./hamel-evals-faq.html">Hamel Husain LLM Evals FAQ: traceを読んで失敗分類を育てる</a></h2>
+      <p>このFAQはOpenTelemetry専用ではありませんが、LLM/agent evalを実務で作る手順が非常に具体的です。traceを読み、失敗分類を作り、custom evaluatorへ落とすプロセスを学べます。</p>
+      <p class="muted">学び: ツール群を一通り見た後に読むべき資料です。どのツールを使うかより、何を評価すべきかを実traceから決める方法が分かります。</p>
+    </article>
 
-  <tr>
-    <td class="num">15</td>
-    <td><span class="stage">実務運用</span></td>
-    <td>
-      <strong>Hamel Husain LLM Evals FAQ</strong>
-      <div class="links">
-        <a href="./hamel-evals-faq.html">解説HTML</a>
-        <a href="https://hamel.dev/blog/posts/evals-faq/evals-faq.pdf">原資料</a>
-      </div>
-    </td>
-    <td>evalはgeneric metricではなくerror analysisから始めるべきこと、trace annotation、custom evaluator、multi-turn trace、transition failure matrixが書かれている。</td>
-    <td>評価基盤を作る前に、実traceを読んで失敗分類を育てる実務プロセスを学べる。自動化すべき評価と人間が見るべき評価の分け方が分かる。</td>
-    <td>ツール群を一通り見た後。自社運用へ落とし込む前に読む。</td>
-  </tr>
+    <article data-review-target="card-automated-structural-testing-paper" data-review-label="Automated Structural Testing論文: trace・mock・assertionでagentをテストする">
+      <p class="tag">16. 研究深掘り</p>
+      <h2><a href="./automated-structural-testing-paper.html">Automated Structural Testing論文: trace・mock・assertionでagentをテストする</a></h2>
+      <p>この論文は、LLM-based agentを最終出力だけで評価するのではなく、OpenTelemetry traceでtrajectoryを取り、mockingで再現性を確保し、assertionで構造的に検査する方法を提案します。</p>
+      <p class="muted">学び: 実務ツールを見た後、自社QA基盤を設計する段階で読む資料です。agentを非決定的な会話相手ではなく、外部依存を持つソフトウェアとしてテストする視点が得られます。</p>
+    </article>
 
-  <tr>
-    <td class="num">16</td>
-    <td><span class="stage">研究深掘り</span></td>
-    <td>
-      <strong>Automated Structural Testing of LLM-based Agents</strong>
-      <div class="links">
-        <a href="./automated-structural-testing-paper.html">解説HTML</a>
-        <a href="https://arxiv.org/abs/2601.18827">原資料</a>
-      </div>
-    </td>
-    <td>OpenTelemetry traceでagent trajectoryを取り、mockingで再現性を確保し、assertionで自動検証する構造的テスト手法が書かれている。</td>
-    <td>agent QAをtrace、mock、assertionの3点セットとして設計する方法を学べる。test pyramidやregression testingをagentへ適用する視点が得られる。</td>
-    <td>実務運用の後。自社で基盤を設計・拡張する段階で読む。</td>
-  </tr>
-
-  <tr>
-    <td class="num">17</td>
-    <td><span class="stage">研究深掘り</span></td>
-    <td>
-      <strong>AgentTelemetry</strong>
-      <div class="links">
-        <a href="./agenttelemetry-paper.html">解説HTML</a>
-        <a href="https://openreview.net/pdf?id=owdmAYFk6k">原資料</a>
-      </div>
-    </td>
-    <td>OTel GenAIではplanning、reasoning、guardrail、delegation、memoryが見えにくいという問題と、9 span kind・14 fault typeのtaxonomyが書かれている。</td>
-    <td>標準spanだけでは検出できないagent故障を学べる。wrong tool、reasoning loop、guardrail bypass、memory corruptionなどを検出するために必要なtelemetry設計が分かる。</td>
-    <td>最後に読む。標準仕様と既存ツールの限界を理解し、独自spanやfault detectorを設計する材料にする。</td>
-  </tr>
-          </tbody>
-        </table>
-      </div>
+    <article data-review-target="card-agenttelemetry-paper" data-review-label="AgentTelemetry論文: OTel GenAIだけでは見えないagent故障を分類する">
+      <p class="tag">17. 研究深掘り</p>
+      <h2><a href="./agenttelemetry-paper.html">AgentTelemetry論文: OTel GenAIだけでは見えないagent故障を分類する</a></h2>
+      <p>AgentTelemetryは、通常のOpenTelemetry GenAI spanだけではplanning、reasoning、guardrail、delegation、memoryに関する故障が見えにくいと主張し、agent-specific span kindとfault taxonomyを提案します。</p>
+      <p class="muted">学び: 最後に読む資料です。標準仕様と既存ツールでどこまででき、どこから独自spanやfault detectorが必要かを判断できます。</p>
+    </article></div>
     </section>
-
     <footer data-review-target="footer" data-review-label="フッター">
       <h2>公開メモ</h2>
-      <p>このページは読む順番と学びを把握するためのインデックスです。各行の「解説HTML」から個別解説へ移動できます。</p>
+      <p>各ページはスタンドアロンHTMLで、コメントピンと改善プロンプト書き出し機能を含みます。</p>
     </footer>
   </main>
-
-  <div class="review-toolbar">
-    <button id="review-toggle" type="button" aria-pressed="false"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>コメント</button>
-    <button id="review-export" class="primary" type="button"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>改善プロンプト</button>
+  
+<div class="review-toolbar">
+  <button id="review-toggle" type="button" aria-pressed="false"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>コメント</button>
+  <button id="review-export" class="primary" type="button"><svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>改善プロンプト</button>
+</div>
+<aside id="review-panel" class="review-panel" hidden>
+  <div class="panel-head"><strong id="review-panel-title">コメント</strong><button type="button" id="review-close">閉じる</button></div>
+  <textarea id="review-text" rows="7" placeholder="この部分へのコメント"></textarea>
+  <div class="panel-actions">
+    <button type="button" id="review-save" class="primary">保存</button>
+    <button type="button" id="review-delete">削除</button>
   </div>
-  <aside id="review-panel" class="review-panel" hidden>
-    <div class="panel-head"><strong id="review-panel-title">コメント</strong><button type="button" id="review-close">閉じる</button></div>
-    <textarea id="review-text" rows="7" placeholder="この部分へのコメント"></textarea>
+</aside>
+<dialog id="review-export-dialog" class="review-export">
+  <form method="dialog">
+    <h2>改善プロンプト</h2>
+    <p class="muted">コメント位置と対象IDだけを使って、このHTMLの改善依頼を組み立てます。</p>
+    <textarea id="review-export-text" rows="12"></textarea>
     <div class="panel-actions">
-      <button type="button" id="review-save" class="primary">保存</button>
-      <button type="button" id="review-delete">削除</button>
+      <button type="button" id="review-copy" class="primary">コピー</button>
+      <button value="close">閉じる</button>
     </div>
-  </aside>
-  <dialog id="review-export-dialog" class="review-export">
-    <form method="dialog">
-      <h2>改善プロンプト</h2>
-      <p class="muted">コメント位置と対象IDだけを使って、このHTMLの改善依頼を組み立てます。</p>
-      <textarea id="review-export-text" rows="12"></textarea>
-      <div class="panel-actions">
-        <button type="button" id="review-copy" class="primary">コピー</button>
-        <button value="close">閉じる</button>
-      </div>
-    </form>
-  </dialog>
-  <script>
-    (function () {
-      const docKey = "review-comments:" + location.pathname + ":" + document.title;
-      const toggle = document.getElementById("review-toggle");
-      const exportButton = document.getElementById("review-export");
-      const panel = document.getElementById("review-panel");
-      const panelTitle = document.getElementById("review-panel-title");
-      const text = document.getElementById("review-text");
-      const save = document.getElementById("review-save");
-      const del = document.getElementById("review-delete");
-      const close = document.getElementById("review-close");
-      const dialog = document.getElementById("review-export-dialog");
-      const exportText = document.getElementById("review-export-text");
-      const copy = document.getElementById("review-copy");
-      let comments = [];
-      let activeId = null;
-      try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-      function getTarget(targetId) {
-        return document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-      }
-      function targetLabel(targetId) {
-        const el = getTarget(targetId);
-        return el ? el.getAttribute("data-review-label") || targetId : targetId;
-      }
-      function persist() {
-        localStorage.setItem(docKey, JSON.stringify(comments));
-      }
-      function renderPins() {
-        document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
-        comments.forEach((comment, index) => {
-          const target = getTarget(comment.targetId);
-          if (!target) return;
-          const pin = document.createElement("button");
-          pin.type = "button";
-          pin.className = "review-pin";
-          pin.textContent = String(index + 1);
-          pin.style.left = comment.x + "%";
-          pin.style.top = comment.y + "%";
-          pin.addEventListener("click", (event) => {
-            event.stopPropagation();
-            openPanel(comment.id);
-          });
-          target.appendChild(pin);
-        });
-      }
-      function openPanel(id) {
-        activeId = id;
-        const comment = comments.find((item) => item.id === id);
-        if (!comment) return;
-        panelTitle.textContent = "コメント: " + targetLabel(comment.targetId);
-        text.value = comment.text || "";
-        panel.hidden = false;
-        text.focus();
-      }
-      function closePanel() {
-        panel.hidden = true;
-        activeId = null;
-      }
-      function setReviewMode(on) {
-        document.body.classList.toggle("review-mode", on);
-        toggle.setAttribute("aria-pressed", on ? "true" : "false");
-        if (!on) closePanel();
-      }
-      toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") setReviewMode(false);
-      });
-      document.querySelectorAll("[data-review-target]").forEach((target) => {
-        target.addEventListener("click", (event) => {
-          if (!document.body.classList.contains("review-mode")) return;
-          if (event.target.closest(".review-pin")) return;
-          const rect = target.getBoundingClientRect();
-          const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
-          const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
-          const comment = {
-            id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2),
-            targetId: target.getAttribute("data-review-target"),
-            label: target.getAttribute("data-review-label") || "",
-            x: Math.round(x * 10) / 10,
-            y: Math.round(y * 10) / 10,
-            text: ""
-          };
-          comments.push(comment);
-          persist();
-          renderPins();
-          openPanel(comment.id);
-          event.stopPropagation();
-        });
-      });
-      save.addEventListener("click", () => {
-        const comment = comments.find((item) => item.id === activeId);
-        if (comment) {
-          comment.text = text.value.trim();
-          persist();
-          renderPins();
-        }
-        closePanel();
-      });
-      del.addEventListener("click", () => {
-        comments = comments.filter((item) => item.id !== activeId);
-        persist();
-        renderPins();
-        closePanel();
-      });
-      close.addEventListener("click", closePanel);
-      exportButton.addEventListener("click", () => {
-        const records = comments.filter((c) => c.text && c.text.trim()).map((c) => ({
-          targetId: c.targetId,
-          label: c.label || targetLabel(c.targetId),
-          x: c.x,
-          y: c.y,
-          comment: c.text.trim()
-        }));
-        exportText.value = [
-          "次のHTML解説を改善してください。",
-          "対象: " + document.title,
-          "コメントは {targetId, label, x, y, comment} です。本文の該当コンポーネントを探し、意図を保ったまま改善してください。",
-          JSON.stringify(records, null, 2)
-        ].join("\n\n");
-        dialog.showModal();
-        exportText.select();
-      });
-      copy.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(exportText.value);
-          copy.textContent = "コピー済み";
-        } catch (_) {
-          exportText.focus();
-          exportText.select();
-        }
-      });
+  </form>
+</dialog>
+<script>
+(function () {
+  const docKey = "review-comments:" + location.pathname + ":" + document.title;
+  const toggle = document.getElementById("review-toggle");
+  const exportButton = document.getElementById("review-export");
+  const panel = document.getElementById("review-panel");
+  const panelTitle = document.getElementById("review-panel-title");
+  const text = document.getElementById("review-text");
+  const save = document.getElementById("review-save");
+  const del = document.getElementById("review-delete");
+  const close = document.getElementById("review-close");
+  const dialog = document.getElementById("review-export-dialog");
+  const exportText = document.getElementById("review-export-text");
+  const copy = document.getElementById("review-copy");
+  let comments = [];
+  let activeId = null;
+  try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
+  function renderPins() {
+    document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+    comments.forEach((comment, index) => {
+      const target = targetFor(comment.targetId);
+      if (!target) return;
+      const pin = document.createElement("button");
+      pin.type = "button";
+      pin.className = "review-pin";
+      pin.textContent = String(index + 1);
+      pin.style.left = comment.x + "%";
+      pin.style.top = comment.y + "%";
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
+      target.appendChild(pin);
+    });
+  }
+  function openPanel(id) {
+    activeId = id;
+    const comment = comments.find((item) => item.id === id);
+    if (!comment) return;
+    panelTitle.textContent = "コメント: " + targetLabel(comment.targetId);
+    text.value = comment.text || "";
+    panel.hidden = false;
+    text.focus();
+  }
+  function closePanel() { panel.hidden = true; activeId = null; }
+  function setReviewMode(on) {
+    document.body.classList.toggle("review-mode", on);
+    toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    if (!on) closePanel();
+  }
+  toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
+  document.querySelectorAll("[data-review-target]").forEach((target) => {
+    target.addEventListener("click", (event) => {
+      if (!document.body.classList.contains("review-mode")) return;
+      if (event.target.closest(".review-pin")) return;
+      const rect = target.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+      const comment = {
+        id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2),
+        targetId: target.getAttribute("data-review-target"),
+        label: target.getAttribute("data-review-label") || "",
+        x: Math.round(x * 10) / 10,
+        y: Math.round(y * 10) / 10,
+        text: ""
+      };
+      comments.push(comment);
+      persist();
       renderPins();
-    })();
-  </script>
+      openPanel(comment.id);
+      event.stopPropagation();
+    });
+  });
+  save.addEventListener("click", () => {
+    const comment = comments.find((item) => item.id === activeId);
+    if (comment) {
+      comment.text = text.value.trim();
+      persist();
+      renderPins();
+    }
+    closePanel();
+  });
+  del.addEventListener("click", () => {
+    comments = comments.filter((item) => item.id !== activeId);
+    persist();
+    renderPins();
+    closePanel();
+  });
+  close.addEventListener("click", closePanel);
+  exportButton.addEventListener("click", () => {
+    const records = comments.filter((c) => c.text && c.text.trim()).map((c) => ({
+      targetId: c.targetId,
+      label: c.label || targetLabel(c.targetId),
+      x: c.x,
+      y: c.y,
+      comment: c.text.trim()
+    }));
+    exportText.value = [
+      "次のHTML解説を改善してください。",
+      "対象: " + document.title,
+      "コメントは {targetId, label, x, y, comment} です。本文の該当コンポーネントを探し、意図を保ったまま改善してください。",
+      JSON.stringify(records, null, 2)
+    ].join("\n\n");
+    dialog.showModal();
+    exportText.select();
+  });
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(exportText.value); copy.textContent = "コピー済み"; }
+    catch (_) { exportText.focus(); exportText.select(); }
+  });
+  renderPins();
+})();
+</script>
 </body>
 </html>

@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenTelemetry AI Agent Observability: 標準化の現状</title>
+  <title>OpenTelemetry AI Agent Observability: Agent QAの共通土台を作る</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">公式ブログ・標準化解説</p>
-      <h1>OpenTelemetry AI Agent Observability: 標準化の現状</h1>
-      <p class="summary">このブログは、agent observabilityがvendorごとに分断される問題と、OpenTelemetry GenAI/agent semantic conventionsがなぜ必要かを説明します。</p>
+      <p class="tag">全体像 / OpenTelemetry公式ブログ</p>
+      <h1>OpenTelemetry AI Agent Observability: Agent QAの共通土台を作る</h1>
+      <p class="summary">この資料は、AI agentの観測をOpenTelemetryで標準化する必要性を説明する導入記事です。LLM呼び出しだけではなく、agent application、agent framework、tools、memory、multi-agent協調まで含む実行を、評価と改善に使えるtraceとして扱う発想が中心です。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>AI Agent Observability - Evolving Standards and Best Practices</dd>
-        <dt>URL</dt><dd><a href="https://opentelemetry.io/blog/2025/ai-agent-observability/">https://opentelemetry.io/blog/2025/ai-agent-observability/</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>OpenTelemetry公式ブログをブラウズしてagent applicationとframework、標準化の議論を確認</dd>
-        <dt>注意</dt><dd>標準化の途中経過を説明する資料。現在の仕様との差分は最新semconvで確認する。</dd>
+        <dt>読む順番</dt><dd>1 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://opentelemetry.io/blog/2025/ai-agent-observability/">AI Agent Observability: Evolving Standards and Best Practices</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
-<li><a href="#qa-pattern">QA戦略への示唆</a></li>
-<li><a href="#implementation">設計要点</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>最初に読むべき資料です。以降のPhoenix、LangWatch、AgentEvals、Tracetestはすべて「agentの実行過程をtraceで固定し、それを評価する」という前提に立っています。この前提を把握しないと、個別ツールの違いだけを追ってしまいます。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">資料の流れを復元する</a></li><li><a href="#section-2">この資料から学べる設計判断</a></li><li><a href="#section-3">Agent自動QAへ落とすなら</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>telemetry is also used as a feedback loop</blockquote>
+      <p class="quote-note">agent telemetryを単なる監視ではなく、評価と改善の入力として扱う文脈で使われている短い表現。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
-      <h2>まず、この資料は何を言っているか</h2>
-      <p>ブログは、agentのtelemetryは監視や障害調査だけでなく、評価ツールへのfeedback loopとして使われると述べています。非決定的なagentでは、実行証跡が改善サイクルの入力になります。</p>
-<p>agent applicationとagent frameworkを区別しています。個別のagentが何をするかと、LangGraph、CrewAI、AutoGen、Semantic Kernelなどのframeworkがどう実行するかは別の観測対象です。</p>
-<p>vendorやframeworkごとにtrace形式がばらけるとlock-inが起きます。そのためOpenTelemetryで共通semantic conventionを作る意義があります。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="資料の流れを復元する">
+      <h2>資料の流れを復元する</h2>
+      <p>記事はまず、AI agentが単なるLLM API呼び出しではない、という整理から始まります。agentはユーザー要求を受け、計画し、外部toolを呼び、結果を解釈し、ときには他のagentやframeworkに処理を委ねます。従来のHTTP APIのようにrequestとresponseだけを見ても、なぜ失敗したかを説明できません。</p>
+<p>次に、agent observabilityの対象を二層に分けます。第一層はagent applicationです。これは業務ロジック、ユーザーの目的、tool選択、承認フローなど、アプリケーション固有の意味を持つ層です。第二層はagent frameworkです。LangGraph、CrewAI、AutoGen、Semantic Kernelのようなruntimeが、LLM呼び出しやtool dispatchをどう実行したかを表す層です。</p>
+<p>記事の核心は、telemetryが障害調査だけでなく評価と改善のfeedback loopになる、という点です。agentの出力が悪かったとき、回答文だけを見てpromptを調整しても再発防止には弱い。どのtoolが呼ばれ、どのretrieval結果が使われ、どのstepで状態が崩れたかをtraceに残して初めて、評価器や回帰テストへ変換できます。</p>
+<p>最後に、OpenTelemetryを共通面にする理由が説明されます。vendorごとの独自trace形式に閉じると、観測backend、評価ツール、agent frameworkを替えるたびに移行コストが発生します。OTel semantic conventionsに寄せておけば、Phoenix、LangWatch、Tracetest、Grafana Tempo、Jaeger、Datadog、独自分析を同じtraceから始められます。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="QA戦略">
-      <h2>QA戦略への示唆</h2>
-      <p>agent QAのtrace schemaは、特定vendorの都合だけで決めない方がよいです。OpenTelemetryの標準に寄せておけば、Phoenix、LangWatch、Tracetest、Grafana、Datadog、独自分析などへ流用できます。</p>
-<p>application-level spanとframework-level spanを分けるのが重要です。業務上の状態遷移や承認判断はapplication-level、LLM callやtool dispatchはframework-levelとして見ると整理しやすいです。</p>
-<p>評価基盤は、observability backendと密結合させすぎない設計が望ましいです。OTLPやtrace exportを共通面にすれば、将来の評価ツール変更に耐えやすくなります。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="この資料から学べる設計判断">
+      <h2>この資料から学べる設計判断</h2>
+      <p>第一の学びは、agent QAの入力はログ文字列ではなくspan treeにするべきだということです。ログは人間が読むには便利ですが、評価器が安定して読むには構造が弱い。spanなら親子関係、duration、status、attributes、eventsを使って、実行過程を機械的に検査できます。</p>
+<p>第二の学びは、application-level spanとframework-level spanを分けることです。frameworkが自動で出すLLM call spanだけでは、業務上の重要な判断が見えません。たとえば、返金可否判定、human approval required、risk score、policy idなどはapplication-level spanとして自前で足す必要があります。</p>
+<p>第三の学びは、標準化を待ちすぎず、しかし完全独自にも寄りすぎないことです。標準のgen_ai属性を使い、足りないものだけapp固有namespaceで足す。これにより、短期では評価を進めながら、長期では標準やツール更新へ追随しやすくなります。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="設計要点">
-      <h2>設計要点</h2>
-      <p>resource attributesにはservice.name、deployment.environment、service.versionを入れます。agent attributesにはagent.name、agent.version、agent.role、session id、user cohort、scenario idなどを入れると分析しやすくなります。</p>
-<p>frameworkが出すspanだけで満足せず、業務ルール上の重要decisionにmanual spanを追加します。例えば、risk score計算、human approval required、policy check resultなどです。</p>
-<p>標準化中の領域では、独自属性にnamespaceを付けます。`app.agent.state`や`qa.expected_tool`のように、後で標準属性と衝突しない形にします。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="Agent自動QAへ落とすなら">
+      <h2>Agent自動QAへ落とすなら</h2>
+      <p>この資料をQA基盤に翻訳すると、まず全agent実行にroot spanを作ります。rootにはagent.name、agent.version、session.id、scenario.id、prompt.version、model.version、deployment.environmentを入れます。これが後で「どの変更で品質が変わったか」を追う軸になります。</p>
+<p>次に、frameworkが出すLLM/tool/retrieval spanに加えて、業務判断spanを明示します。例として、`classify_intent`、`policy_check`、`approval_gate`、`select_tool`、`finalize_answer`のようなspanです。自動QAではこれらを使って、期待された経路を通ったか、禁止された副作用が起きていないかを検査します。</p>
+<p>最後に、traceを評価器に流します。初期段階ではPhoenixやLangWatchで人間がtraceを読み、失敗分類を作る。次にTracetestやAgentEvalsで決定的なassertionを増やす。意味品質だけLLM-as-Judgeに任せる。この順番が、この記事のfeedback loop思想に沿っています。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
-      <p>標準化を待ちすぎると実装が進みません。一方で、完全独自schemaに寄りすぎると将来の移行が重くなります。標準spanを土台にし、足りない属性を薄く足すのが現実的です。</p>
-<p>評価のためにtelemetryを増やすと、保存量と機密リスクも増えます。observabilityとevaluationの目的、保持期間、sampling率を分けて管理する必要があります。</p>
+      <p>この記事は方針を示す資料であって、評価器の具体実装手順を細かく説明するものではありません。実装手順はOpenTelemetry GenAI semantic conventions、OpenInference、Phoenix、LangWatch、AgentEvalsで補う必要があります。</p>
+<p>また、traceを評価に使うほど、prompt、tool引数、検索結果、顧客情報がtelemetryに入りやすくなります。observabilityとprivacyは別問題ではなく、同じ設計の中で決める必要があります。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="読後に再現できる設計図">
+      <h2>読後に再現できる設計図</h2>
+      <p>この資料を読み終えた状態で再現すべき設計図は、agent observabilityを三つの面に分けることです。第一面は実行木です。rootにagent invocationを置き、その下にplanning、LLM call、retrieval、tool call、approval、handoffを並べます。第二面は評価です。traceから期待経路、失敗分類、cost、latency、safety eventを取り出します。第三面は改善です。失敗traceをannotationし、eval setへ変換し、PRやrelease gateで再利用します。</p>
+<p>この資料の実務上の読み替えで重要なのは、observability backendを選ぶ話ではなく、agentの行動をどの粒度で契約化するかです。たとえば、単に`tool called`では弱く、`policy_checkで許可されたあとにwrite toolが呼ばれた`まで表現できるspan treeが必要です。</p>
+<p>組織導入では、最初から全agentを完璧に計測しない方がよいです。最も事故りやすい1つのagentを選び、root span、LLM span、tool span、policy decision spanだけを作り、実際の失敗traceから必要属性を増やす流れが現実的です。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>agent.name、agent.version、session.id、scenario.id、prompt.versionをroot spanに入れる</li>
+<li>frameworkが自動で出すspanと、業務判断を表すmanual spanを分ける</li>
+<li>traceから評価へ流す属性を、検出したい失敗モードから逆算する</li>
+<li>本番traceのcapture、redaction、sampling、保持期間を先に決める</li>
+<li>vendor固有schemaではなくOTel互換schemaを共通面にする</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://opentelemetry.io/blog/2025/ai-agent-observability/">AI Agent Observability: Evolving Standards and Best Practices</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

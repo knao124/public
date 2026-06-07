@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tracetest LLM Apps記事: Playwright + OTel + OpenLLMetry</title>
+  <title>Testing LLM Apps with Trace-Based Testing: 外から叩き、内側のtraceを検査する</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">実装ブログ</p>
-      <h1>Tracetest LLM Apps記事: Playwright + OTel + OpenLLMetry</h1>
-      <p class="summary">この記事は、LLM APIをOpenTelemetryとOpenLLMetryで計測し、PlaywrightでAPIを叩き、Tracetestでtrace-based assertionを行う例です。</p>
+      <p class="tag">Trace assertion / 実装ブログ</p>
+      <h1>Testing LLM Apps with Trace-Based Testing: 外から叩き、内側のtraceを検査する</h1>
+      <p class="summary">この記事は、PlaywrightでLLM appを外側から実行し、OpenTelemetry/OpenLLMetryで内部traceを出し、Tracetestでspan assertionを行う構成を示します。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>Testing LLM Apps with Trace-Based Testing</dd>
-        <dt>URL</dt><dd><a href="https://tracetest.io/blog/testing-llm-apps-with-trace-based-testing">https://tracetest.io/blog/testing-llm-apps-with-trace-based-testing</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>TracetestブログをブラウズしてLLM appのinstrumentationとtrace assertionの流れを確認</dd>
-        <dt>注意</dt><dd>記事のパッケージやサンプル構成は古くなる可能性がある。考え方を中心に読む。</dd>
+        <dt>読む順番</dt><dd>11 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://tracetest.io/blog/testing-llm-apps-with-trace-based-testing">Testing LLM Apps with Trace-Based Testing</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
-<li><a href="#qa-pattern">Agent QAへの応用</a></li>
-<li><a href="#implementation">実装時の要点</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>UI/APIテストとtrace検証を結合する具体例として読みます。agentを外から操作するQAと、内部tool/LLM chainの検査を同時に行う型が分かります。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">記事の流れを復元する</a></li><li><a href="#section-2">Agent QAへの読み替え</a></li><li><a href="#section-3">実装手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>test the application with these traces</blockquote>
+      <p class="quote-note">アプリ実行で発生したtraceをテストに使う記事の狙いを示す短い表現。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
-      <h2>まず、この資料は何を言っているか</h2>
-      <p>記事は、LLM appのAPIテストをresponseだけでなく内部traceまで含めて検証する例です。OpenTelemetry SDKとOpenLLMetryを使い、LLM callやLangChainのworkflow spanを見えるようにします。</p>
-<p>PlaywrightはAPIを叩くtrigger役として使い、Tracetestはその実行で生成されたtraceに対してassertionを行います。つまり、機能テストと内部経路の検証を組み合わせています。</p>
-<p>例では、ChatPromptTemplate spanやopenai.chat spanの存在を確認するなど、LLM appらしい内部処理が本当に走ったかを検査します。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="記事の流れを復元する">
+      <h2>記事の流れを復元する</h2>
+      <p>記事は、LLM appのテストが最終レスポンスだけでは不十分であるという問題から始まります。LLM APIが呼ばれたか、prompt templateが使われたか、LangChainのchainが期待通り走ったかはresponseだけでは分かりません。</p>
+<p>次に、OpenTelemetry SDKとOpenLLMetryを使ってLLM appをinstrumentします。これにより、ChatPromptTemplateやopenai.chatのような内部処理がspanとして見えるようになります。</p>
+<p>Playwrightは外側のtriggerとして使われます。API endpointやUIを叩き、実際のアプリケーション実行を発生させます。その実行で生成されたtraceをTracetestが取得し、span assertionを行います。</p>
+<p>記事のポイントは、テストを二層にすることです。外側ではアプリがユーザーに応答することを確認し、内側では期待したLLM workflowが実際に通ったことをtraceで確認します。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="Agent QAへの応用">
-      <h2>Agent QAへの応用</h2>
-      <p>agent QAでは、PlaywrightやAPI testを「外からの操作」、OTel traceを「内側の証跡」として組み合わせると強いです。UI操作だけでは、agentが正しいtoolを使ったか分かりません。</p>
-<p>例えばブラウザでチャットUIに質問を投げ、traceでretrieval span、tool span、LLM spanを確認します。さらに最終回答をLLM judgeやrubricで採点すれば、外部挙動と内部経路の両方を押さえられます。</p>
-<p>この構成は、QA agentにブラウザを操作させる場合にも有効です。QA agentが見た画面だけでなく、裏側のagent-under-testがどう動いたかをOTelで保存できます。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="Agent QAへの読み替え">
+      <h2>Agent QAへの読み替え</h2>
+      <p>agent UIをQA agentやPlaywrightで操作しても、それだけでは裏側のagentが何をしたか分かりません。trace-based testingを組み合わせると、UI操作と内部tool callを同じテストで検査できます。</p>
+<p>たとえば、チャットUIに質問を投げ、traceでintent classification、retrieval、execute_tool、final generationを確認します。最終回答が正しそうでも、retrievalを使っていないなら失敗にできます。</p>
+<p>この構成は、agentに自動QAさせる場合にも有効です。QA agentが画面上で検査した結果と、agent-under-testのOTel traceを突き合わせれば、表面上の動作と内部経路の両方を保証できます。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="実装要点">
-      <h2>実装時の要点</h2>
-      <p>LLM callを自動計測するだけでなく、agent workflowのspan名を安定させます。prompt template、retriever、tool、final response生成などを区別できるとassertionを書きやすくなります。</p>
-<p>test helperはtrace IDを確実に受け渡す設計にします。外部テストが発行したrequestと、collectorに入ったtraceを結びつけられないと自動化が不安定になります。</p>
-<p>CIでは、失敗時にtrace viewerへのリンク、trace JSON、assertion結果をartifactに残します。LLM appの失敗はログ1行では原因が分からないため、調査導線が品質に直結します。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="実装手順">
+      <h2>実装手順</h2>
+      <p>まずLLM appへOpenLLMetryやOpenInferenceを入れ、OTLP exporterを設定します。ローカルではJaegerやTracetest、CIではcollector経由のbackendへ送ります。</p>
+<p>次にPlaywrightやAPI testで代表シナリオを実行します。実行時にtrace idやtest run idをrequest headerまたはspan属性に入れ、対象traceを引けるようにします。</p>
+<p>最後にTracetestでspan assertionを書きます。prompt template spanが存在する、openai.chat spanが成功している、tool spanが期待通り、error spanがない、durationが閾値内、という検査です。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
-      <p>span名を実装内部のクラス名に寄せすぎると、framework upgradeでテストが壊れます。業務上重要なstepには自前の安定spanを足すのが安全です。</p>
-<p>LLM appのtraceにはpromptや回答が含まれます。CI artifactに保存する場合、secretや顧客情報が混ざらないよう、テストデータとmaskingを徹底する必要があります。</p>
+      <p>framework内部のspan名に依存しすぎると壊れやすくなります。業務上重要なstepには自前で安定spanを足すべきです。</p>
+<p>CI artifactとしてtraceを保存するなら、promptやtool resultにsecretや顧客情報が混ざらないよう、人工テストデータとredactionを徹底します。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="外部E2Eと内部trace検査を一つにする">
+      <h2>外部E2Eと内部trace検査を一つにする</h2>
+      <p>この記事の実装型は、agent QAでそのまま使えます。PlaywrightやAPI testで外から実際のユーザー操作を発生させ、その実行で生成されたtraceをTracetestで検査します。これにより、UIは動いているが内部ではretrievalを使っていない、という失敗を捕まえられます。</p>
+<p>LLM appでは、prompt template、LLM call、tool call、post-processingがすべて品質に関わります。外側のresponse testだけでは、どの部品が実行されたか分かりません。trace-based testingは、内部経路をE2Eテストの一部にします。</p>
+<p>CIでは、失敗したときにPlaywrightのスクリーンショット、Tracetestのassertion結果、OTel trace JSONを一緒に保存します。LLM appの失敗はログ一行では追えないため、調査導線が重要です。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>外部testからtrace idを渡すか、root spanにtest idを入れる</li>
+<li>UI/APIの成功とspan assertionを両方見る</li>
+<li>prompt template、LLM call、tool callを別々に検査する</li>
+<li>失敗時artifactにtrace JSONを残す</li>
+<li>意味評価は別のjudgeに分担させる</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://tracetest.io/blog/testing-llm-apps-with-trace-based-testing">Testing LLM Apps with Trace-Based Testing</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

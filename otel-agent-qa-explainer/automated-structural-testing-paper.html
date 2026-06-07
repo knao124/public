@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Automated Structural Testing論文: Trace・Mock・AssertionでAgentを検査する</title>
+  <title>Automated Structural Testing論文: trace・mock・assertionでagentをテストする</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">論文・研究</p>
-      <h1>Automated Structural Testing論文: Trace・Mock・AssertionでAgentを検査する</h1>
-      <p class="summary">この論文は、LLM agentをユーザー視点のacceptance testだけでなく、OpenTelemetry trace、mocking、assertionで構造的にテストする方法を提案します。</p>
+      <p class="tag">研究深掘り / 研究論文</p>
+      <h1>Automated Structural Testing論文: trace・mock・assertionでagentをテストする</h1>
+      <p class="summary">この論文は、LLM-based agentを最終出力だけで評価するのではなく、OpenTelemetry traceでtrajectoryを取り、mockingで再現性を確保し、assertionで構造的に検査する方法を提案します。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>Automated structural testing of LLM-based agents: methods, framework, and case studies</dd>
-        <dt>URL</dt><dd><a href="https://arxiv.org/abs/2601.18827">https://arxiv.org/abs/2601.18827</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>arXiv abstractと概要をブラウズして手法、狙い、open source実装の有無を確認</dd>
-        <dt>注意</dt><dd>論文の詳細な実験条件はPDF本文で確認する必要がある。ここでは実務に使うための読み替えを中心にする。</dd>
+        <dt>読む順番</dt><dd>16 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://arxiv.org/abs/2601.18827">Automated structural testing of LLM-based agents: methods, framework, and case studies</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この論文は何を言っているか</a></li>
-<li><a href="#qa-pattern">自動QA基盤への示唆</a></li>
-<li><a href="#implementation">実装ノウハウ</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>実務ツールを見た後、自社QA基盤を設計する段階で読む資料です。agentを非決定的な会話相手ではなく、外部依存を持つソフトウェアとしてテストする視点が得られます。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">論文の流れを復元する</a></li><li><a href="#section-2">何が学べるか</a></li><li><a href="#section-3">Agent自動QAへ落とす手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>capture agent trajectories, employs mocking</blockquote>
+      <p class="quote-note">提案手法の二つの柱を示す短い引用。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="論文の主張">
-      <h2>まず、この論文は何を言っているか</h2>
-      <p>論文の問題意識は、現在のagent testが最終結果の受け入れ評価に寄りすぎていることです。人間評価が必要で、自動化しにくく、根本原因分析にも弱く、テスト環境コストも高いと整理しています。</p>
-<p>提案は構造的テストです。OpenTelemetryベースのtraceでagent trajectoryを記録し、mockingでLLMの挙動を再現可能にし、assertionで自動検証します。</p>
-<p>ソフトウェア工学のtest pyramid、regression testing、TDD、多言語testingをagentにも適用しようとする発想です。agentを単なるモデル出力ではなく、外部依存を持つプログラムとして扱います。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="論文の流れを復元する">
+      <h2>論文の流れを復元する</h2>
+      <p>論文は、現在のagent testingがacceptance testや人間評価に偏っている問題から始まります。最終回答が正しいかを人間が見る方法は高コストで、自動化しにくく、失敗の根本原因も分かりにくい。</p>
+<p>提案はautomated structural testingです。agentの内部実行をOpenTelemetry traceとして記録し、trajectoryを検査対象にします。つまり、agentがどのstepを通り、どのtoolを呼び、どの外部依存を使ったかを見るのです。</p>
+<p>再現性のためにmockingが使われます。LLM応答やtool結果を固定すれば、毎回揺れるLLMを相手にするのではなく、agentの制御ロジックを安定して検査できます。</p>
+<p>最後にassertionで自動判定します。期待されるspanがあるか、順序が正しいか、禁止されたtoolがないか、エラーがないかを検査します。ソフトウェア工学のtest pyramidやregression testingをagentへ持ち込む発想です。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="QA設計">
-      <h2>自動QA基盤への示唆</h2>
-      <p>この論文から得るべき設計原則は、agent QAを3つに分けることです。観測するtrace、再現性を確保するmock、合否を決めるassertionです。この3つが揃わないとCIで安定しません。</p>
-<p>mockingは特に重要です。LLMや外部APIを毎回本物で叩くと、結果が揺れ、費用もかかります。unit寄りのテストではLLM応答とtool結果を固定し、agentの制御ロジックを検査します。</p>
-<p>一方、最終的なE2Eでは本物のLLMを使うテストも必要です。構造的テストはすべてをmock化する思想ではなく、再現性が必要な層と実環境確認の層を分ける思想として読むべきです。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="何が学べるか">
+      <h2>何が学べるか</h2>
+      <p>第一に、agent QAには三点セットが必要だと分かります。観測するtrace、再現性を確保するmock、合否を決めるassertionです。このどれかが欠けるとCIで安定しません。</p>
+<p>第二に、すべてのテストで本物のLLMを叩く必要はないと分かります。unit寄りのテストではLLM応答を固定し、agentのroutingやtool selectionを検査する方が速く安定します。</p>
+<p>第三に、E2Eテストとmockテストを分けるべきだと分かります。mockは制御ロジックの回帰検出、本物LLMはモデル・prompt・外部APIを含む統合確認に使います。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="実装ノウハウ">
-      <h2>実装ノウハウ</h2>
-      <p>agent trajectoryのassertionは、span treeに対して書くと保守しやすいです。例として、root agent spanの下にplanner span、retriever span、tool span、LLM spanがあることを確認します。</p>
-<p>mock clientは入力hashやscenario idで応答を返すようにすると、テストケースが読みやすくなります。LLMの自然文全体を完全一致させるより、構造化responseやtool callを固定する方が実用的です。</p>
-<p>失敗時には、どのassertionがどのspanで落ちたかをレポートに出します。最終回答だけの失敗表示では、agentのどの部品が壊れたか分かりません。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="Agent自動QAへ落とす手順">
+      <h2>Agent自動QAへ落とす手順</h2>
+      <p>まずagent runをroot spanにし、planner、retriever、tool、LLM、finalizerをchild spanとして出します。</p>
+<p>次に、scenarioごとにLLM応答とtool結果のmock fixtureを作ります。fixtureには入力hashやscenario idを使い、どの入力にどの応答を返すかを固定します。</p>
+<p>最後にspan assertionを書きます。期待toolが呼ばれる、順序が正しい、retryが閾値以下、禁止toolがない、最終状態がsuccess、というルールです。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
       <p>構造的テストを増やしすぎると、agentの実装詳細に密結合します。業務上変わってはいけない構造だけをassertし、探索の自由度がある部分は柔らかい評価にします。</p>
-<p>mockingは再現性を高めますが、本番のモデル品質劣化やAPI挙動変化を検出できません。nightlyやrelease前には、本物依存を使うsampled E2Eも残す必要があります。</p>
+<p>mockingは本番のモデル品質劣化やAPI挙動変化を検出できません。nightlyやrelease前には本物依存のE2Eも残す必要があります。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="test pyramidとしてagent QAを組む">
+      <h2>test pyramidとしてagent QAを組む</h2>
+      <p>この論文の設計を使うと、agent QAはtest pyramidとして整理できます。下層はmockされたLLM/toolでagent control logicを高速に検査します。中層はretrievalやtool integrationを本物に近い環境で検査します。上層は本物LLMと外部依存を使うE2Eです。</p>
+<p>traceはすべての層で共通の観測面になります。mock testでも本物E2Eでもspan treeを出しておけば、失敗原因を同じ形式で比較できます。</p>
+<p>mockingの目的は、LLMを排除することではなく、非決定性を制御することです。routing、tool selection、approval logicのような制御ロジックはmockで安定検査し、モデル品質は別のE2Eで見るのがよいです。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>mock test、integration test、E2Eを分ける</li>
+<li>全層で同じspan schemaを出す</li>
+<li>LLM応答fixtureをscenario idで管理する</li>
+<li>assertionはspan treeへ書く</li>
+<li>本物LLMを使うnightly testも残す</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://arxiv.org/abs/2601.18827">Automated structural testing of LLM-based agents: methods, framework, and case studies</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

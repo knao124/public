@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>agentevals GitHub: 具体的なCLI運用と制約</title>
+  <title>agentevals GitHub: CLIでtraceをCI採点する実装詳細</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,74 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">OSS README・実装リポジトリ</p>
-      <h1>agentevals GitHub: 具体的なCLI運用と制約</h1>
-      <p class="summary">このREADMEは、AgentEvalsを実際にどう動かすかを知る入口です。sample trace、eval set、metrics、CI gate、Web UI、MCP server、対応していないcoding agentへの注意まで載っています。</p>
+      <p class="tag">Trace採点 / OSS README</p>
+      <h1>agentevals GitHub: CLIでtraceをCI採点する実装詳細</h1>
+      <p class="summary">GitHub READMEは、AgentEvalsをCLIとしてどう動かすか、sample trace、eval set、metrics、CI gate、Web UI、MCP server、対応範囲を具体的に示します。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>GitHub - agentevals-dev/agentevals</dd>
-        <dt>URL</dt><dd><a href="https://github.com/agentevals-dev/agentevals">https://github.com/agentevals-dev/agentevals</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>GitHub READMEをブラウズしてQuick Start、FAQ、対応範囲を確認</dd>
-        <dt>注意</dt><dd>2026年5月時点のREADME情報をもとにした解説。リリースや対応frameworkは更新される可能性がある。</dd>
+        <dt>読む順番</dt><dd>14 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://github.com/agentevals-dev/agentevals">agentevals-dev/agentevals</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
-<li><a href="#qa-pattern">CI/CDでの使い方</a></li>
-<li><a href="#modeling">評価モデルの作り方</a></li>
-<li><a href="#risks">注意点と限界</a></li></ul>
+      <p>AgentEvalsの概要を読んだ直後に読む資料です。実際のCI導入、trace file、eval set、metric指定、custom evaluatorの運用が分かります。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">READMEの流れを復元する</a></li><li><a href="#section-2">何が学べるか</a></li><li><a href="#section-3">CI導入手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>Record your agent's actions once</blockquote>
+      <p class="quote-note">traceを一度記録し、それを評価入力にする思想を示す短い表現。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
-      <h2>まず、この資料は何を言っているか</h2>
-      <p>READMEの価値は、抽象論ではなく「traceファイルとeval setを渡して、metricを指定して採点する」実行モデルが見えることです。sampleにはHelm agentのtraceと期待行動が含まれ、正しいtoolが呼ばれたかを評価できます。</p>
-<p>CLIはofflineで動き、serverを常時立てなくてもtrace fileを採点できます。一方、Web UIやlive OTLP streamingを使う場合はserveモードを使い、span treeを見ながら評価できます。</p>
-<p>FAQには重要な割り切りがあります。目的は、きちんとOTel GenAI traceを出す小さめのpurpose-built agentを評価することで、長時間のcoding agent session全体を雑に採点することではありません。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="READMEの流れを復元する">
+      <h2>READMEの流れを復元する</h2>
+      <p>READMEは、sample traceとeval setを使ったQuick Startから始まります。traceはagentが実際に行った行動列で、eval setは期待される行動や採点基準です。CLIで両方を渡すと、metricごとのscoreが返ります。</p>
+<p>次に、tool trajectoryの評価が説明されます。Helm agentの例のように、正しいtoolが呼ばれたか、順序が合っているか、期待されないtoolが混ざっていないかを採点します。</p>
+<p>CLIはofflineでtrace fileを評価できます。一方、serve modeやWeb UIを使うと、trace treeを見ながら評価できます。MCP serverとしてAI assistantから呼ぶ構成も示されています。</p>
+<p>FAQでは、対象範囲への注意があります。AgentEvalsは、OTel GenAI traceをきちんと出すpurpose-built agentに向いており、長時間のcoding agent session全体をそのまま評価する用途とは限りません。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="CI運用">
-      <h2>CI/CDでの使い方</h2>
-      <p>CIでは、シナリオ実行でtraceを生成し、`agentevals run trace.json --eval-set eval_set.json -m tool_trajectory_avg_score`のように評価します。thresholdを設定し、exit codeでデプロイを止めるのが基本です。</p>
-<p>Pull Requestごとにagentを再実行する場合でも、評価はtraceに対して行うとログ調査が容易になります。CI artifactとしてtrace、eval result JSON、失敗spanの要約を保存しておくと、後から人間が原因を追えます。</p>
-<p>複数traceをまとめて評価できるため、golden setを増やしながら回帰テストを育てられます。最初は5から10本の高価値シナリオに限定し、失敗からeval setを増やす運用が現実的です。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="何が学べるか">
+      <h2>何が学べるか</h2>
+      <p>READMEから学べるのは、評価のI/O契約です。入力はtraceとeval set、出力はmetric scoreと失敗理由です。この契約が明確ならCIに載せられます。</p>
+<p>custom evaluatorを標準入出力で作れる点も重要です。業務固有の評価をPython、TypeScript、社内ライブラリ、SQL検査などで実装し、AgentEvalsの評価パイプラインへ組み込めます。</p>
+<p>また、coding agent評価への慎重な記述から、trace schemaの重要性が分かります。すべてのagent telemetryがそのまま評価可能なGenAI span treeになっているわけではありません。</p>
     </section>
 
-    <section id="modeling" data-review-target="modeling" data-review-label="評価モデル">
-      <h2>評価モデルの作り方</h2>
-      <p>eval setには、入力、期待されるtool、期待される最終回答条件、場合によってはtrajectory match typeを入れます。EXACT、IN_ORDER、ANY_ORDERのような柔軟性を使い分けると、agentの自由度とQAの厳密性のバランスを取れます。</p>
-<p>custom evaluatorは標準入力からJSONを読み、scoreを返すプログラムとして作れます。言語に依存しないため、業務ルールを既存の社内ライブラリやSQL検査に寄せることもできます。</p>
-<p>MCP server機能は、開発者のAI assistantにtrace要約や評価を呼ばせる用途に向いています。ただし、QAの最終判定はCIで機械的に再現できる形に残す方がよいです。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="CI導入手順">
+      <h2>CI導入手順</h2>
+      <p>第一に、PRごとに小さな代表シナリオを実行し、trace JSONをartifactとして保存します。</p>
+<p>第二に、eval setをリポジトリに置きます。期待tool、trajectory match type、最終回答条件、metric thresholdを定義します。</p>
+<p>第三に、CLIを実行し、threshold未満ならCIをfailにします。失敗時はeval result JSONとtrace viewerリンクをPRに添えると、開発者がすぐ原因を追えます。</p>
+<p>第四に、production incidentからtraceを取り込み、eval setへ追加します。これにより、実際に起きた失敗が回帰テストになります。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
-      <h2>注意点と限界</h2>
-      <p>READMEはcoding agent評価について慎重です。Claude CodeやCodexのtelemetryは、必ずしもAgentEvalsが期待するGenAI span treeではありません。専用変換なしにそのまま使えると考えるのは危険です。</p>
-<p>tool trajectory中心の評価は、agentが正しいtoolを呼ぶ業務では強力ですが、文章品質や曖昧な対話満足度は別の評価器が必要です。1つのmetricでagent全体の品質を代表させない設計が重要です。</p>
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
+      <h2>注意点</h2>
+      <p>tool trajectory中心の評価は、tool選択が重要なagentでは強力ですが、文章品質や曖昧なユーザー満足度は別評価が必要です。</p>
+<p>traceにpromptやtool resultを含める場合、CI artifactとして外部に見える可能性があります。公開リポジトリでは特に、テストデータとredactionを厳密に管理してください。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="CLI導入時の運用手順">
+      <h2>CLI導入時の運用手順</h2>
+      <p>GitHub READMEから実務導入へ移すなら、最初にsample traceとsample eval setを自社agentのtraceへ置き換えます。評価器を先に作るより、実際のtrace shapeを見て、どのmetricが使えるか確認します。</p>
+<p>CIでは、agent scenario run、trace保存、agentevals run、threshold判定、artifact保存の順にします。失敗時には、scoreだけでなく、どのspanが期待と違ったかを表示します。</p>
+<p>custom evaluatorは早めに用意すると価値が出ます。たとえば、社内ポリシーIDが回答に含まれるか、ticket labelが正しいか、SQL実行前確認があるか、などは標準metricだけでは表現しにくいからです。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>sample traceを自社traceで置き換える</li>
+<li>eval setを小さく始める</li>
+<li>thresholdでCIをfailにする</li>
+<li>失敗traceとeval resultをartifactに残す</li>
+<li>coding agent全体評価には専用変換が必要か確認する</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://github.com/agentevals-dev/agentevals">agentevals-dev/agentevals</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +332,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +346,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +359,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

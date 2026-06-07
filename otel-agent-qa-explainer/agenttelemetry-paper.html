@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AgentTelemetry論文: OTel GenAIだけでは見えないAgent故障</title>
+  <title>AgentTelemetry論文: OTel GenAIだけでは見えないagent故障を分類する</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">論文・benchmark toolkit</p>
-      <h1>AgentTelemetry論文: OTel GenAIだけでは見えないAgent故障</h1>
-      <p class="summary">AgentTelemetryは、通常のOTelやOTel GenAIではplanning、reasoning、guardrail、delegation、memoryが見えにくく、agent特有のfault検出が不足すると主張します。</p>
+      <p class="tag">研究深掘り / 研究論文</p>
+      <h1>AgentTelemetry論文: OTel GenAIだけでは見えないagent故障を分類する</h1>
+      <p class="summary">AgentTelemetryは、通常のOpenTelemetry GenAI spanだけではplanning、reasoning、guardrail、delegation、memoryに関する故障が見えにくいと主張し、agent-specific span kindとfault taxonomyを提案します。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>AgentTelemetry: A Fault Detection Benchmark and Toolkit for LLM Agent Observability</dd>
-        <dt>URL</dt><dd><a href="https://openreview.net/pdf?id=owdmAYFk6k">https://openreview.net/pdf?id=owdmAYFk6k</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>OpenReview PDFをブラウズしてfault taxonomy、span taxonomy、benchmark規模、主要結果を確認</dd>
-        <dt>注意</dt><dd>匿名投稿PDFの内容に基づく。標準仕様ではなく、agent observability拡張の研究提案として読む。</dd>
+        <dt>読む順番</dt><dd>17 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://openreview.net/pdf?id=owdmAYFk6k">AgentTelemetry: A Fault Detection Benchmark and Toolkit for LLM Agent Observability</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この論文は何を言っているか</a></li>
-<li><a href="#qa-pattern">QA設計で使うべき故障分類</a></li>
-<li><a href="#implementation">実装への落とし込み</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>最後に読む資料です。標準仕様と既存ツールでどこまででき、どこから独自spanやfault detectorが必要かを判断できます。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">論文の流れを復元する</a></li><li><a href="#section-2">何が学べるか</a></li><li><a href="#section-3">Agent自動QAへ落とす手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>reasoning loops account for 75%</blockquote>
+      <p class="quote-note">論文中で示される、既存方式が検出しにくい故障の例を短く示す引用。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="論文の主張">
-      <h2>まず、この論文は何を言っているか</h2>
-      <p>論文は、OpenTelemetry GenAI semantic conventionsがLLM invocation、tool execution、retrievalなどを扱える一方で、agent orchestrationの重要フェーズを十分に表現できないと主張します。</p>
-<p>不足しているとされるフェーズは、planning、reasoning、safety monitoring、inter-agent delegation、memory managementです。これらが見えないと、reasoning loop、guardrail bypass、planning failure、memory corruptionなどが検出しにくくなります。</p>
-<p>提案は9種類のagent-specific span kindと14種類のfault taxonomyです。LLM_CALL、TOOL_CALL、RETRIEVALに加え、PLANNING、REASONING、GUARD_RAIL、DELEGATION、MEMORYなどを導入します。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="論文の流れを復元する">
+      <h2>論文の流れを復元する</h2>
+      <p>論文は、LLM agentの失敗が従来のLLM call observabilityだけでは検出しにくいという問題から始まります。OpenTelemetry GenAIはLLM call、tool execution、retrievalを扱えますが、agent orchestrationのすべては表現しません。</p>
+<p>不足しているとされるフェーズは、planning、reasoning、safety monitoring、inter-agent delegation、memory managementです。これらが見えないと、planning failure、reasoning loop、guardrail bypass、memory corruption、delegation failureなどを検出しにくくなります。</p>
+<p>提案はagent-specific span taxonomyです。LLM_CALL、TOOL_CALL、RETRIEVALに加え、PLANNING、REASONING、GUARD_RAIL、DELEGATION、MEMORYなどのspan kindを導入します。</p>
+<p>さらに14種類のfault taxonomyを提示し、benchmarkとtoolkitで検出性能を比較します。標準OTelだけでは見えない故障を、agent-specific telemetryでどれだけ検出できるかを示す構成です。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="故障分類">
-      <h2>QA設計で使うべき故障分類</h2>
-      <p>実務で特に使いやすいfaultは、wrong tool、infinite loop、context overflow、cost explosion、tool failure、timeout、stale retrieval、guardrail bypass、planning failure、reasoning loop、memory corruptionです。</p>
-<p>これらは最終回答だけでは見えません。例えばreasoning loopは回答が遅いだけに見えるかもしれませんが、REASONING spanや同一tool callの反復を見ると原因が分かります。</p>
-<p>QA基盤では、faultごとに必要なspan kindを逆算します。検出したい故障がmemory corruptionなら、memory read/writeをtraceしなければ評価器は作れません。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="何が学べるか">
+      <h2>何が学べるか</h2>
+      <p>第一に、agent QAで検出したい故障から必要なspanを逆算するべきだと分かります。memory corruptionを検出したいならmemory read/write spanが必要です。guardrail bypassを検出したいならguardrail check spanが必要です。</p>
+<p>第二に、standard GenAI spanだけでは足りない領域があります。tool callが正しくても、planningが破綻している、同じ推論を繰り返している、memoryが古い、という失敗は別の観測点が必要です。</p>
+<p>第三に、fault taxonomyを作る価値が分かります。wrong tool、infinite loop、context overflow、cost explosion、tool failure、timeout、stale retrieval、guardrail bypass、planning failure、memory corruptionなどを分類すると、評価器とalertを設計しやすくなります。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="実装要点">
-      <h2>実装への落とし込み</h2>
-      <p>OpenTelemetryの標準spanに独自属性として`agenttelemetry.span.kind`のような分類を追加する発想は実務でも使えます。標準OTLP backendとの互換性を保ちながら、agent固有の意味を足せます。</p>
-<p>fault detectionはpost-hoc分析だけでなく、SpanProcessorやstream処理でリアルタイムに行えます。例えば同一tool callが3回以上続いたらloop疑い、cost閾値超過でcircuit breaker、といった運用です。</p>
-<p>agent frameworkごとに取れるhookが違うため、callback、monkey patch、manual APIの3種類を使い分ける必要があります。最初から全フェーズを自動計測できると期待しない方がよいです。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="Agent自動QAへ落とす手順">
+      <h2>Agent自動QAへ落とす手順</h2>
+      <p>まず自社agentで起こり得るfault taxonomyを定義します。サポートagentならwrong escalation、policy bypass、stale retrieval、unsafe write、loop、context lossなどです。</p>
+<p>次に、それぞれを検出するためのspanを決めます。planning span、guardrail span、memory span、handoff span、approval spanを追加します。</p>
+<p>最後に、リアルタイム検出とoffline evalを分けます。loopやcost explosionは実行中に止める必要があるためSpanProcessorやstream処理で検出し、回答品質やplanning qualityはoffline evalで採点します。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
-      <p>reasoningやchain-of-thoughtの扱いには注意が必要です。モデルや提供元によっては内部推論を保存できない、保存すべきでない場合があります。代わりに、計画、観測、自己検証結果など公開可能な中間状態をspan化する設計が現実的です。</p>
-<p>独自span taxonomyを作ると評価は強くなりますが、標準から離れすぎるとbackendや他ツールとの互換性が落ちます。標準の`gen_ai.*`を土台にし、足りない部分だけ独自属性で補うのが安全です。</p>
+      <p>reasoningやchain-of-thoughtをそのまま保存するのは、モデル提供元の仕様や安全性の観点で問題になる場合があります。公開可能なplan、observation、decision summaryをspan化する設計が現実的です。</p>
+<p>独自span taxonomyを増やしすぎると標準ツールとの互換性が落ちます。標準のgen_ai属性を土台にし、不足分だけapp固有属性として追加するのが安全です。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="fault taxonomyからspanを逆算する">
+      <h2>fault taxonomyからspanを逆算する</h2>
+      <p>AgentTelemetryの最重要点は、span設計を先に決めるのではなく、検出したいfaultから逆算することです。reasoning loopを検出したいならreasoning stepや同一tool反復を見ます。guardrail bypassを検出したいならguardrail checkとdecisionをspan化します。</p>
+<p>標準GenAI spanでは、LLM callとtool callは見えます。しかし、なぜそのtoolを選んだか、planが破綻したか、memoryが古いか、delegationが失敗したかは見えないことがあります。ここにagent-specific telemetryが必要です。</p>
+<p>実務では、論文のtaxonomyをそのまま全部入れるのではなく、自社agentのリスクに合わせて選びます。金融や医療ならguardrailとapproval、サポートagentならhandoffとpolicy、coding agentならloopとunsafe actionが優先です。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>自社agent向けfault taxonomyを作る</li>
+<li>faultごとに必要spanを逆算する</li>
+<li>planning、memory、guardrail、delegationを必要に応じて追加する</li>
+<li>loopやcost explosionはリアルタイム検出する</li>
+<li>chain-of-thoughtを保存せず公開可能なdecision summaryを残す</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://openreview.net/pdf?id=owdmAYFk6k">AgentTelemetry: A Fault Detection Benchmark and Toolkit for LLM Agent Observability</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

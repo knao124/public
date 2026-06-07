@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenLLMetry / Traceloop: LLM計測をOTelへ流す実装層</title>
+  <title>OpenLLMetry / Traceloop: LLM appをOTel pipelineへ乗せる</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">公式ドキュメント・instrumentation</p>
-      <h1>OpenLLMetry / Traceloop: LLM計測をOTelへ流す実装層</h1>
-      <p class="summary">OpenLLMetryは、LLMアプリの実行をOpenTelemetry traceとして出すOSS instrumentationです。Tracetestや既存OTel backendに送る材料作りに使えます。</p>
+      <p class="tag">計測層 / 公式ドキュメント</p>
+      <h1>OpenLLMetry / Traceloop: LLM appをOTel pipelineへ乗せる</h1>
+      <p class="summary">OpenLLMetryは、LLM applicationの実行をOpenTelemetry traceとして出すOSS instrumentationです。Tracetest記事の実装例でも使われる、LLM app向けの計測レイヤーです。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>What is OpenLLMetry?</dd>
-        <dt>URL</dt><dd><a href="https://docs.traceloop.com/docs/openllmetry/introduction">https://docs.traceloop.com/docs/openllmetry/introduction</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>Traceloop docsをブラウズしてOpenLLMetryの位置づけとOTel exporter利用を確認</dd>
-        <dt>注意</dt><dd>前回の回答ではTracetest記事の文脈で触れた補助資料。評価基盤そのものではなく、計測層として読む。</dd>
+        <dt>読む順番</dt><dd>5 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://docs.traceloop.com/docs/openllmetry/introduction">What is OpenLLMetry?</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
-<li><a href="#qa-pattern">自動QAでの役割</a></li>
-<li><a href="#implementation">実装時の要点</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>OpenInferenceと並べて読むと、AI計測ライブラリの位置づけが分かります。特に既存のOTel collectorやbackendを使い続けながらLLM appを可視化したい場合に参考になります。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">資料の流れを復元する</a></li><li><a href="#section-2">何が学べるか</a></li><li><a href="#section-3">実装に落とす手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>built on top of OpenTelemetry</blockquote>
+      <p class="quote-note">OpenLLMetryがOTel上に作られた計測層であることを示す短い表現。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
-      <h2>まず、この資料は何を言っているか</h2>
-      <p>OpenLLMetryは、LLM appのmonitoringとdebuggingをOpenTelemetry上で行うためのOSSです。LLM frameworkを使っていても、foundation model APIを直接呼んでいても、traceを出せるようにするのが目的です。</p>
-<p>Traceloopへ直接送ることも、既存のOTel collectorやbackendへ送ることもできます。つまり、AI用のtraceを通常のobservability pipelineへ載せる実装層です。</p>
-<p>decoratorでworkflowやtaskを注釈し、LLM callと周辺処理をspan treeとして見えるようにします。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="資料の流れを復元する">
+      <h2>資料の流れを復元する</h2>
+      <p>資料は、OpenLLMetryをLLM applicationのobservabilityを得るためのOSSとして説明します。LLM frameworkを使っていても、foundation model APIを直接呼んでいても、実行をtraceとして記録することが目的です。</p>
+<p>OpenLLMetryはTraceloopのbackendへ送ることもできますが、OTel互換exporterを使って既存のobservability backendへ送ることもできます。これは、AI専用の島を作らず、既存のサービス監視とつなげる設計です。</p>
+<p>実装面では、初期化処理とdecoratorが中心です。workflowやtaskを明示的に区切ることで、LLM callだけでなく、アプリケーション内の処理単位もspan treeとして可視化できます。</p>
+<p>Tracetestの記事では、このtraceをテストの検証対象にします。つまりOpenLLMetryは評価器ではなく、評価器が読む証跡を作る役割です。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="QAへの接続">
-      <h2>自動QAでの役割</h2>
-      <p>OpenLLMetryは、Tracetestや独自assertionが読むtraceを作るための入り口になります。特にPython/TypeScriptのLLM appで、まずLLM callを可視化したい場合に役立ちます。</p>
-<p>agent QAでは、OpenLLMetryでLLM callを自動計測し、足りないagent decisionやtool policyをmanual spanで補う構成が現実的です。</p>
-<p>既存のGrafana Tempo、Jaeger、DatadogなどへOTLPで送れば、LLM appだけ別基盤に閉じず、サービス全体のtraceと相関できます。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="何が学べるか">
+      <h2>何が学べるか</h2>
+      <p>LLM appの品質問題は、model APIの応答だけでは説明できません。prompt template、retrieval、tool call、post-processing、guardrail、API responseの各段階があり、OpenLLMetryはその段階をspanとして見せるための入口になります。</p>
+<p>また、workflow decoratorの名前は評価単位になります。demoでは短い名前でもよいですが、実務では`refund_policy_answering`、`incident_triage`、`quote_generation`のように、QAシナリオと対応する名前にするべきです。</p>
+<p>既存のOTel pipelineへ送れるため、LLM appのtraceと通常backendのHTTP、DB、queueのtraceを同じtransactionとして見られます。agentがtoolを呼び、そのtoolがDB更新したかまで追えることが自動QAには重要です。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="実装要点">
-      <h2>実装時の要点</h2>
-      <p>Traceloop.initやOTLP exporter設定を起動時に行い、service nameを固定します。CI、staging、productionでenvironmentを分けると分析しやすくなります。</p>
-<p>workflow decoratorを使う場合、名前は業務上の単位にします。`joke_creation`のようなdemo名ではなく、`refund_policy_answering`や`incident_triage`のように評価単位が分かる名前にします。</p>
-<p>評価に使うなら、input/outputのcapture policyを決めます。全文保存が必要なpre-productionと、metadata中心のproductionで設定を分けると安全です。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="実装に落とす手順">
+      <h2>実装に落とす手順</h2>
+      <p>まずアプリ起動時にOpenLLMetryを初期化し、service name、environment、exporter endpointを固定します。CI、staging、productionでenvironmentを分けることで、評価用traceと本番traceを混同しにくくします。</p>
+<p>次に、workflowとtaskを明示します。LLM callだけが見えても、agentがどの業務段階にいたかは分かりません。intent分類、retrieval、tool selection、final answer generationなどを区切ります。</p>
+<p>最後に、Tracetestや独自assertionでspanを検査します。たとえば、特定workflowではretrieval taskが必ず実行される、tool callが1回だけ発生する、openai.chat spanがerrorになっていない、といった検査です。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
-      <p>計測ライブラリを入れただけではQAは完成しません。どの失敗を検出するか、どのspan属性を評価器が読むかを別途設計する必要があります。</p>
-<p>instrumentationがframework内部のspanを出してくれる場合でも、業務上の合否に必要な状態は自前で出す必要があります。例えば承認済みか、policy idは何か、ユーザーの意図分類は何か、などです。</p>
+      <p>OpenLLMetryを入れただけでは評価基準は生まれません。traceをどう読み、何を合格とするかは別に設計する必要があります。</p>
+<p>また、promptやresponseのcaptureを有効にする場合は、本番データの機密性に注意が必要です。CI用の人工データと本番traceでは保存方針を分けるべきです。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="OpenLLMetryを既存監視とQAへつなぐ設計">
+      <h2>OpenLLMetryを既存監視とQAへつなぐ設計</h2>
+      <p>OpenLLMetryは、LLM appを既存のOpenTelemetry pipelineへ載せるための実装層として読むと分かりやすいです。LLM callだけを個別ログに出すのではなく、通常のHTTP requestやDB spanと同じtraceに含めることで、agentの外部副作用まで追えるようになります。</p>
+<p>workflow decoratorは単なる可視化ラベルではなく、評価単位です。たとえば`incident_triage` workflowの中でclassification、retrieval、tool execution、report generationをtaskとして分ければ、どの段階が壊れたかを自動評価できます。</p>
+<p>Tracetestと組み合わせる場合、OpenLLMetryで出したspanに対して、prompt template spanがある、openai chat spanが成功した、tool spanが1回だけ出た、というassertionを書きます。意味品質は別評価器に任せ、実行経路はtraceで厳密に見ます。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>workflow名は業務フロー名にする</li>
+<li>task名は評価器が読む安定した名前にする</li>
+<li>CI/staging/productionでservice.versionとenvironmentを分ける</li>
+<li>LLM callと下流HTTP/DB spanを同じtraceで相関させる</li>
+<li>prompt/response captureは人工データ環境から始める</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://docs.traceloop.com/docs/openllmetry/introduction">What is OpenLLMetry?</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

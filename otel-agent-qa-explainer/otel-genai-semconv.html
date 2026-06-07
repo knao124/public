@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenTelemetry GenAI Semantic Conventions: 標準spanの土台</title>
+  <title>OpenTelemetry GenAI Semantic Conventions: 評価器が読むspan schema</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">公式仕様</p>
-      <h1>OpenTelemetry GenAI Semantic Conventions: 標準spanの土台</h1>
-      <p class="summary">OpenTelemetryのGenAI semantic conventionsは、LLM call、retrieval、tool execution、token、model、provider、content captureを標準化する土台です。</p>
+      <p class="tag">標準schema / OpenTelemetry公式仕様</p>
+      <h1>OpenTelemetry GenAI Semantic Conventions: 評価器が読むspan schema</h1>
+      <p class="summary">この仕様は、LLM呼び出し、retrieval、tool executionをOpenTelemetry spanとしてどう表現するかを定義します。agent自動QAでは、評価器が読む属性の名前と意味を揃えるための土台になります。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>Semantic conventions for generative client AI spans</dd>
-        <dt>URL</dt><dd><a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/">https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>OpenTelemetry公式specをブラウズしてinference、retrieval、execute_tool、content captureを確認</dd>
-        <dt>注意</dt><dd>GenAI conventionsはDevelopmentステータスの部分を含む。実装時はsemconv versionとopt-in方針を明示する。</dd>
+        <dt>読む順番</dt><dd>2 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/">Semantic conventions for generative client AI spans</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この仕様は何を定義しているか</a></li>
-<li><a href="#qa-pattern">Agent QAでの使い方</a></li>
-<li><a href="#implementation">実装時の要点</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>評価ツールを見る前に読むべき資料です。何をtraceに残すべきかが曖昧なままAgentEvalsやTracetestを入れても、評価器に必要な属性が足りず、最終回答だけの採点に戻ってしまいます。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">仕様の流れを復元する</a></li><li><a href="#section-2">評価器に必要な属性</a></li><li><a href="#section-3">実装に落とす手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>Status: Development</blockquote>
+      <p class="quote-note">仕様の一部が発展中であることを示す短いラベル。導入時はversion固定が必要。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="仕様の主張">
-      <h2>まず、この仕様は何を定義しているか</h2>
-      <p>この仕様は、生成AIクライアントの操作をOpenTelemetry spanとしてどう表すかを定義します。inference spanはLLMや生成AIサービスへの呼び出し、execute tool spanはagentが使うtool実行を表します。</p>
-<p>属性には、operation name、provider、request model、response model、token、tool name、tool call id、tool arguments、tool result、error typeなどが含まれます。</p>
-<p>tool argumentsやtool result、system instructions、input messages、output messagesは機密情報を含む可能性があるため、captureはopt-inであり、保存先や容量制限への配慮が必要です。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="仕様の流れを復元する">
+      <h2>仕様の流れを復元する</h2>
+      <p>仕様は、生成AIクライアントの操作をspanとして表すためのsemantic conventionsです。中心になるoperationはinference、retrieval、execute_toolです。inferenceはLLMや生成AIサービスへの呼び出し、retrievalはRAGや検索処理、execute_toolはagentが外部toolを実行する処理を表します。</p>
+<p>inference spanにはprovider、operation name、request model、response model、token usage、finish reasons、temperatureなどが入ります。評価の観点では、どのmodelで、どれだけtokenを使い、どの応答が返ったかを比較できるようになります。</p>
+<p>tool execution spanにはtool name、tool call id、tool arguments、tool result、error typeが入ります。agent QAで最も重要なのはここです。最終回答がそれらしくても、必要なtoolを呼んでいない、引数が違う、toolが失敗している、という問題をspan属性から検出できます。</p>
+<p>仕様はcontent captureにも触れています。system instruction、input messages、output messages、tool arguments、tool resultは品質評価に役立つ一方、機密情報を含む可能性があります。そのため、captureはopt-inで扱い、保存先、保持期間、属性サイズ制限を考慮する必要があります。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="QAへの接続">
-      <h2>Agent QAでの使い方</h2>
-      <p>この仕様は、評価器が読む共通schemaの土台です。agent QAでは、LLM callやtool callを独自ログで残すより、`gen_ai.*`属性でspan化した方が、複数backendや評価ツールで使い回せます。</p>
-<p>tool QAでは、`gen_ai.operation.name=execute_tool`、`gen_ai.tool.name`、`gen_ai.tool.call.arguments`、`gen_ai.tool.call.result`、`error.type`が特に重要です。これらがあれば、wrong tool、invalid arguments、tool failureを評価できます。</p>
-<p>RAG QAでは、retrieval spanとdata source idが重要です。どのretrieverが、どのqueryで、どのdata sourceを引いたかがないと、groundingやstale retrievalを評価できません。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="評価器に必要な属性">
+      <h2>評価器に必要な属性</h2>
+      <p>AgentEvalsやLangWatchでtool trajectoryを評価するなら、最低限 `gen_ai.operation.name`、`gen_ai.tool.name`、tool call id、tool arguments、status、error.typeが必要です。これが欠けると、評価器は単なるテキスト判定しかできません。</p>
+<p>RAGの品質評価なら、retrieval spanにquery、data source、document id、score、取得件数、選択されたcontextを結びつけます。生成結果のgroundingを評価するには、どのretrieval結果がどのLLM callへ渡ったかの親子関係も重要です。</p>
+<p>運用評価ではtoken count、model name、durationが必要です。品質が同じでも、tokenが倍増した、tool retryが増えた、latencyが閾値を超えたなら、agentのリリース判断ではリグレッションです。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="実装要点">
-      <h2>実装時の要点</h2>
-      <p>semconv versionを固定しておくことが重要です。Development中の仕様では、属性名やイベント構造が変わる可能性があります。traceにsemconv versionやinstrumentation versionを残すと移行が楽です。</p>
-<p>content captureは3段階で考えます。デフォルトは内容を記録しない、pre-productionではspan属性に記録する、本番では外部storageに保存しspanには参照だけ残す、という分け方が現実的です。</p>
-<p>span creation時にsampling判断で使う属性は早めにセットします。高コストmodel、特定tool、error-prone operationなどでtail samplingするなら、属性の付与タイミングが重要です。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="実装に落とす手順">
+      <h2>実装に落とす手順</h2>
+      <p>第一に、利用するsemantic convention versionを決めます。発展中の仕様を使う場合、traceにinstrumentation versionとschema versionを残します。後で属性名が変わったとき、過去traceを変換できるようにするためです。</p>
+<p>第二に、content capture policyを環境別に決めます。開発・ステージングでは全文captureを許可し、本番ではPII redaction、sampling、参照ID化を使う、という分け方が現実的です。</p>
+<p>第三に、評価で使う属性を先に決めます。たとえばwrong toolを検出したいならtool nameが必要です。invalid argumentsを検出したいならarguments schemaが必要です。cost regressionを検出したいならtoken usageが必要です。検出したい失敗から逆算してspan設計を行います。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
-      <p>OpenTelemetry GenAIは土台であり、agent固有のplanning、memory、handoff、policy decisionをすべて表現してくれるわけではありません。必要に応じて独自属性やspanを追加します。</p>
-<p>promptやtool resultを無制限にspan属性へ入れると、backendの属性サイズ制限、コスト、PIIリスクに当たります。QAに必要な粒度と安全性のバランスを先に決めるべきです。</p>
+      <p>この仕様だけではagentのplanning、memory、handoff、approval gateなどは十分に表現できません。OpenTelemetryの標準属性を土台にしつつ、agent固有の状態遷移はapplication spanとして足す必要があります。</p>
+<p>span属性に大きなpromptやtool resultを詰め込みすぎると、observability backendの制限、保存コスト、機密リスクに当たります。品質評価に必要な粒度を決め、全文保存が必要な場合は外部storageへの参照をspanに持たせる設計が安全です。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="評価器が読む最小schema">
+      <h2>評価器が読む最小schema</h2>
+      <p>この仕様を実装へ落とすときは、全属性を一度に埋めようとするより、評価器が読む最小schemaを固定する方が成功しやすいです。tool trajectoryならoperation name、tool name、tool call id、arguments、result、status、error.typeが必要です。RAG評価ならretrieval query、data source、document id、score、取得件数、生成spanへの接続が必要です。</p>
+<p>LLM品質の評価では、model name、provider、temperature、token usage、finish reason、input/output messagesの扱いが重要になります。ただしmessagesの全文captureは危険なので、環境別policyを設けます。開発とCIでは人工データを全文保存し、本番ではmetadataと参照ID中心にするのが現実的です。</p>
+<p>仕様がDevelopmentである点も運用に効きます。評価器が属性名に依存するため、semconv versionやinstrumentation versionをtraceへ残し、将来の属性変更に備えて変換層を用意します。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>tool評価ではtool.name、arguments、result、error.typeを必須属性にする</li>
+<li>RAG評価ではretrieval spanとgeneration spanの親子関係を崩さない</li>
+<li>token、model、provider、durationをcost regression検出に使う</li>
+<li>content captureは環境別にopt-inする</li>
+<li>独自属性はapp.agent.*やqa.*のようにnamespaceを切る</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/">Semantic conventions for generative client AI spans</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

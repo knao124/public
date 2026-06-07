@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AgentEvals: OTel TraceからAgentを採点する発想</title>
+  <title>AgentEvals Overview: 実行済みOTel traceを採点する</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">実装・プロダクト概要</p>
-      <h1>AgentEvals: OTel TraceからAgentを採点する発想</h1>
-      <p class="summary">AgentEvalsは、agentをもう一度走らせるのではなく、既に記録されたOpenTelemetry traceを評価対象にする。QAの対象を最終回答だけでなく、tool callの軌跡、順序、期待行動、LLM-as-Judgeの採点へ広げる資料として読むとよい。</p>
+      <p class="tag">Trace採点 / プロダクト概要</p>
+      <h1>AgentEvals Overview: 実行済みOTel traceを採点する</h1>
+      <p class="summary">AgentEvalsは、OpenTelemetry traceやJaeger JSONを読み、agentを再実行せずにtool trajectory、golden eval set、LLM-as-Judgeなどで採点する発想を示します。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>AgentEvals - Score Agent Behavior from OpenTelemetry Traces</dd>
-        <dt>URL</dt><dd><a href="https://aevals.ai/">https://aevals.ai/</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>公開ページをブラウズして要点を確認</dd>
-        <dt>注意</dt><dd>プロダクト説明ページなので、設計思想と利用シーンは強いが、細かな制約はGitHub READMEやdocsで確認する必要がある。</dd>
+        <dt>読む順番</dt><dd>13 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://aevals.ai/">AgentEvals - Score Agent Behavior from OpenTelemetry Traces</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
-<li><a href="#qa-pattern">自動QA基盤にどう使うか</a></li>
-<li><a href="#implementation-notes">実装時のノウハウ</a></li>
-<li><a href="#risks">注意点と限界</a></li></ul>
+      <p>評価仕様の次に読むと、宣言した期待値を実行済みtraceへ当てるイメージが掴めます。LLMの非決定性と再実行コストを避ける設計が中心です。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">資料の流れを復元する</a></li><li><a href="#section-2">何が学べるか</a></li><li><a href="#section-3">Agent自動QAへ落とす手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>no re-runs, no guesswork</blockquote>
+      <p class="quote-note">再実行ではなく記録済みtraceを評価する思想を示す短い表現。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
-      <h2>まず、この資料は何を言っているか</h2>
-      <p>中心メッセージは、agent評価の入力を「テストケースの再実行」ではなく「実行済みtrace」に置くことです。OpenTelemetryやJaeger JSONからagentの行動列を読み、golden eval setと照合して品質を判断します。</p>
-<p>これはLLMコストと非決定性に対する実務的な回答です。再実行するとモデル応答や外部API結果が変わり、失敗の再現性が落ちます。traceを評価対象にすれば、その時点でagentが実際に何をしたかを固定して検査できます。</p>
-<p>評価対象は最終出力だけではありません。どのtoolを呼んだか、期待されたtoolが呼ばれたか、順序が合っているか、不要なtoolが混ざっていないか、最終回答が期待条件を満たすかを分けて扱います。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="資料の流れを復元する">
+      <h2>資料の流れを復元する</h2>
+      <p>AgentEvalsの出発点は、agent評価で毎回agentを再実行することの難しさです。LLM応答は揺れ、tool結果も変わり、外部APIを叩くコストもかかります。再現性のある評価をするには、実行済みのtraceを固定された証跡として扱う方が安定します。</p>
+<p>資料は、OpenTelemetry traceやJaeger JSONを入力として使うことを説明します。agentが実際にどのLLM callを行い、どのtoolを呼び、どんな経路を通ったかがspan treeに残っていれば、それを評価対象にできます。</p>
+<p>評価は最終回答だけではありません。期待されたtoolが呼ばれたか、順序は正しいか、不要なtoolを呼んでいないか、最終回答が期待条件を満たすかを分けて採点します。</p>
+<p>CI/CDでは、シナリオ実行でtraceを生成し、そのtraceにeval setを当て、threshold未満ならfailにする構成になります。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="自動QAへの接続">
-      <h2>自動QA基盤にどう使うか</h2>
-      <p>QA基盤としては、まずagent実行環境にOTel exportを入れます。CIやステージングでシナリオを走らせ、OTLPまたはJaeger形式でtraceを保存します。そのtraceに対してAgentEvalsのCLIを実行し、tool trajectory scoreやresponse match scoreで合否を決める構成になります。</p>
-<p>重要なのは、golden setを最終回答文だけで作らないことです。例えば「KubernetesのHelm release一覧を調べる」なら、期待するtoolとしてhelm_list_releasesを置き、必要なら引数や順序も評価対象にします。これにより、回答はそれらしいが実際にはtoolを使っていない、という失敗を捕まえられます。</p>
-<p>本番traceを直接採点する用途にも向きます。高コストrun、エラーrun、ユーザー低評価runなどを抽出し、後から同じeval setで評価できます。これにより、障害後の調査と回帰テストの材料を同じ形式で扱えます。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="何が学べるか">
+      <h2>何が学べるか</h2>
+      <p>一番の学びは、traceをsource of truthにすることです。agentを再実行すると、失敗が再現しないことがあります。traceを評価すれば、その時点でagentが本当に何をしたかを固定して検査できます。</p>
+<p>また、tool trajectoryはagent QAの中心指標になることが分かります。agentは最終回答だけでなく、適切なtoolを適切な順序で使うことが品質です。</p>
+<p>さらに、本番traceの後追い評価にも使えます。高cost trace、error trace、低評価traceを抽出し、同じeval setで採点すれば、失敗分析と回帰テストを同じ形式で扱えます。</p>
     </section>
 
-    <section id="implementation-notes" data-review-target="implementation-notes" data-review-label="実装ノウハウ">
-      <h2>実装時のノウハウ</h2>
-      <p>span設計では、agent runをroot span、LLM callとtool callをchild spanにするのが基本です。tool名、tool引数、tool結果、status、error type、session id、prompt/model versionを属性として残すと、後段の評価で使いやすくなります。</p>
-<p>trajectory matchingには厳しさの段階があります。完全一致はリグレッション検出には強い一方、正解経路が複数あるagentでは過剰に落ちます。最初は「必要なtoolが順序通りに含まれる」程度から始め、危険なtoolや課金が重いtoolだけ厳密にすると運用しやすいです。</p>
-<p>LLM-as-Judgeは便利ですが、最初から全面採用しない方が安全です。tool選択、引数形式、schema、HTTP status、token上限、timeoutなどは決定的な検査に寄せ、意味評価だけjudgeに渡すのが安定します。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="Agent自動QAへ落とす手順">
+      <h2>Agent自動QAへ落とす手順</h2>
+      <p>まずagent実行環境にOTel exportを入れ、LLM call、tool call、retrieval、agent stepをspanとして出します。</p>
+<p>次にgolden eval setを作ります。期待するtool、許容されるtool順序、禁止tool、最終回答の条件、必要ならLLM judge rubricを定義します。</p>
+<p>最後にCIでtraceを採点します。失敗時にはtrace JSON、eval result、span tree linkをartifactに残し、原因調査とeval改善に使います。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
-      <h2>注意点と限界</h2>
-      <p>この方式はtrace品質に強く依存します。agent frameworkがOTel spanを十分に出していない場合、評価対象にしたい行動が見えません。その場合は自前spanやadapterが必要です。</p>
-<p>traceにはprompt、tool引数、tool結果、ユーザー情報が含まれやすいため、PIIと機密情報のマスキング方針を先に決める必要があります。特に本番traceをevalに回すなら、保存先と保持期間もQA設計の一部です。</p>
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
+      <h2>注意点</h2>
+      <p>この方式はtrace品質に依存します。agent frameworkが十分なGenAI spanを出していない場合、評価したい行動が見えません。manual spanや変換処理が必要です。</p>
+<p>trajectoryを厳密にしすぎると、正しい別経路を失敗にしてしまいます。最初は必要toolが順序通り含まれる程度から始め、危険なtoolや副作用だけ厳密にするのが現実的です。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="pre-recorded trace評価の設計">
+      <h2>pre-recorded trace評価の設計</h2>
+      <p>AgentEvalsの中核は、agentを再実行せず、記録済みtraceを評価することです。これは単なるコスト削減ではありません。LLMや外部APIの非決定性から評価を切り離し、実際に起きた行動を固定して検査できます。</p>
+<p>この方式では、traceの保存が品質保証の前提になります。CIで生成したtrace、本番低評価trace、incident traceを保存し、同じeval setで後から採点できるようにします。評価基準を変えたときも、過去traceを再採点できます。</p>
+<p>trajectory評価では厳密度を調整します。完全一致はリグレッション検出に強い一方、正解経路が複数あるagentには厳しすぎます。必要toolが順序通り含まれる、禁止toolがない、副作用toolは承認後だけ、のように段階化します。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>traceをCI artifactとして保存する</li>
+<li>golden eval setに期待toolと禁止toolを含める</li>
+<li>trajectory matchの厳しさを業務リスクで変える</li>
+<li>LLM judgeは意味評価に限定する</li>
+<li>本番低評価traceをeval setへ昇格する</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://aevals.ai/">AgentEvals - Score Agent Behavior from OpenTelemetry Traces</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;

@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenInference: AIアプリ用のOTel補完仕様とInstrumentation</title>
+  <title>OpenInference: AIアプリをOTel互換traceにそろえる計測層</title>
   <style>
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f4f6f9;
   --panel: #ffffff;
   --text: #1f2937;
   --muted: #5b6470;
@@ -16,8 +16,7 @@
   --accent-strong: #1d4ed8;
   --note: #f59e0b;
   --soft: #eef2f7;
-  --good: #0f766e;
-  --warn: #b45309;
+  --quote: #f9fafb;
   --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
 }
 * { box-sizing: border-box; }
@@ -26,87 +25,94 @@ body {
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--accent-strong); }
 main {
-  max-width: 1020px;
+  max-width: 1060px;
   margin: 0 auto;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 100px;
 }
 header, section, footer, article {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 26px;
   margin: 0 0 16px;
-  box-shadow: 0 10px 26px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.05);
 }
-h1, h2, h3 { line-height: 1.35; letter-spacing: 0; }
+h1, h2, h3 { line-height: 1.36; letter-spacing: 0; }
 h1 { margin: 0 0 12px; font-size: 2rem; }
 h2 { margin: 0 0 12px; font-size: 1.35rem; }
-h3 { margin: 20px 0 8px; font-size: 1.05rem; }
-p { margin: 0 0 12px; }
+h3 { margin: 22px 0 8px; font-size: 1.08rem; }
+p { margin: 0 0 13px; }
 p:last-child { margin-bottom: 0; }
 .muted { color: var(--muted); }
+.tag {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.86rem;
+}
+.summary {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+  font-size: 1.05rem;
+}
 .meta-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.32fr) 1fr;
+  grid-template-columns: minmax(150px, 0.24fr) 1fr;
   gap: 8px 16px;
   margin-top: 18px;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 .meta-grid dt { color: var(--muted); }
 .meta-grid dd { margin: 0; }
-.summary {
-  font-size: 1.05rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
-}
 .toc {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
-  margin: 12px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
 }
-.toc a, .card-list a {
+.toc a {
   display: block;
   text-decoration: none;
   background: var(--soft);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+blockquote {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--quote);
+  color: #243044;
+}
+.quote-note {
   color: var(--muted);
-  background: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 .callout {
   background: #fff8eb;
-  border-color: #f3d59b;
+  border-color: #f2d59b;
 }
-.card-list {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
-.card-list article {
+.card-grid article {
   margin: 0;
   box-shadow: none;
 }
-.card-list h2 {
+.card-grid h2 {
   font-size: 1.05rem;
-}
-.source-list {
-  padding-left: 1.2rem;
 }
 [data-review-target] { position: relative; }
 body.review-mode [data-review-target] {
@@ -205,7 +211,7 @@ body.review-mode .review-pin { display: block; }
   padding: 20px;
 }
 .review-export::backdrop { background: rgba(15, 23, 42, 0.42); }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   main { padding: 20px 12px 110px; }
   h1 { font-size: 1.55rem; }
   header, section, footer, article { padding: 18px; }
@@ -215,57 +221,73 @@ body.review-mode .review-pin { display: block; }
 <body>
   <main>
     <header data-review-target="header" data-review-label="ヘッダー">
-      <p class="tag">仕様・instrumentation集</p>
-      <h1>OpenInference: AIアプリ用のOTel補完仕様とInstrumentation</h1>
-      <p class="summary">OpenInferenceは、LLM、retriever、tool、agent frameworkをOpenTelemetry互換の形で計測するための仕様とinstrumentation群です。Phoenix以外のOTel backendにも送れる点が重要です。</p>
+      <p class="tag">計測層 / 公式ドキュメント</p>
+      <h1>OpenInference: AIアプリをOTel互換traceにそろえる計測層</h1>
+      <p class="summary">OpenInferenceは、LLM、retriever、tool、agent frameworkをOpenTelemetry互換のtraceとして出すための仕様とinstrumentation群です。agent QAでは、評価器に入れる前のセンサー層として重要です。</p>
       <dl class="meta-grid">
-        <dt>資料名</dt><dd>OpenInference - OpenTelemetry Instrumentation for AI Observability</dd>
-        <dt>URL</dt><dd><a href="https://arize-ai.github.io/openinference/">https://arize-ai.github.io/openinference/</a></dd>
-        <dt>作成日時</dt><dd>2026/06/07 20:38 JST</dd>
-        <dt>取得方法</dt><dd>OpenInference公式ページをブラウズして仕様の位置づけと対応ライブラリを確認</dd>
-        <dt>注意</dt><dd>OpenTelemetry本体の標準ではなく、AI observabilityを補完するconventionsとpluginsとして読む。</dd>
+        <dt>読む順番</dt><dd>4 / 17</dd>
+        <dt>原資料</dt><dd><a href="https://arize-ai.github.io/openinference/">OpenInference - OpenTelemetry Instrumentation for AI Observability</a></dd>
+        <dt>作成日時</dt><dd>2026/06/07 21:39 JST</dd>
+        <dt>粒度</dt><dd>元資料の論旨・構造・実装上の使い方を、逐語転載ではなく詳細な再構成として説明</dd>
       </dl>
     </header>
     <section data-review-target="before-reading" data-review-label="読む前の地図">
       <h2>読む前の地図</h2>
-      <p>このページでは、資料の主張をそのまま要約するだけでなく、OpenTelemetry traceを使ったagent自動QAへどう接続するかを中心に整理します。</p>
-      <p>読み方は、まず資料が扱う単位を確認し、次にQA基盤での役割、最後に実装時の注意点を見る順序です。</p>
-      <ul class="toc"><li><a href="#what-it-says">まず、この資料は何を言っているか</a></li>
-<li><a href="#qa-pattern">自動QAでの役割</a></li>
-<li><a href="#implementation">導入時の実務要点</a></li>
-<li><a href="#risks">注意点</a></li></ul>
+      <p>自前でspanを全部書く前に読むべき資料です。OpenAI、OpenAI Agents、Claude Agent SDK、LangChain、LlamaIndex、CrewAI、Google ADK、AutoGenなど、既存frameworkからどこまで自動計測できるかを判断できます。</p>
+      <p>この解説は、動画解説記事と同じ方針で、資料の順序、主張、具体例、実装への落とし込みを追えるように作っています。著作権上、本文全体の再掲ではなく、短い引用と詳細な言い換えで構成しています。</p>
+      <ul class="toc"><li><a href="#section-1">資料の流れを復元する</a></li><li><a href="#section-2">何が学べるか</a></li><li><a href="#section-3">実装に落とす手順</a></li><li><a href="#section-4">注意点</a></li></ul>
+    </section>
+    <section class="callout" data-review-target="source-quote" data-review-label="根拠引用">
+      <h2>短い根拠引用</h2>
+      <blockquote>compatible with any OpenTelemetry backend</blockquote>
+      <p class="quote-note">Phoenix専用ではなくOTel backend互換であることを示す短い説明。</p>
     </section>
     
-    <section id="what-it-says" data-review-target="what-it-says" data-review-label="資料の主張">
-      <h2>まず、この資料は何を言っているか</h2>
-      <p>OpenInferenceは、OpenTelemetryだけでは表現しにくいAIアプリの文脈を補うものです。LLM invocationだけでなく、retrieval、vector store、external tool、agent frameworkの活動をtraceに載せるためのconventionsとpluginsを提供します。</p>
-<p>PythonだけでもOpenAI、OpenAI Agents、Claude Agent SDK、LangChain、LlamaIndex、CrewAI、Google ADK、AutoGen、PydanticAI、smolagentsなど、多数のinstrumentationが並んでいます。</p>
-<p>重要なのはbackend非依存性です。Phoenixで使いやすい一方、OpenTelemetry-compatible backendに送れるため、既存のobservability stackとつなげやすいです。</p>
+    <section id="section-1" data-review-target="section-1" data-review-label="資料の流れを復元する">
+      <h2>資料の流れを復元する</h2>
+      <p>OpenInferenceは、AI applicationのobservabilityに必要なspan schemaとinstrumentationを提供します。OpenTelemetryを土台にしつつ、LLMやRAGやagent frameworkに必要な属性を追加して、AI固有の実行を見えるようにします。</p>
+<p>ページでは、多数のinstrumentationが列挙されます。OpenAI、OpenAI Agents、Anthropic/Claude系、LangChain、LlamaIndex、CrewAI、AutoGen、Google ADK、PydanticAIなど、agent開発でよく使うSDKやframeworkを自動計測できます。</p>
+<p>重要なのは、OpenInferenceがPhoenixに便利なだけではなく、OTel互換backendへ送れることです。つまり、既存のcollector、Jaeger、Tempo、Datadog、Honeycomb、Phoenixなどに同じtraceを流せます。</p>
+<p>資料は、AI appの観測をprompt/responseのログではなく、span treeとして扱う方向へ誘導します。retrieval、reranking、embedding、LLM call、tool call、agent stepをそれぞれ別spanにすれば、評価器が部品ごとの失敗を読み取れます。</p>
     </section>
 
-    <section id="qa-pattern" data-review-target="qa-pattern" data-review-label="QAへの接続">
-      <h2>自動QAでの役割</h2>
-      <p>OpenInferenceは、自動QAの「センサー層」です。評価器そのものではなく、評価に必要な材料をtraceとして揃える役割を担います。</p>
-<p>agent QAでは、frameworkごとにログ形式がばらけると評価器が増殖します。OpenInference instrumentationを入れてspan kindや属性を揃えれば、Phoenix、AgentEvals、LangWatch、独自notebookなど複数の評価面で同じtraceを使えます。</p>
-<p>特にRAG agentでは、retriever spanとLLM spanの接続が重要です。どのqueryでどのdocumentが取られ、そのcontextがどのgenerationに渡ったかが見えると、grounding評価やirrelevant retrieval検出ができます。</p>
+    <section id="section-2" data-review-target="section-2" data-review-label="何が学べるか">
+      <h2>何が学べるか</h2>
+      <p>第一に、agent QAで最初に作るべきものは評価器ではなく、安定したtraceです。OpenInferenceはそのための近道です。自動instrumentationでframework内部のLLM callやretrievalを拾い、足りない業務判断だけmanual spanで補います。</p>
+<p>第二に、backend非依存の価値が分かります。Phoenixで可視化し、LangWatchでsimulationし、Tracetestでassertionし、独自notebookでerror analysisする場合でも、traceの出し方を共通化できます。</p>
+<p>第三に、frameworkごとの差を吸収する必要性が分かります。LangChainとGoogle ADKとOpenAI Agentsでは内部構造が違いますが、評価器に見せたい概念はtool call、LLM call、retrieval、session、agent stepです。</p>
     </section>
 
-    <section id="implementation" data-review-target="implementation" data-review-label="導入要点">
-      <h2>導入時の実務要点</h2>
-      <p>まず自分たちのagent frameworkに対応instrumentationがあるかを確認します。あれば自動計測で始め、agent固有のdecision pointだけmanual spanを追加します。</p>
-<p>span属性名は評価器の入力契約です。後から名前を変えると過去traceとの比較が壊れます。導入時に、trace id、session id、user cohort、prompt version、model version、tool name、tool arguments policyを決めます。</p>
-<p>複数backendに送る場合は、OTel Collectorを挟むと運用しやすいです。評価用backendと通常監視backendで、samplingやcontent capture policyを分けられます。</p>
+    <section id="section-3" data-review-target="section-3" data-review-label="実装に落とす手順">
+      <h2>実装に落とす手順</h2>
+      <p>最初に、自社agentが使っているframeworkのinstrumentationがあるかを確認します。あるなら自動計測を入れ、代表シナリオを走らせてspan treeを確認します。</p>
+<p>次に、評価に必要だが自動計測で出ないspanを足します。例として、intent classification、policy decision、approval gate、risk scoring、human handoffがあります。これらはLLM SDKの外側にあるため、OpenInferenceだけでは十分に見えないことがあります。</p>
+<p>最後に、OTel Collectorを挟みます。collectorでredaction、sampling、routing、attribute normalizationを行えば、評価用backendと通常監視backendで保存ポリシーを分けられます。</p>
     </section>
 
-    <section id="risks" data-review-target="risks" data-review-label="注意点">
+    <section id="section-4" data-review-target="section-4" data-review-label="注意点">
       <h2>注意点</h2>
-      <p>自動instrumentationだけでは、agentがなぜそのtoolを選んだか、どのbusiness ruleを通過したかまでは見えないことがあります。QAに必要なsemantic spanは自前で追加する前提を持つべきです。</p>
-<p>対応frameworkが多いほど、各instrumentationのspan粒度や安定性に差が出ます。CIの評価器は、実際に出るtrace schemaをsampleで固定してから作るのが安全です。</p>
+      <p>自動計測は便利ですが、評価に必要なsemantic informationを保証しません。たとえば、tool call spanは出ても、そのtoolが業務上許可されたtoolか、承認済みか、どのpolicyに基づくかは自前で出す必要があります。</p>
+<p>instrumentationごとにspan粒度や属性が微妙に違うことがあります。評価器を書く前に、sample traceを固定し、期待するschemaをテストするのが安全です。</p>
     </section>
-    <footer data-review-target="references" data-review-label="出典と使い方">
-      <h2>出典と使い方</h2>
-      <p>この解説は上記URLの公開資料をもとに、agent自動QAの設計判断へ使えるよう再構成したものです。一次資料の代替ではないため、導入前には必ずリンク先の最新情報を確認してください。</p>
-      <p><a href="./index.html">資料一覧へ戻る</a></p>
+    
+    <section data-review-target="deep-reconstruction" data-review-label="OpenInferenceをセンサー層として使う設計">
+      <h2>OpenInferenceをセンサー層として使う設計</h2>
+      <p>OpenInferenceは評価器ではなくセンサー層です。つまり、PhoenixやLangWatchやAgentEvalsに入れる前に、LLM/RAG/tool/agent frameworkの実行を共通のtrace形にそろえる役割を持ちます。この位置づけを間違えると、OpenInferenceを入れたのに評価できない、という状態になります。</p>
+<p>実務では、自動instrumentationで拾えるspanと、manual spanで補うべきspanを分けます。LLM SDK呼び出し、embedding、retrieval、framework callbackは自動計測できることが多い。一方、業務上のpolicy decision、approval gate、risk score、human handoffはアプリケーション側の意味なのでmanual spanが必要です。</p>
+<p>複数frameworkを使う組織では、OpenInferenceを共通語彙にするメリットが大きいです。LangChain製agent、OpenAI Agents SDK製agent、Google ADK製agentが混在しても、評価器にはLLM call、tool call、retrieval、sessionとして見せられます。</p>
+      <h3>実装チェックポイント</h3>
+      <ul><li>まず利用frameworkのinstrumentation対応を確認する</li>
+<li>自動spanだけで評価したい失敗が見えるかsample traceで確認する</li>
+<li>足りない業務判断はmanual spanで補う</li>
+<li>OTel Collectorでredactionとroutingを行う</li>
+<li>backendを替えても評価器が壊れない属性名を決める</li></ul>
+    </section>
+    <footer data-review-target="references" data-review-label="出典と公開メモ">
+      <h2>出典と公開メモ</h2>
+      <p>出典: <a href="https://arize-ai.github.io/openinference/">OpenInference - OpenTelemetry Instrumentation for AI Observability</a></p>
+      <p>このページは、原資料の逐語的な複製ではなく、実務でagent自動QA基盤を設計するための詳細な解説です。引用は短く留め、主な情報は日本語で再構成しています。</p>
+      <p><a href="./index.html">読む順番インデックスへ戻る</a></p>
     </footer>
   </main>
   
@@ -309,18 +331,13 @@ body.review-mode .review-pin { display: block; }
   let comments = [];
   let activeId = null;
   try { comments = JSON.parse(localStorage.getItem(docKey) || "[]"); } catch (_) { comments = []; }
-
-  function targetLabel(targetId) {
-    const el = document.querySelector('[data-review-target="' + CSS.escape(targetId) + '"]');
-    return el ? el.getAttribute("data-review-label") || targetId : targetId;
-  }
-  function persist() {
-    localStorage.setItem(docKey, JSON.stringify(comments));
-  }
+  function targetFor(id) { return document.querySelector('[data-review-target="' + CSS.escape(id) + '"]'); }
+  function targetLabel(id) { const el = targetFor(id); return el ? el.getAttribute("data-review-label") || id : id; }
+  function persist() { localStorage.setItem(docKey, JSON.stringify(comments)); }
   function renderPins() {
     document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
     comments.forEach((comment, index) => {
-      const target = document.querySelector('[data-review-target="' + CSS.escape(comment.targetId) + '"]');
+      const target = targetFor(comment.targetId);
       if (!target) return;
       const pin = document.createElement("button");
       pin.type = "button";
@@ -328,10 +345,7 @@ body.review-mode .review-pin { display: block; }
       pin.textContent = String(index + 1);
       pin.style.left = comment.x + "%";
       pin.style.top = comment.y + "%";
-      pin.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openPanel(comment.id);
-      });
+      pin.addEventListener("click", (event) => { event.stopPropagation(); openPanel(comment.id); });
       target.appendChild(pin);
     });
   }
@@ -344,19 +358,14 @@ body.review-mode .review-pin { display: block; }
     panel.hidden = false;
     text.focus();
   }
-  function closePanel() {
-    panel.hidden = true;
-    activeId = null;
-  }
+  function closePanel() { panel.hidden = true; activeId = null; }
   function setReviewMode(on) {
     document.body.classList.toggle("review-mode", on);
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
     if (!on) closePanel();
   }
   toggle.addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setReviewMode(false);
-  });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
   document.querySelectorAll("[data-review-target]").forEach((target) => {
     target.addEventListener("click", (event) => {
       if (!document.body.classList.contains("review-mode")) return;
