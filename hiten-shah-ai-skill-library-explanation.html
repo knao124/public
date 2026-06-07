@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hiten Shah「AI戦略はまずSkill Libraryから」を読む</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --ink: #1f2937;
+        --muted: #64748b;
+        --line: #d8dee9;
+        --accent: #2563eb;
+        --accent-2: #0f766e;
+        --accent-3: #b45309;
+        --soft-blue: #eaf2ff;
+        --soft-green: #ecfdf5;
+        --soft-amber: #fffbeb;
+        --soft-gray: #f8fafc;
+        --code: #f1f5f9;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+      * { box-sizing: border-box; }
+      html { background: var(--bg); }
+      body {
+        margin: 0;
+        background:
+          linear-gradient(180deg, rgba(234, 242, 255, 0.92), rgba(245, 247, 251, 0.75) 340px),
+          var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+        line-height: 1.75;
+        overflow-wrap: anywhere;
+      }
+      main {
+        width: min(100%, 1040px);
+        margin: 0 auto;
+        padding: 32px 20px 104px;
+      }
+      header,
+      section,
+      footer {
+        position: relative;
+        margin: 0 0 16px;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.35;
+        letter-spacing: 0;
+      }
+      h1 { font-size: clamp(1.65rem, 3vw, 2.45rem); }
+      h2 { font-size: 1.35rem; }
+      h3 { font-size: 1.03rem; }
+      p { margin: 0 0 12px; }
+      ul,
+      ol { margin: 0; padding-left: 1.35rem; }
+      li + li { margin-top: 8px; }
+      a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.16em; }
+      code {
+        display: inline;
+        max-width: 100%;
+        padding: 0.1em 0.35em;
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92em;
+        white-space: normal;
+      }
+      pre {
+        max-width: 100%;
+        overflow-x: auto;
+        margin: 12px 0 0;
+        padding: 16px;
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        line-height: 1.55;
+      }
+      pre code {
+        display: block;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        white-space: pre;
+      }
+      .muted { color: var(--muted); }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        margin-bottom: 12px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        background: var(--soft-blue);
+        color: #075985;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+        gap: 20px;
+        align-items: stretch;
+      }
+      .hero-copy { min-width: 0; }
+      .cover {
+        min-height: 220px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--soft-gray);
+      }
+      .cover img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 220px;
+        object-fit: cover;
+      }
+      .summary-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .summary-item,
+      .box,
+      .mini-card,
+      .timeline-item {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--soft-gray);
+        padding: 14px;
+      }
+      .summary-item strong,
+      .mini-card strong,
+      .timeline-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+      .source-grid,
+      .two-col,
+      .three-col {
+        display: grid;
+        gap: 12px;
+      }
+      .source-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+      .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .quote {
+        border-left: 4px solid var(--accent);
+        background: var(--soft-blue);
+        border-radius: 6px;
+        padding: 12px 14px;
+        font-weight: 700;
+      }
+      .quote + .quote { margin-top: 10px; }
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .timeline-item {
+        background: #ffffff;
+        border-top: 4px solid var(--accent-2);
+      }
+      .timeline-item:nth-child(3n) { border-top-color: var(--accent); }
+      .timeline-item:nth-child(4n) { border-top-color: var(--accent-3); }
+      .timeline-item .label {
+        display: inline-block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+      .definition {
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 12px;
+      }
+      .definition .box:first-child { background: var(--soft-green); }
+      .definition .box:last-child { background: var(--soft-blue); }
+      .comparison {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+      }
+      .comparison th,
+      .comparison td {
+        border-bottom: 1px solid var(--line);
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      .comparison th {
+        background: var(--soft-gray);
+        white-space: nowrap;
+      }
+      .comparison tr:last-child th,
+      .comparison tr:last-child td { border-bottom: 0; }
+      .steps {
+        counter-reset: step;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .step {
+        counter-increment: step;
+        min-height: 146px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 14px;
+      }
+      .step::before {
+        content: counter(step);
+        display: inline-grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        margin-bottom: 10px;
+        border-radius: 999px;
+        background: var(--accent-2);
+        color: #fff;
+        font-weight: 800;
+      }
+      .note {
+        border-left: 4px solid var(--accent-3);
+        padding: 12px 14px;
+        background: var(--soft-amber);
+        border-radius: 6px;
+      }
+      .review-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      [data-review-target] { position: relative; }
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(37, 99, 235, 0.48);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--ink);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: #f59e0b;
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(430px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .review-comment {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      .review-comment p { white-space: pre-wrap; }
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      [hidden] { display: none !important; }
+      @media (max-width: 840px) {
+        main { padding: 18px 12px 104px; }
+        header,
+        section,
+        footer { padding: 18px; }
+        .hero,
+        .summary-list,
+        .source-grid,
+        .two-col,
+        .three-col,
+        .timeline,
+        .definition,
+        .steps { grid-template-columns: 1fr; }
+        .cover,
+        .cover img { min-height: 180px; }
+        .comparison {
+          display: block;
+          overflow-x: auto;
+          white-space: normal;
+        }
+        .comparison th,
+        .comparison td {
+          min-width: 180px;
+          white-space: normal;
+        }
+      }
+      @media (max-width: 420px) {
+        main { padding-left: 10px; padding-right: 10px; }
+        header,
+        section,
+        footer { padding: 14px; }
+        h1 { font-size: 1.52rem; }
+        h2 { font-size: 1.18rem; }
+        .review-toolbar {
+          left: 10px;
+          right: 10px;
+          bottom: 10px;
+        }
+        .review-toolbar button { flex: 1 1 auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="冒頭サマリー">
+        <div class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow">X Article解説</span>
+            <h1>Hiten Shah「AI戦略はまずSkill Libraryから」を読む</h1>
+            <p>
+              この記事は、企業の最初のAI戦略を「どのモデルを使うか」「どのコネクタを入れるか」から始めるのではなく、
+              社内の優秀な人が繰り返している判断・手順・型を <strong>Skill Library</strong> として蓄積するところから始めるべきだ、
+              という主張です。
+            </p>
+            <p>
+              核心は、AI Agentにデータを見せるだけでは仕事の質は上がらない、という点です。Salesforce、Slack、Google Drive、GitHubに接続しても、
+              「どの情報を重く見るか」「どの例外に注意するか」「何を良いアウトプットとみなすか」は別問題です。そこで著者は、
+              優秀者の仕事のやり方を、手順・例・テンプレート・チェックリスト・判断基準としてパッケージ化することを提案しています。
+            </p>
+            <div class="summary-list">
+              <div class="summary-item" data-review-target="summary-thesis" data-review-label="主張">
+                <strong>主張</strong>
+                企業のAI優位性は、モデル選定そのものよりも、自社の仕事のやり方をAIに教えられるかで決まる。
+              </div>
+              <div class="summary-item" data-review-target="summary-skill" data-review-label="Skillの定義">
+                <strong>Skillとは</strong>
+                一回限りのプロンプトではなく、同じ種類の仕事に再利用できる「仕事の進め方」のパッケージ。
+              </div>
+              <div class="summary-item" data-review-target="summary-access" data-review-label="Accessとの違い">
+                <strong>Accessとの違い</strong>
+                コネクタは文脈を渡す。Skillは判断、手順、品質基準を渡す。
+              </div>
+              <div class="summary-item" data-review-target="summary-private" data-review-label="Private Skill">
+                <strong>Private Skill</strong>
+                本当に価値があるSkillは、顧客対応、営業基準、法務判断、ブランド文体など、社内固有のものになる。
+              </div>
+            </div>
+          </div>
+          <figure class="cover" data-review-target="cover" data-review-label="カバー画像">
+            <img src="https://pbs.twimg.com/media/HJ_-c2aacAAYUkb.jpg" alt="X Article cover image for Every Company's First AI Strategy Should Be a Skill Library" />
+          </figure>
+        </div>
+      </header>
+
+      <section data-review-target="source" data-review-label="引用元X">
+        <h2>引用元X</h2>
+        <div class="source-grid">
+          <div class="box" data-review-target="source-post" data-review-label="X投稿">
+            <h3>元投稿</h3>
+            <p>
+              Hiten Shah（<a href="https://x.com/hnshah">@hnshah</a>）によるX投稿です。投稿本文は記事URLのみで、X Articleに誘導する形でした。
+            </p>
+            <ul>
+              <li>投稿URL: <a href="https://x.com/hnshah/status/2062647149582750101?s=20">https://x.com/hnshah/status/2062647149582750101?s=20</a></li>
+              <li>投稿時刻: 2026年6月5日 06:26 JST（X表示および取得データ上は 2026-06-04 21:26 UTC）</li>
+              <li>取得時点の表示数: 518,015 views</li>
+            </ul>
+          </div>
+          <div class="box" data-review-target="source-article" data-review-label="X Article">
+            <h3>対象記事</h3>
+            <ul>
+              <li>タイトル: <strong>Every Company’s First AI Strategy Should Be a Skill Library</strong></li>
+              <li>記事URL: <a href="https://x.com/i/article/2062641002016620545">https://x.com/i/article/2062641002016620545</a></li>
+              <li>Article ID: <code>2062641002016620545</code></li>
+              <li>取得方法: ブラウザ確認後、X Webの公開ゲストAPIレスポンスを解析</li>
+            </ul>
+          </div>
+        </div>
+        <p class="muted">
+          注意: 以下は記事全文の転載ではなく、取得本文に基づく詳細な要約・解説です。短い直接引用だけを残し、本文の大半は日本語で言い換えています。
+        </p>
+      </section>
+
+      <section data-review-target="short-quotes" data-review-label="短い直接引用">
+        <h2>この記事がそのまま言っている重要フレーズ</h2>
+        <p class="quote">“A skill is more than a prompt.”</p>
+        <p class="quote">“Skills make judgment reusable.”</p>
+        <p>
+          この2つで記事全体の圧縮版になります。つまり、プロンプトはその場の依頼文で、Skillは仕事の型です。そしてSkill Libraryとは、
+          優秀者の判断を、Agentが何度でも読み込める運用資産にする仕組みです。
+        </p>
+      </section>
+
+      <section data-review-target="article-walkthrough" data-review-label="段落順の具体解説">
+        <h2>記事の中身を段落順に具体化する</h2>
+        <p>
+          動画解説で時刻ごとに追ったのと同じように、ここでは記事の見出し・段落順で内容を追います。各項目は「記事が何を言っているか」と
+          「その意味」を分けています。
+        </p>
+        <div class="timeline">
+          <article class="timeline-item" data-review-target="walk-opening" data-review-label="冒頭">
+            <span class="label">冒頭</span>
+            <strong>優秀な人の仕事には、本人も明文化していない反復パターンがある</strong>
+            <p>
+              著者は、優秀な営業、サポートリード、ファイナンスリーダーの例から始めます。営業なら、重要な商談前に前回の会話、真の意思決定者、
+              まだ口に出されていない反対理由、数週間前の約束を見に行く。サポートなら、チケット本文だけでなく、顧客の口調、過去の履歴、
+              アカウント価値、プロダクト上の痛み、小さな問題が大きくなる兆候を見る。ファイナンスなら、数字そのものよりも、どの変化が重要で、
+              どれがノイズで、取締役会前にどの変化に説明の物語が必要かを読む。
+            </p>
+            <p>
+              この記事は、この「経験」「判断」「センス」「組織知」と呼ばれてきたものを、AI時代にはSkillとして扱える、と導入しています。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-method" data-review-label="The Work Already Has a Method">
+            <span class="label">The Work Already Has a Method</span>
+            <strong>仕事にはすでに方法がある。ただし散らばっている</strong>
+            <p>
+              企業には、営業更新準備、顧客フィードバックの優先順位付け、キャンペーン判断、サポートのエスカレーション、危険なコード変更レビュー、
+              財務変動の読み方など、実はかなり具体的なやり方があります。ただ、その多くはドキュメント、Slack、テンプレート、古い資料、
+              オンボーディング会話、ベテランの頭の中に分散しています。
+            </p>
+            <p>
+              著者は、これまで背景知識扱いだったものが、これからはAI Agentのためのインフラになる、と言っています。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-access" data-review-label="Access Is the Easy Part">
+            <span class="label">Access Is the Easy Part</span>
+            <strong>データアクセスは必要だが、それだけでは良い仕事にならない</strong>
+            <p>
+              多くのAI導入はCRM、Slack、Google Drive、GitHub、Data Warehouseへの接続から始まります。著者はこれを否定していません。
+              むしろ、アクセスできないAgentは推測するだけなので、アクセスは必要だと言っています。
+            </p>
+            <p>
+              ただしアクセスだけでは、営業メモを全部読めても案件の形を読み違える、サポートチケットを検索できても本当に緊急の顧客を見落とす、
+              プロダクト資料を全部開けても実際の意思決定に合わないPRDを書く、という失敗が起きます。問題は「見られる情報を増やすこと」ではなく、
+              「会社がその仕事をどう進めるか」をAgentに理解させることです。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-skill-definition" data-review-label="A Skill Is a Reusable Way of Working">
+            <span class="label">A Skill Is a Reusable Way of Working</span>
+            <strong>Skillは、同じ仕事に再適用できる仕事の型</strong>
+            <p>
+              著者は、プロンプトを「その瞬間に何をしてほしいか」、Skillを「繰り返せる仕事のやり方」と分けます。Skillには、手順、例、
+              テンプレート、チェックリスト、スクリプト、参照資料、経験則が含まれます。
+            </p>
+            <p>
+              Anthropic型の例としては、<code>SKILL.md</code> と補助ファイルを含むフォルダが挙げられています。重要なのはファイル形式ではなく、
+              手順だけでなく、判断、例外、品質基準まで入れることです。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-skill-examples" data-review-label="Skill例">
+            <span class="label">具体例</span>
+            <strong>営業準備、事後分析、取締役会資料がSkillになり得る</strong>
+            <p>
+              営業準備Skillなら、アカウント履歴の読み方、表面化すべきリスク、未解決質問の立て方、役に立つ商談ブリーフの形を持ちます。
+              インシデントポストモーテムSkillなら、時系列復元、原因と症状の分離、非難しない文章化、学びをアクションに落とす方法を持ちます。
+              取締役会資料Skillなら、どの指標を出すか、変化をどう説明するか、何を付録に逃がすか、どこでストーリーが崩れるかを扱います。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-connectors" data-review-label="Data Connectors Skills Plugins">
+            <span class="label">Data, Connectors, Skills, and Plugins</span>
+            <strong>Connectorは文脈、Skillは判断、Pluginは行動まで含む方向</strong>
+            <p>
+              記事は、AIシステムの最初の課題をアクセスだと整理します。コネクタ、MCP、API、データ連携は、ドキュメントやDBや業務アプリをAIに見せる。
+              しかし、Salesforceを見せてもフォーキャストレビューのやり方は教えられません。Driveを接続しても、どの古い取締役会資料を真似し、
+              どれを無視すべきかは分かりません。
+            </p>
+            <p>
+              そのうえで、データとコネクタは文脈、Skillは判断とプロセス、Pluginはアクセスとアクションを組み合わせるもの、という進化の流れを置いています。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-history" data-review-label="The Pattern Is Older Than AI">
+            <span class="label">The Pattern Is Older Than AI</span>
+            <strong>専門性を再利用可能にする流れはAI以前からある</strong>
+            <p>
+              著者は、Unixコマンド、Shell Script、Library、API、Workflowの流れを引きます。人間は昔から、有用な操作、手順、コード、
+              サービス、業務プロセスを再利用可能にしてきました。AI時代に変わったのは、実行者です。
+            </p>
+            <p>
+              以前は人がプレイブックを読んで実行していました。今はAgentがプレイブックを読み、ツールを使い、ファイルを調べ、スクリプトを実行し、
+              継続して作業できます。つまりプレイブックが「読む資料」から「動く運用部品」になります。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-library-asset" data-review-label="Skill Library Becomes the Asset">
+            <span class="label">The Skill Library Becomes the Asset</span>
+            <strong>同じモデルでも、社内Skill Libraryを持つ会社は別の資産を持つ</strong>
+            <p>
+              同じ最先端モデルを使う2社を比べます。片方は社内システムに接続しただけ。もう片方は、社内システムに接続しつつ、優秀な仕事から作った
+              Skill Libraryも渡している。この後者は、営業準備、契約レビュー、ローンチブリーフ、バグ調査、エスカレーション対応、調査要約、
+              財務説明のやり方をAgentが知っている状態です。
+            </p>
+            <p>
+              完璧でも魔法でもないが、十分に一貫性が上がる。良いSkillは同じミスの再修正を減らし、より良いSkillは仕事の最低品質を引き上げ、
+              最高のSkillは何年もかけて身につく判断を保存する、という位置づけです。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-private" data-review-label="The Best Skills Will Be Private">
+            <span class="label">The Best Skills Will Be Private</span>
+            <strong>最も価値のあるSkillは社内固有で、公開マーケットプレイスには出ない</strong>
+            <p>
+              公開Skillマーケットプレイスは便利でも、内容は汎用になりがちです。著者は、価値ある方法は具体的だと言います。顧客エスカレーション手順、
+              営業の見極め軸、プロダクトレビュー基準、取締役会更新フォーマット、法務の代替条項、ブランド文体、意思決定基準などは、
+              競合がダウンロードできない社内知です。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-start" data-review-label="Start With the Work">
+            <span class="label">Start With the Work</span>
+            <strong>最初にやるべきことは、繰り返し発生する判断作業を棚卸しすること</strong>
+            <p>
+              プラットフォームを選ぶ前に、繰り返し行われる仕事をマップする。特に、経験者が安定して高い成果を出す作業を見る。
+              例として、営業電話、顧客調査、サポートエスカレーション、PRD、インシデントポストモーテム、契約、予測、ローンチ、競合分析、
+              リリースノートが挙がっています。
+            </p>
+            <p>
+              優秀者が最初に何を見るか、他の人は何を見落とすか、どんな良い例・悪い例があるか、何度も聞かれる質問は何か、避けているミスは何か、
+              成功をどう定義するかを聞き、そこからSkillを作る、という手順です。
+            </p>
+          </article>
+
+          <article class="timeline-item" data-review-target="walk-real-strategy" data-review-label="The Real AI Strategy">
+            <span class="label">The Real AI Strategy</span>
+            <strong>本当のAI戦略は、AIを業務フローの奥に埋め込むこと</strong>
+            <p>
+              企業がAgentから最大の価値を得るには、AIを「汎用知能を社内に振りかけるもの」と見なすのをやめる必要がある、と締めています。
+              Agentに、自社のビジネスが実際にどう動くかを教える。繰り返される判断を再利用可能なシステムにする。
+              優秀者の方法を適用しやすく、改善しやすく、失われにくくする。
+            </p>
+            <p>
+              その意味でAIの優位性は、選んだモデルそのものではなく、モデルにどの仕事をうまくやるよう教えたかから生まれる、というのが最終メッセージです。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="concept-map" data-review-label="概念整理">
+        <h2>Prompt、Connector、Skill、Pluginの違い</h2>
+        <table class="comparison">
+          <tbody>
+            <tr data-review-target="compare-prompt" data-review-label="Prompt">
+              <th>Prompt</th>
+              <td>その場の依頼文。例: 「この商談メモを要約して」「このPRDをレビューして」。人間が毎回、背景や判断基準を説明しがち。</td>
+            </tr>
+            <tr data-review-target="compare-connector" data-review-label="Connector">
+              <th>Connector / MCP / API</th>
+              <td>Agentが情報源やツールにアクセスするための接続。例: Salesforce、Slack、Google Drive、GitHub、Data Warehouseを見る。</td>
+            </tr>
+            <tr data-review-target="compare-skill" data-review-label="Skill">
+              <th>Skill</th>
+              <td>同じ種類の仕事をどう進めるかをまとめたパッケージ。手順、例、テンプレート、チェックリスト、判断基準、例外、品質基準を含む。</td>
+            </tr>
+            <tr data-review-target="compare-plugin" data-review-label="Plugin">
+              <th>Plugin</th>
+              <td>アクセス、操作、ワークフローを組み合わせた実行単位。記事では、データ接続からSkill、さらに行動できる知的システムへ進む流れとして説明される。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="why-prompts-disappear" data-review-label="なぜプロンプト説明が減るのか">
+        <h2>なぜ「毎回プロンプトで説明する」必要が減るのか</h2>
+        <div class="definition">
+          <div class="box" data-review-target="without-skill" data-review-label="Skillなし">
+            <h3>Skillなし</h3>
+            <p>
+              人間が毎回、「この会社では何を重要視するか」「この資料はどの順番で見るか」「良いアウトプットは何か」
+              「この例外はどう扱うか」をプロンプトに書きます。結果として、同じ説明が何度も繰り返され、担当者ごとに品質が揺れます。
+            </p>
+          </div>
+          <div class="box" data-review-target="with-skill" data-review-label="Skillあり">
+            <h3>Skillあり</h3>
+            <p>
+              Agentが作業前にSkillを読み込みます。そこには、対象データの見方、判断の優先順位、成果物テンプレート、悪い例、確認項目が入っています。
+              人間は「この商談を準備して」と言うだけで、Agentは社内の型に沿って作業を始められます。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="implementation" data-review-label="実務での作り方">
+        <h2>実務でSkill Libraryを作る順番</h2>
+        <p>
+          記事の提案を現場で実行するなら、いきなり巨大なナレッジベースを作るより、判断が繰り返される小さな業務から始めるのが自然です。
+        </p>
+        <div class="steps">
+          <div class="step" data-review-target="impl-map" data-review-label="棚卸し">
+            <strong>繰り返し判断作業を棚卸し</strong>
+            営業準備、顧客調査、PRDレビュー、障害分析、契約レビューなど、経験者ほど品質差が出る業務を選ぶ。
+          </div>
+          <div class="step" data-review-target="impl-interview" data-review-label="優秀者抽出">
+            <strong>優秀者の見方を抽出</strong>
+            最初に見る情報、見落としやすい兆候、良い例、悪い例、避けている失敗、成功条件を聞く。
+          </div>
+          <div class="step" data-review-target="impl-package" data-review-label="Skill化">
+            <strong>Skillとしてパッケージ化</strong>
+            手順、入力、出力テンプレート、判断基準、例外、品質チェック、参照資料を1つのフォルダや文書にまとめる。
+          </div>
+          <div class="step" data-review-target="impl-improve" data-review-label="運用改善">
+            <strong>使って改善する</strong>
+            Agentの失敗例をSkillに戻し、現場に近い人をownerにして、古くなった判断基準を更新する。
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="skill-template" data-review-label="Skill例">
+        <h2>この記事の主張をSkillに落とすとこうなる</h2>
+        <p>
+          たとえば営業商談準備をSkill化するなら、単に「商談準備して」とは書かず、次のような再利用可能な型にします。
+        </p>
+        <pre data-review-target="skill-example-code" data-review-label="SKILL.md例"><code># Sales Call Prep Skill
+
+Use when preparing for an important customer or prospect call.
+
+Inputs:
+- CRM account record
+- Previous meeting notes
+- Open opportunities
+- Support and product issue history
+
+Process:
+1. Identify the real buyer, economic buyer, and likely blockers.
+2. Compare last stated goals with the current opportunity stage.
+3. Surface unstated objections or risk signals from notes and support history.
+4. Pull promises or follow-ups from the last 30 days.
+5. Produce a brief with risks, open questions, next best move, and talk track.
+
+Quality bar:
+- Do not summarize everything.
+- Prioritize information that changes the call strategy.
+- Call out uncertainty instead of inventing missing context.</code></pre>
+        <p>
+          ここで重要なのは、Agentに「全部読んで要約して」と言わないことです。何を探すべきか、何を捨てるべきか、どの水準なら使える準備資料なのかを
+          Skill側に持たせます。
+        </p>
+      </section>
+
+      <section data-review-target="examples" data-review-label="具体例">
+        <h2>この記事が想定しているSkill Libraryの具体例</h2>
+        <div class="three-col">
+          <article class="mini-card" data-review-target="example-support" data-review-label="Support Escalation">
+            <strong>Support Escalation Skill</strong>
+            顧客の口調、契約規模、過去障害、プロダクト上の痛み、炎上兆候を見て、単なる返信ではなく優先度と対応方針を決める。
+          </article>
+          <article class="mini-card" data-review-target="example-incident" data-review-label="Incident Postmortem">
+            <strong>Incident Postmortem Skill</strong>
+            タイムラインを復元し、原因と症状を分け、誰かを責める文章を避け、再発防止を具体的なアクションに落とす。
+          </article>
+          <article class="mini-card" data-review-target="example-board" data-review-label="Board Deck">
+            <strong>Board Deck Skill</strong>
+            どの指標を本文に置き、どの詳細を付録に置き、どの変化に説明が必要で、どこでストーリーが破綻するかを判断する。
+          </article>
+          <article class="mini-card" data-review-target="example-product" data-review-label="Product Review">
+            <strong>Product Review Skill</strong>
+            顧客要望を重要度、再現性、戦略整合性、既存ロードマップへの影響で見て、単なる人気投票にしない。
+          </article>
+          <article class="mini-card" data-review-target="example-legal" data-review-label="Contract Review">
+            <strong>Contract Review Skill</strong>
+            標準条項、許容できる代替案、交渉してよい範囲、絶対に譲れない条件をAgentに読み込ませる。
+          </article>
+          <article class="mini-card" data-review-target="example-brand" data-review-label="Brand Voice">
+            <strong>Brand Voice Skill</strong>
+            ブランド文体、避ける表現、顧客に刺さる言い回し、過去の良いコピー例をまとめ、生成文の一貫性を上げる。
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="takeaways" data-review-label="読み取りポイント">
+        <h2>読み取りポイント</h2>
+        <div class="two-col">
+          <div class="box" data-review-target="takeaway-ai-strategy" data-review-label="AI戦略">
+            <h3>AI戦略の起点が変わる</h3>
+            <p>
+              「どのモデルが一番賢いか」だけを比較しても、社内業務の質は自動では上がりません。この記事は、モデルよりも
+              <strong>モデルに渡す社内の仕事の型</strong> を資産として見るべきだと主張しています。
+            </p>
+          </div>
+          <div class="box" data-review-target="takeaway-operating-manual" data-review-label="運用マニュアル">
+            <h3>Skill LibraryはAgent用の運用マニュアル</h3>
+            <p>
+              人間向けマニュアルは読まれないことがありますが、Agentは作業前にSkillを読み込んで実行できます。だから、古いドキュメントやSlackスレッドの
+              断片を、実際に使われる作業単位へ変換する価値が出ます。
+            </p>
+          </div>
+          <div class="box" data-review-target="takeaway-private-knowledge" data-review-label="社内固有知">
+            <h3>価値は社内固有知にある</h3>
+            <p>
+              汎用Skillは誰でも使えます。本当に差が出るのは、顧客、商品、法務、営業、サポート、ブランド、意思決定基準など、
+              会社ごとに違う暗黙知をSkill化した部分です。
+            </p>
+          </div>
+          <div class="box" data-review-target="takeaway-maintenance" data-review-label="更新">
+            <h3>Skillは作って終わりではない</h3>
+            <p>
+              判断基準が古くなると、Agentは古い会社のやり方を忠実に再現します。現場に近いownerを置き、失敗例や新しい成功例を更新する運用が必要です。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="risks" data-review-label="注意点">
+        <h2>注意点</h2>
+        <ul>
+          <li data-review-target="risk-bad-habit" data-review-label="悪い癖の固定化">
+            優秀者の型を保存するだけでなく、古い慣習や悪い癖を固定化していないかを確認する必要があります。
+          </li>
+          <li data-review-target="risk-security" data-review-label="権限と機密">
+            社内固有Skillには営業基準、法務ポジション、顧客情報、ブランド戦略が含まれ得ます。アクセス権限と保管場所はコネクタ以上に慎重に扱うべきです。
+          </li>
+          <li data-review-target="risk-overfit" data-review-label="過剰適用">
+            Skillは再利用のための型ですが、すべてのケースに同じ型を当てると判断を誤ります。例外条件と「人間に戻す条件」を明記するのが重要です。
+          </li>
+          <li data-review-target="risk-measurement" data-review-label="効果測定">
+            Skill Libraryはナレッジ整理ではなく業務改善の道具です。再修正の減少、初稿品質、対応時間、判断の一貫性など、運用指標と結びつける必要があります。
+          </li>
+        </ul>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参照">
+        <h2>参照</h2>
+        <ul>
+          <li>X投稿: <a href="https://x.com/hnshah/status/2062647149582750101?s=20">https://x.com/hnshah/status/2062647149582750101?s=20</a></li>
+          <li>X Article: <a href="https://x.com/i/article/2062641002016620545">https://x.com/i/article/2062641002016620545</a></li>
+          <li>取得済みJSON: <code>/tmp/x-TweetResultByRestId.json</code></li>
+          <li>作成時刻: 2026-06-06 21:38 JST</li>
+        </ul>
+        <p class="muted">
+          X側の表示やメタデータは時間とともに変わる可能性があります。本文解説は取得時点のX Article内容に基づいています。
+        </p>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="レビュー操作">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+          <path d="M12 8v6"></path>
+          <path d="M9 11h6"></path>
+        </svg>
+        コメント
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <path d="M7 10l5 5 5-5"></path>
+          <path d="M12 15V3"></path>
+        </svg>
+        改善プロンプト
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <form id="review-form">
+        <textarea id="review-text" placeholder="この位置への修正コメント"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+      <div id="review-comment-list"></div>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = {
+          comments: load().map(normalize).filter((comment) => byId.has(comment.target)),
+          activeCommentId: null,
+          draft: null,
+        };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            /* localStorage may be unavailable for file URLs in some browsers. */
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            state.comments.push({
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              target: current.target,
+              x: current.x,
+              y: current.y,
+              text,
+            });
+          }
+          state.activeCommentId = null;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          const text = $("#review-export-text").value;
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            $("#review-export-text").focus();
+            $("#review-export-text").select();
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>

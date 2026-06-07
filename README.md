@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/hiten-shah-ai-skill-library-explanation.html
 - https://knao124.github.io/public/codex-plugins-presentations-product-design.html
 - https://knao124.github.io/public/claude-code-autopilot-loops-routines-explanation.html
 - https://knao124.github.io/public/claude-code-loops-promptless-explanation.html
@@ -36,6 +37,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/hiten-shah-ai-skill-library-explanation.html` : Hiten Shah のX Article「Every Company’s First AI Strategy Should Be a Skill Library」を、Skill Libraryの考え方、コネクタとの違い、実務での作り方までまとめた解説
 - `/codex-plugins-presentations-product-design.html` : Codex の Presentations plugin と Product Design plugin の中身を、skill と workflow の差分から読む解説
 - `/claude-code-autopilot-loops-routines-explanation.html` : Claude Codeを /loop、Routines、agents でオートパイロット化する考え方を、X動画トランスクリプトから読み解く解説
 - `/claude-code-loops-promptless-explanation.html` : Claude Code の「ループでプロンプトがいらなくなる」考え方を読み解く解説
