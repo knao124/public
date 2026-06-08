@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Andrej Karpathy「How I use LLMs」動画解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --ink: #1f2933;
+        --muted: #5e6875;
+        --line: #d9dee7;
+        --accent: #2563eb;
+        --accent-dark: #1d4ed8;
+        --note: #f7c948;
+        --soft: #edf4ff;
+        --code: #f1f4f8;
+        --cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+        line-height: 1.75;
+      }
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 36px 20px 96px;
+      }
+      header, section, footer {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 24px;
+        margin: 0 0 16px;
+        box-shadow: 0 10px 28px rgba(31, 41, 51, 0.06);
+      }
+      h1, h2, h3 { line-height: 1.35; margin: 0 0 12px; }
+      h1 { font-size: clamp(1.75rem, 4vw, 2.55rem); }
+      h2 { font-size: 1.35rem; }
+      h3 { font-size: 1.05rem; margin-top: 18px; }
+      p { margin: 0 0 12px; }
+      ul { margin: 8px 0 0 1.2rem; padding: 0; }
+      li { margin: 6px 0; }
+      a { color: var(--accent-dark); }
+      code {
+        background: var(--code);
+        border-radius: 6px;
+        padding: 0.1em 0.35em;
+      }
+      .muted { color: var(--muted); }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfe;
+      }
+      .stat strong { display: block; font-size: 1.15rem; }
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: var(--soft);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin: 14px 0 0;
+      }
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: #fbfcfe;
+      }
+      .time {
+        color: var(--accent-dark);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .pill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fbfcfe;
+        padding: 5px 10px;
+        font-size: 0.92rem;
+      }
+      .source-list li { word-break: break-word; }
+      [data-review-target] { position: relative; }
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(37, 99, 235, 0.45);
+        outline-offset: 4px;
+        cursor: var(--cursor);
+      }
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--ink);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-dark);
+      }
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 28px;
+        height: 28px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(430px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .review-export textarea {
+        min-height: 300px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.9rem;
+      }
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      .review-comment {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      .review-comment p { white-space: pre-wrap; }
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      [hidden] { display: none !important; }
+      @media (max-width: 760px) {
+        main { padding: 20px 12px 96px; }
+        header, section, footer { padding: 18px; }
+        .summary-grid { grid-template-columns: 1fr; }
+        .row { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="要約">
+        <p class="muted">Published: 2026-06-08 14:31 JST</p>
+        <h1>Andrej Karpathy「How I use LLMs」動画解説</h1>
+        <p>
+          X 投稿はこの動画を「普通の言葉で AI に仕事を頼むだけで、半自律的なワーカーに近づく」という文脈で紹介している。
+          ただし動画本体の中心は、もっと広い。Karpathy は LLM を、知識・推論・ツール・マルチモーダル入出力を持つ作業環境としてどう使い分けるかを、2時間強かけて実演している。
+        </p>
+        <div class="summary-grid">
+          <div class="stat"><span class="muted">動画</span><strong>2:11:12</strong><span>How I use LLMs</span></div>
+          <div class="stat"><span class="muted">話者</span><strong>Andrej Karpathy</strong><span>LLM の実用的な使い方を実演</span></div>
+          <div class="stat"><span class="muted">取得</span><strong>公開ページ</strong><span>X 投稿、動画メタデータ、公開トランスクリプト</span></div>
+        </div>
+      </header>
+
+      <section data-review-target="source-context" data-review-label="ソースと前提">
+        <h2>ソースと前提</h2>
+        <ul>
+          <li>X 投稿: <a href="https://x.com/0xchromium/status/2063321324605280569?s=20">Chrome @0xchromium の投稿</a>。ブラウザ抽出では、投稿日時は「2026年6月7日 03:05」、表示回数は約 103.8 万と表示されていた。</li>
+          <li>動画本体: <a href="https://www.youtube.com/watch?v=EWvNQjAaOHw">Andrej Karpathy「How I use LLMs」</a>。タイトル、投稿日、長さ、章立ては公開メタデータで確認した。</li>
+          <li>トランスクリプト: 公開トランスクリプトを作業時に保存して参照した。自動生成由来なので、製品名や固有名詞は前後文脈で補正している。</li>
+        </ul>
+        <div class="callout">
+          X 投稿のリンク先記事「How to Build Claude Workflows That Run Without You」は、投稿者側の文脈付けであり、動画本体の内容そのものではない。この解説では、投稿者の主張と Karpathy の動画内容を分けて扱う。
+        </div>
+      </section>
+
+      <section data-review-target="core-model" data-review-label="中心モデル">
+        <h2>まず、この動画は何を言っているか</h2>
+        <p>
+          動画の土台は「LLM は魔法の作業員ではなく、文脈窓に置かれたトークン列を続けるモデルだ」という理解にある。
+          ChatGPT のチャット UI は会話に見えるが、実際にはユーザーとモデルが交互に同じトークン列を書き足している。新しいチャットを始めるとは、その作業メモリをリセットすることに近い。
+        </p>
+        <p>
+          その上で Karpathy は、LLM 単体を「古めのインターネット知識を圧縮した、確率的で曖昧な知識体」として扱う。最近の情報、正確な計算、コード実行、ファイル読解、画像や音声の理解には、検索・Python・ファイルアップロード・音声/画像/動画入出力のような外部ツールを組み合わせる必要がある。
+        </p>
+        <div class="pill-list">
+          <span class="pill">文脈窓は作業メモリ</span>
+          <span class="pill">モデル選択が結果を左右する</span>
+          <span class="pill">新しい情報は検索</span>
+          <span class="pill">正確な計算はコード実行</span>
+          <span class="pill">繰り返し作業はカスタム化</span>
+        </div>
+      </section>
+
+      <section data-review-target="timeline" data-review-label="章別タイムライン">
+        <h2>章別タイムライン</h2>
+        <div class="timeline">
+          <div class="row"><div class="time">00:00</div><div><strong>LLM エコシステムの概観。</strong> ChatGPT だけでなく、Claude、Gemini、Grok、Perplexity など複数のサービスがあり、それぞれ強みと UI が違うという前提を置く。</div></div>
+          <div class="row"><div class="time">02:54</div><div><strong>ChatGPT の裏側。</strong> 入力文と出力文はトークン列で、会話全体が文脈窓になる。古い会話を引きずると文脈が重くなり、精度や速度を落とすことがある。</div></div>
+          <div class="row"><div class="time">13:12</div><div><strong>基本的な使い方。</strong> カフェイン量や市販薬の成分のような、頻出で比較的安定した低リスク情報には便利。ただし成分や医療的判断は箱や一次情報で確認する、という態度を取っている。</div></div>
+          <div class="row"><div class="time">18:03</div><div><strong>モデルと料金プラン。</strong> 無料/有料、軽量/高性能モデルで知識量、創造性、推論性能が変わる。Karpathy は複数モデルに同じ質問を投げる「LLM council」的な使い方もする。</div></div>
+          <div class="row"><div class="time">22:54</div><div><strong>Thinking models。</strong> 数学、コード、複雑な推論では、時間をかけて考えるモデルが効くことがある。旅行相談のような軽い用途では、遅くて高価な推論モデルを使う必要は薄い。</div></div>
+          <div class="row"><div class="time">31:00</div><div><strong>検索ツール。</strong> 最新情報や、インターネット上で頻度が低い情報はモデルの記憶に頼らない。検索でページを読み、内容を文脈窓に入れてから答えさせる。</div></div>
+          <div class="row"><div class="time">42:04</div><div><strong>Deep Research。</strong> 複数ページを調べ、比較表や長めの調査メモにまとめる用途。商品比較、研究概要、企業比較のように、調査・整理・出典付き説明が必要な場面で使う。</div></div>
+          <div class="row"><div class="time">50:57</div><div><strong>ファイルアップロード。</strong> PDF や資料を文脈に入れて、読みながら質問する。画像や図がどこまで理解されるかはサービス依存なので、文書全体を鵜呑みにしない。</div></div>
+          <div class="row"><div class="time">59:00</div><div><strong>Python/計算ツール。</strong> LLM は暗算をそれらしく外すことがある。正確な計算やデータ処理は Python や JavaScript などを実行させ、結果を検証するのが重要。</div></div>
+          <div class="row"><div class="time">1:04:35</div><div><strong>Advanced Data Analysis。</strong> データ収集、表作成、グラフ生成を手伝う「若手データ分析者」のように使える。ただし勝手な補間や誤った値を混ぜることがあるため、コードとデータを確認する。</div></div>
+          <div class="row"><div class="time">1:09:00</div><div><strong>Claude Artifacts。</strong> フラッシュカードアプリや図解のように、会話からその場で小さな UI や可視化を作る例。テキスト回答から、動く成果物へ移る部分。</div></div>
+          <div class="row"><div class="time">1:14:02</div><div><strong>Cursor とコーディング。</strong> コードベース全体の文脈を持ったエディタ上で、React の Tic Tac Toe や UI 変更を数文で依頼する。ここが X 投稿の「同僚に頼むように指示する」印象に最も近い。</div></div>
+          <div class="row"><div class="time">1:22:28</div><div><strong>音声入出力。</strong> タイピングだけでなく、音声入力や読み上げでモデルを使う。Karpathy はかなりの割合で音声入力も使うが、用途は場面依存。</div></div>
+          <div class="row"><div class="time">1:27:37</div><div><strong>Advanced Voice Mode。</strong> 音声をテキストに変換してから処理する方式と、音声をモデル内部で直接扱う方式の違いを説明する。後者は会話の自然さが高い。</div></div>
+          <div class="row"><div class="time">1:37:09</div><div><strong>NotebookLM。</strong> 資料を入れて Q&amp;A したり、資料ベースのポッドキャストを生成したりする例。ファイルを文脈化して、別の表現形式に変換する使い方。</div></div>
+          <div class="row"><div class="time">1:40:20</div><div><strong>画像入力と OCR。</strong> 画像、スクリーンショット、手書き、字幕などをモデルに読ませる。言語学習や画面上の文字理解に使える。</div></div>
+          <div class="row"><div class="time">1:47:02</div><div><strong>画像生成。</strong> DALL-E や Ideogram などを使い、YouTube サムネイルや「今日のニュースを表す画像」のようなコンテンツ制作を行う。</div></div>
+          <div class="row"><div class="time">1:49:14</div><div><strong>動画入力。</strong> カメラを向けて、部屋や本などについて質問するデモ。ユーザー体験としては動画理解に見えるが、内部実装はフレーム抽出の可能性もあると留保している。</div></div>
+          <div class="row"><div class="time">1:52:23</div><div><strong>動画生成。</strong> Sora や Veo 系の生成モデルを概観。Karpathy 自身は創作職ではないので日常利用は多くないが、進化が速い領域として紹介する。</div></div>
+          <div class="row"><div class="time">1:53:29</div><div><strong>Memory と Custom Instructions。</strong> 会話をまたいだ好みや前提を保存する機能。映画の好みや言語学習時の文体指定など、毎回説明したくない情報を残す。</div></div>
+          <div class="row"><div class="time">1:58:38</div><div><strong>Custom GPTs。</strong> 韓国語の語彙抽出、詳細翻訳、字幕 OCR のような反復タスクを、例示付きプロンプトとして保存する。数例を与える few-shot が精度を上げる。</div></div>
+          <div class="row"><div class="time">2:06:30</div><div><strong>まとめ。</strong> LLM アプリは急速に増え、機能も散らばっている。使うべき判断軸は、モデルの大きさ、推論の有無、ツール、モダリティ、記憶やカスタム化である。</div></div>
+        </div>
+      </section>
+
+      <section data-review-target="tweet-vs-video" data-review-label="X投稿とのズレ">
+        <h2>X 投稿の見方</h2>
+        <p>
+          X 投稿は「彼はただ普通の言葉でタスクを説明し、AI が作業し、結果を見て一文で修正している」と要約している。この観察は、Cursor、Claude Artifacts、Deep Research の場面にはかなり当てはまる。
+        </p>
+        <p>
+          ただし投稿の後半にある「その文章にスケジュールと実行ツールを渡せば、自分が止まっても働くワーカーになる」という部分は、動画からの自然な拡張ではあるが、動画本体の主張そのものではない。Karpathy が何度も強調しているのは、モデルを信じ切ることではなく、モデル・文脈・ツール・検証を使い分けることだ。
+        </p>
+        <div class="callout">
+          つまり、この動画の価値は「AI に丸投げしよう」ではなく、「AI が得意な形に仕事を分解し、必要な道具と検証を与えると、人間の作業モードが変わる」と読むのが妥当。
+        </div>
+      </section>
+
+      <section data-review-target="practical-takeaways" data-review-label="実務への落とし込み">
+        <h2>実務に落とすなら</h2>
+        <ul>
+          <li><strong>まずタスクを分類する。</strong> 知識確認、最新調査、計算、コード編集、資料読解、画像/音声処理で使うモデルとツールを変える。</li>
+          <li><strong>文脈窓を雑に汚さない。</strong> 話題が変わったら新規チャット。必要な資料だけを入れる。長い会話を万能メモリ扱いしない。</li>
+          <li><strong>正確性が必要な作業はツールに逃がす。</strong> 最新情報は検索、計算はコード、コード変更はテスト、事実確認は一次情報。</li>
+          <li><strong>反復タスクはプロンプトを保存する。</strong> Custom GPT、プロジェクト設定、エディタの指示ファイル、スクリプト化などで、毎回の説明コストを減らす。</li>
+          <li><strong>AI の出力を成果物ではなく下書きとして扱う。</strong> 特にデータ分析、医療、契約、コード変更では、出力ではなく根拠・差分・実行結果を見る。</li>
+        </ul>
+      </section>
+
+      <section data-review-target="risks-notes" data-review-label="注意点">
+        <h2>注意点</h2>
+        <ul>
+          <li>動画は 2025年2月27日公開の内容で、モデル名、料金、機能、上限は現在と変わっている可能性が高い。</li>
+          <li>公開トランスクリプトは自動生成のため、ChatGPT、Claude、Grok などの固有名詞に誤認識が混じる。</li>
+          <li>X 投稿の automation/workflow 的な読みは投稿者の編集意図が入っている。動画自体は、AI ワークフロー構築だけでなく、LLM 全般の使い方を体系的に見せる内容。</li>
+          <li>この解説は動画内容の整理であり、動画内の各製品比較や性能評価を現在時点で再検証したものではない。</li>
+        </ul>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参照情報">
+        <h2>参照情報</h2>
+        <ul class="source-list">
+          <li><a href="https://x.com/0xchromium/status/2063321324605280569?s=20">X 投稿</a>: 投稿本文、投稿者、表示上の投稿日時、動画長を確認。</li>
+          <li><a href="https://aiineducation.io/videos/how-i-use-llms-EWvNQjAaOHw">AI in Education の動画メタデータ</a>: タイトル、話者、投稿日、長さ、章立てを確認。</li>
+          <li><a href="https://pickscribe.com/v/EWvNQjAaOHw">Pickscribe/YTScribe の公開トランスクリプト</a>: 章ごとの説明内容を確認。</li>
+          <li><a href="https://www.youtube.com/watch?v=EWvNQjAaOHw">YouTube 原動画</a>: X 動画と同じ長さ・同じ内容の元動画として参照。</li>
+        </ul>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); }
+          catch { return []; }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = { comments: load().map(normalize).filter((comment) => byId.has(comment.target)), activeCommentId: null, draft: null };
+        const save = () => {
+          try { localStorage.setItem(storageKey, JSON.stringify(state.comments)); }
+          catch {}
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments.map((comment, index) =>
+            `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`
+          ).join("");
+        };
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) { openComment(editButton.dataset.editComment); return; }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) { openComment(pin.dataset.reviewComment); return; }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => setReviewMode(!document.body.classList.contains("review-mode")));
+        document.addEventListener("keydown", (event) => { if (event.key === "Escape") setReviewMode(false); });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            state.comments.push({ id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${comment.text.replace(/\s+/g, " ").trim()}`);
+          return ["以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。", `targets: ${usedTargets}`, ...rows].join("\n");
+        };
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => { $("#review-export-panel").hidden = true; });
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try { await navigator.clipboard.writeText($("#review-export-text").value); }
+          catch { document.execCommand("copy"); }
+        });
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
