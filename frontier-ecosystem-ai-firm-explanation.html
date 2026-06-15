@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>「A frontier without an ecosystem is not stable」解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f2;
+        --panel: #ffffff;
+        --text: #17202a;
+        --muted: #5f6b75;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+        --note: #f5c542;
+        --border: #d9e0d7;
+        --soft: #edf5f2;
+        --code-bg: #eef2f0;
+        --danger: #8a4b08;
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%230f766e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+        line-height: 1.75;
+        background:
+          linear-gradient(180deg, rgba(15, 118, 110, 0.08), transparent 340px),
+          var(--bg);
+        color: var(--text);
+      }
+
+      a {
+        color: var(--accent-strong);
+      }
+
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 42px 20px 96px;
+      }
+
+      header,
+      section,
+      footer {
+        position: relative;
+        margin-bottom: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(23, 32, 42, 0.06);
+      }
+
+      header {
+        padding: 30px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.28;
+        margin: 0 0 12px;
+      }
+
+      h1 {
+        max-width: 880px;
+        font-size: clamp(1.9rem, 4vw, 3.35rem);
+      }
+
+      h2 {
+        font-size: clamp(1.35rem, 2.3vw, 1.85rem);
+      }
+
+      h3 {
+        font-size: 1.04rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.3rem;
+        margin: 10px 0 0;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px;
+        color: var(--accent-strong);
+        font-size: 0.86rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .lead {
+        max-width: 880px;
+        font-size: 1.05rem;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .meta-item {
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--soft);
+      }
+
+      .meta-label {
+        margin: 0 0 2px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .meta-value {
+        margin: 0;
+        overflow-wrap: anywhere;
+        font-size: 0.96rem;
+      }
+
+      .callout {
+        border-left: 4px solid var(--accent);
+        padding: 14px 16px;
+        border-radius: 8px;
+        background: var(--soft);
+      }
+
+      .warning {
+        border-left-color: var(--danger);
+        background: #fff7ed;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .three-col {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .mini-card {
+        min-width: 0;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fbfcfa;
+      }
+
+      .mini-card p:last-child {
+        margin-bottom: 0;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        gap: 8px;
+        overflow-x: auto;
+        padding: 4px 0 2px;
+      }
+
+      .flow-step {
+        min-width: 120px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fbfcfa;
+      }
+
+      .flow-step strong {
+        display: block;
+        color: var(--accent-strong);
+      }
+
+      .quote {
+        margin: 10px 0 0;
+        padding: 14px 16px;
+        border-left: 4px solid var(--note);
+        border-radius: 8px;
+        background: #fffbea;
+      }
+
+      code {
+        border-radius: 6px;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        width: 28%;
+        background: var(--soft);
+        color: var(--accent-strong);
+      }
+
+      tr:last-child th,
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .source-list {
+        margin-top: 8px;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(15, 118, 110, 0.42);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-weight: 800;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .review-comment {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+
+      .review-comment p {
+        white-space: pre-wrap;
+      }
+
+      .review-comment-meta {
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 820px) {
+        main {
+          padding: 24px 14px 92px;
+        }
+
+        header,
+        section,
+        footer {
+          padding: 18px;
+        }
+
+        .meta-grid,
+        .two-col,
+        .three-col {
+          grid-template-columns: 1fr;
+        }
+
+        table,
+        tbody,
+        tr,
+        th,
+        td {
+          display: block;
+          width: 100%;
+        }
+
+        th {
+          border-bottom: 0;
+        }
+
+        td {
+          border-top: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="概要">
+        <p class="eyebrow">X Article 解説</p>
+        <h1>「A frontier without an ecosystem is not stable」解説</h1>
+        <p class="lead">
+          この投稿の中心は、AI時代の企業価値は「どのモデルを選ぶか」ではなく、企業固有の知識・判断・業務履歴をAIと人間が一緒に学習し続ける仕組みに移る、という主張です。
+        </p>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <p class="meta-label">Source</p>
+            <p class="meta-value"><a href="https://x.com/satyanadella/status/2066182223213293753">https://x.com/satyanadella/status/2066182223213293753</a></p>
+          </div>
+          <div class="meta-item">
+            <p class="meta-label">Acquisition</p>
+            <p class="meta-value">ユーザー提供本文を使用。X公開ページは環境ポリシーでアクセス不可、API fallbackは <code>~/.x-token</code> 未配置のため未使用。</p>
+          </div>
+          <div class="meta-item">
+            <p class="meta-label">Post ID</p>
+            <p class="meta-value">2066182223213293753</p>
+          </div>
+          <div class="meta-item">
+            <p class="meta-label">Generated</p>
+            <p class="meta-value">2026-06-15 12:13 JST</p>
+          </div>
+        </div>
+      </header>
+
+      <section data-review-target="before-reading" data-review-label="読む前の前提">
+        <h2>読む前の前提</h2>
+        <div class="callout warning">
+          <p>
+            添付動画や音声は取得できていません。このページは、ユーザーが貼り付けたX Article本文をもとにした解説です。動画スキルの流儀に合わせ、出典・取得方法・未確認点を明示し、本文の主張とこちらの解釈を分けています。
+          </p>
+        </div>
+        <p>
+          この記事は、AIモデル単体の性能競争を否定しているわけではありません。焦点はその先で、モデルを企業の業務・評価・知識ベース・人の判断と接続し、使うほど企業固有の学習資産が増える状態をどう作るかにあります。
+        </p>
+      </section>
+
+      <section data-review-target="one-line-thesis" data-review-label="一言でいうと">
+        <h2>一言でいうと</h2>
+        <p>
+          「汎用AIモデルが強くなるだけでは、企業も社会も安定しない。各企業が自社の人材・業務・知識をAIの学習ループに組み込み、自社で価値を増やせるエコシステムを作る必要がある」という論です。
+        </p>
+        <div class="quote">
+          <p>
+            原文の短い核は、frontier modelだけでなくfrontier ecosystemを作るべきだ、という点にあります。
+          </p>
+        </div>
+      </section>
+
+      <section data-review-target="core-terms" data-review-label="主要概念">
+        <h2>主要概念の整理</h2>
+        <div class="three-col">
+          <article class="mini-card" data-review-target="term-human-capital" data-review-label="Human capital">
+            <h3>Human capital</h3>
+            <p>
+              人の知識、判断、関係性、創意工夫、パターン認識。この記事では、AIに置き換えられる古い資産ではなく、AIの成長方向を決める能動的な資産として扱われています。
+            </p>
+          </article>
+          <article class="mini-card" data-review-target="term-token-capital" data-review-label="Token capital">
+            <h3>Token capital</h3>
+            <p>
+              企業が構築・所有するAI能力。モデルそのものだけでなく、プロンプト、エージェント、評価、知識ベース、ログ、改善済みワークフローを含む企業固有のAI実行力です。
+            </p>
+          </article>
+          <article class="mini-card" data-review-target="term-learning-loop" data-review-label="Learning loop">
+            <h3>Learning loop</h3>
+            <p>
+              人が目標を設定し、AIが業務を実行・補助し、その結果を評価し、知識と手順を更新する循環。この記事では、これが企業の新しい知財になるとされています。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section data-review-target="argument-flow" data-review-label="論旨の流れ">
+        <h2>論旨の流れ</h2>
+        <div class="flow" aria-label="論旨の流れ">
+          <div class="flow-step">
+            <strong>1. 変化</strong>
+            <span>AIは単なる業務ツールではなく、人とデジタルシステムの認知ループを作る。</span>
+          </div>
+          <div class="flow-step">
+            <strong>2. 危機</strong>
+            <span>モデルが企業知を吸収し、企業の差別化要因をコモディティ化しうる。</span>
+          </div>
+          <div class="flow-step">
+            <strong>3. 対応</strong>
+            <span>人材資本とトークン資本を複利で増やす学習ループを作る。</span>
+          </div>
+          <div class="flow-step">
+            <strong>4. 主権</strong>
+            <span>汎用モデルを差し替えても、自社固有の熟練知は失わない構造にする。</span>
+          </div>
+          <div class="flow-step">
+            <strong>5. 均衡</strong>
+            <span>価値が少数モデルに集中せず、企業・産業・国に広く流れるエコシステムを作る。</span>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="what-is-new" data-review-label="何が新しいのか">
+        <h2>何が新しいのか</h2>
+        <p>
+          過去のデジタル化では、システムは主に人間の作業を速く・正確にする補助装置でした。この記事が「今回は違う」と言う理由は、AIが人間の判断や経験から継続的に学び、次の業務実行に反映できるからです。
+        </p>
+        <p>
+          つまり、企業内の仕事は「人がツールを使う」だけではなく、「人の判断がAIシステムに残り、AIの出力がまた人の判断を変える」循環になります。この循環を所有できる企業と、単に外部モデルに毎回問い合わせるだけの企業では、蓄積される資産が変わります。
+        </p>
+      </section>
+
+      <section data-review-target="sovereignty-test" data-review-label="主権テスト">
+        <h2>主権テスト: モデルを差し替えても会社の熟練知が残るか</h2>
+        <p>
+          この記事の実務上いちばん重要な検査項目はここです。ある会社が使っている汎用モデルを別のモデルへ変えたとき、自社の業務知識、評価基準、顧客理解、判断パターン、改善履歴が消えるなら、その会社はAI能力を所有していません。
+        </p>
+        <table>
+          <tbody>
+            <tr>
+              <th>弱い状態</th>
+              <td>外部モデルにプロンプトを投げ、結果を人が都度確認する。成功・失敗の学習が会社の資産として残りにくい。</td>
+            </tr>
+            <tr>
+              <th>強い状態</th>
+              <td>業務ログ、評価、知識ベース、改善済み手順が自社側に残り、モデルを変えても再利用できる。</td>
+            </tr>
+            <tr>
+              <th>見るべき指標</th>
+              <td>モデル変更後も、品質・速度・判断の一貫性・監査可能性が維持されるか。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="private-evals" data-review-label="Private evals">
+        <h2>Private evals が重要になる理由</h2>
+        <p>
+          外部ベンチマークは、モデルの一般能力を見るには役立ちます。しかし企業にとって本当に重要なのは、営業案件化率、審査精度、障害対応時間、設計レビュー品質、顧客満足、法務リスク低減など、自社の成果に直結する指標です。
+        </p>
+        <p>
+          この記事がいう private evals は、企業が自分たちの業務成果に照らしてAIを評価する仕組みです。これがあると、モデル変更、プロンプト変更、エージェント設計変更、知識ベース更新が本当に良くなったのかを検証できます。
+        </p>
+        <div class="two-col">
+          <div class="mini-card" data-review-target="eval-example-good" data-review-label="良い評価例">
+            <h3>良い評価</h3>
+            <p>「このAIは、当社の過去案件に照らして、どの提案を優先すべきかを正しく判断できるか」のように、業務成果に接続している。</p>
+          </div>
+          <div class="mini-card" data-review-target="eval-example-weak" data-review-label="弱い評価例">
+            <h3>弱い評価</h3>
+            <p>「有名ベンチマークで高得点だから大丈夫」と判断する。自社の現場で失敗する理由が見えにくい。</p>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="hill-climbing-machine" data-review-label="Hill climbing machine">
+        <h2>「Hill climbing machine」とは何か</h2>
+        <p>
+          hill climbingは、少しずつ良い方向へ登っていく探索の比喩です。この記事では、企業のAIシステムが使われるたびに良い業務結果・悪い業務結果・人間の修正・顧客反応を学習信号として受け取り、次の実行を改善する機械として描かれています。
+        </p>
+        <p>
+          重要なのは、改善が単発ではなく複利になる点です。より良いワークフローがより良いログを生み、より良いログがより良い評価と学習信号を生み、さらに良いAI支援を生む。これが企業固有の暗黙知を蓄積します。
+        </p>
+      </section>
+
+      <section data-review-target="political-economy" data-review-label="政治経済の論点">
+        <h2>なぜ「エコシステム」が安定条件なのか</h2>
+        <p>
+          投稿の後半は、技術論から政治経済論に移ります。少数の巨大モデルだけが全産業の知識を吸収し、経済的リターンを集める構図は、社会的に持続しないという見立てです。
+        </p>
+        <p>
+          グローバル化の初期に、GDP上は問題が見えにくくても地域産業や雇用が空洞化した、という比較が置かれています。AIでも同じことが起き、企業や産業の知識が外部モデルに吸い上げられるだけなら、政治的・社会的な反発が生まれる、という警告です。
+        </p>
+        <div class="callout">
+          <p>
+            したがって「frontier ecosystem」は、単なる開発者向けプラットフォーム論ではなく、価値分配の設計論です。モデル提供者だけでなく、各企業・各産業・各国がAI時代の学習資産を持てる状態を安定均衡と見ています。
+          </p>
+        </div>
+      </section>
+
+      <section data-review-target="business-implications" data-review-label="企業への示唆">
+        <h2>企業への示唆</h2>
+        <ol>
+          <li>
+            <strong>モデル選定だけをAI戦略にしない。</strong> モデルは重要ですが、企業固有の評価、知識、ワークフローがなければ差別化は残りません。
+          </li>
+          <li>
+            <strong>業務ログを学習資産として扱う。</strong> どの入力で、どの判断をし、どんな結果になり、人間が何を直したのかを残す必要があります。
+          </li>
+          <li>
+            <strong>専門家の判断をAIに吸わせるだけで終わらせない。</strong> 専門家が目標設定、例外判断、関係構築、評価設計を担い続ける構造が重要です。
+          </li>
+          <li>
+            <strong>モデル差し替え可能性を設計要件にする。</strong> 特定モデルに閉じた業務知識ではなく、自社側のナレッジ、評価、ルール、トレースとして保存する。
+          </li>
+          <li>
+            <strong>社内の暗黙知をprivate evalsに変換する。</strong> 「良い提案」「危ない回答」「当社らしい判断」を評価データに変えることが、AI時代の知財化になります。
+          </li>
+        </ol>
+      </section>
+
+      <section data-review-target="practical-checklist" data-review-label="実務チェックリスト">
+        <h2>実務チェックリスト</h2>
+        <table>
+          <tbody>
+            <tr>
+              <th>知識</th>
+              <td>社内文書、顧客情報、案件履歴、判断基準が検索可能で、更新責任が明確になっているか。</td>
+            </tr>
+            <tr>
+              <th>評価</th>
+              <td>外部ベンチマークではなく、自社の成果指標でAI出力を評価するテストセットがあるか。</td>
+            </tr>
+            <tr>
+              <th>トレース</th>
+              <td>AIの入力、出力、人間の修正、最終結果が監査可能な形で残っているか。</td>
+            </tr>
+            <tr>
+              <th>改善</th>
+              <td>失敗事例がプロンプト、ルール、ナレッジ、エージェント設計、評価データのどれかに反映されるか。</td>
+            </tr>
+            <tr>
+              <th>主権</th>
+              <td>利用モデルを変更しても、自社固有の学習資産が消えず、再接続できるか。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="caveats" data-review-label="注意点">
+        <h2>注意点</h2>
+        <p>
+          この記事の主張は強い方向性を示しますが、実装には難所があります。業務ログには個人情報や機密が含まれます。人間の判断を学習信号にするには、誰の判断を正解とするのか、失敗をどう扱うのか、従業員の貢献をどう評価するのかも設計しなければなりません。
+        </p>
+        <p>
+          また、private reinforcement learning environmentsという表現は魅力的ですが、すべての企業がすぐに強化学習環境を作る必要があるとは限りません。多くの企業では、まず検索可能な知識ベース、業務別eval、レビュー済みトレース、改善ワークフローを揃える方が現実的です。
+        </p>
+      </section>
+
+      <section data-review-target="bottom-line" data-review-label="結論">
+        <h2>結論</h2>
+        <p>
+          この投稿は、AI時代の企業戦略を「モデル利用」から「学習資産の所有」へ移す提案です。人間の専門性はAIに置き換えられるだけではなく、AIの成長方向を決める資本になります。
+        </p>
+        <p>
+          企業が守るべきものは、単なるデータやプロンプトではありません。人間の判断、業務の痕跡、評価基準、改善履歴が結びついた学習ループです。それを自社で持てる企業が、AI時代にも差別化し続ける、というのがこの記事の核心です。
+        </p>
+      </section>
+
+      <footer data-review-target="sources" data-review-label="出典と制約">
+        <h2>出典と制約</h2>
+        <ul class="source-list">
+          <li>Source URL: <a href="https://x.com/satyanadella/status/2066182223213293753">https://x.com/satyanadella/status/2066182223213293753</a></li>
+          <li>本文: ユーザー提供テキストをもとに要約・解説。</li>
+          <li>動画: 未取得。音声・映像に含まれる追加情報はこの解説に反映していません。</li>
+          <li>検証: X公開ページはブラウザポリシーによりアクセス不可。X API fallbackは <code>~/.x-token</code> がなかったため未実行。</li>
+        </ul>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M12 8v6"></path><path d="M9 11h6"></path></svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = {
+          comments: load().map(normalize).filter((comment) => byId.has(comment.target)),
+          activeCommentId: null,
+          activeTarget: null,
+          draft: null,
+        };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            // localStorage が塞がれていても、その場のレビュー操作は継続できるようにする。
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.activeTarget = target;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.activeTarget = comment.target;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+        $("#review-toggle").addEventListener("click", () => {
+          setReviewMode(!document.body.classList.contains("review-mode"));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            state.comments.push({ id, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.activeTarget = nextDraft.target;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try {
+            await navigator.clipboard.writeText($("#review-export-text").value);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>

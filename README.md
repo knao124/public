@@ -5,6 +5,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 公開 URL:
 
 - https://knao124.github.io/public/
+- https://knao124.github.io/public/frontier-ecosystem-ai-firm-explanation.html
 - https://knao124.github.io/public/karpathy-how-i-use-llms-explanation.html
 - https://knao124.github.io/public/hiten-shah-ai-skill-library-explanation.html
 - https://knao124.github.io/public/codex-plugins-presentations-product-design.html
@@ -38,6 +39,7 @@ GitHub Pages で静的 HTML を公開するための repository です。
 ## 公開中のページ
 
 - `/` : repository のトップページ
+- `/frontier-ecosystem-ai-firm-explanation.html` : X Article「A frontier without an ecosystem is not stable」を、human capital / token capital / learning loop / frontier ecosystem の観点で読み解く解説
 - `/karpathy-how-i-use-llms-explanation.html` : Andrej Karpathy「How I use LLMs」を、X投稿の文脈と動画本体の章立てを分けて読み解く解説
 - `/hiten-shah-ai-skill-library-explanation.html` : Hiten Shah のX Article「Every Company’s First AI Strategy Should Be a Skill Library」を、Skill Libraryの考え方、コネクタとの違い、実務での作り方までまとめた解説
 - `/codex-plugins-presentations-product-design.html` : Codex の Presentations plugin と Product Design plugin の中身を、skill と workflow の差分から読む解説
