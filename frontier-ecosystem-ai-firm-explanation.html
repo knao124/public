@@ -432,7 +432,7 @@
         <p class="eyebrow">X Article 解説</p>
         <h1>「A frontier without an ecosystem is not stable」解説</h1>
         <p class="lead">
-          この投稿の中心は、AI時代の企業価値は「どのモデルを選ぶか」ではなく、企業固有の知識・判断・業務履歴をAIと人間が一緒に学習し続ける仕組みに移る、という主張です。
+          この投稿の中心は、AI時代の企業価値は「どのモデルを選ぶか」ではなく、企業固有の知識・判断・業務履歴をAIと人間が一緒に学習し続ける仕組みに移る、という主張です。特に重要なのは、モデルを差し替えても「社内ベテラン」の専門知識が失われないアーキテクチャを企業側が持つ、という部分です。
         </p>
         <div class="meta-grid">
           <div class="meta-item">
@@ -448,8 +448,8 @@
             <p class="meta-value">2066182223213293753</p>
           </div>
           <div class="meta-item">
-            <p class="meta-label">Generated</p>
-            <p class="meta-value">2026-06-15 12:13 JST</p>
+            <p class="meta-label">Generated / Updated</p>
+            <p class="meta-value">2026-06-15 12:13 JST / 2026-06-15 13:19 JST</p>
           </div>
         </div>
       </header>
@@ -543,6 +543,11 @@
         <p>
           この記事の実務上いちばん重要な検査項目はここです。ある会社が使っている汎用モデルを別のモデルへ変えたとき、自社の業務知識、評価基準、顧客理解、判断パターン、改善履歴が消えるなら、その会社はAI能力を所有していません。
         </p>
+        <div class="quote">
+          <p>
+            核になる短い表現は、「社内ベテラン」の専門知識を失わずに汎用モデルを移行できるか、という問いです。
+          </p>
+        </div>
         <table>
           <tbody>
             <tr>
@@ -561,6 +566,64 @@
         </table>
       </section>
 
+      <section data-review-target="missed-weight-analysis" data-review-label="前版で薄くなった理由と対策">
+        <h2>前版でこの重要箇所が薄くなった理由と対策</h2>
+        <p>
+          前版では、主権テスト、private evals、hill climbing machineをそれぞれ説明していました。ただし、それらを一つの実装アーキテクチャとして束ねきれていませんでした。そのため、引用箇所が持つ「企業は何を作ればよいのか」という実務上の迫力が弱くなっていました。
+        </p>
+        <table>
+          <tbody>
+            <tr>
+              <th>理由 1</th>
+              <td>「モデル差し替え可能性」を説明した一方で、それを成立させる部品であるトレース、評価、知識ベース、改善ワークフローを一体で描けていなかった。</td>
+            </tr>
+            <tr>
+              <th>理由 2</th>
+              <td>private reinforcement learning environmentsを注意点として抑制的に扱ったため、本文が言う「実データに基づいて強くなる環境」の重要性が弱まった。</td>
+            </tr>
+            <tr>
+              <th>理由 3</th>
+              <td>後半の政治経済論に重心が移り、企業内で作るべき学習ループの設計要件が相対的に埋もれた。</td>
+            </tr>
+            <tr>
+              <th>対策</th>
+              <td>この版では、引用箇所を「企業AIの参照アーキテクチャ」として再配置し、すぐ始める実践手順と、後で強化する高度な学習環境を分けて整理します。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="reference-architecture" data-review-label="参照アーキテクチャ">
+        <h2>引用箇所をアーキテクチャとして読む</h2>
+        <p>
+          この段落は、単なる思想ではなく、企業が作るべきAI基盤の設計図として読めます。中心は「使うたびに改善されるAIシステム」であり、それを成立させる層は五つあります。
+        </p>
+        <table>
+          <tbody>
+            <tr>
+              <th>1. Workflow layer</th>
+              <td>営業、審査、開発、CS、経理などの業務手順をAIが実行・補助できる単位に分解する。</td>
+            </tr>
+            <tr>
+              <th>2. Knowledge layer</th>
+              <td>社内文書、案件履歴、判断基準、FAQ、失敗事例を検索可能な組織記憶として整える。</td>
+            </tr>
+            <tr>
+              <th>3. Trace layer</th>
+              <td>入力、参照した知識、AI出力、人間の修正、最終成果を記録し、後から評価・再学習できる形にする。</td>
+            </tr>
+            <tr>
+              <th>4. Eval layer</th>
+              <td>外部ベンチマークではなく、自社の成果に近い基準でAIを採点する。ここが改善の羅針盤になる。</td>
+            </tr>
+            <tr>
+              <th>5. Improvement layer</th>
+              <td>評価結果を、プロンプト、ツール、ワークフロー、知識ベース、モデル選定、将来的な学習環境へ反映する。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
       <section data-review-target="private-evals" data-review-label="Private evals">
         <h2>Private evals が重要になる理由</h2>
         <p>
@@ -568,6 +631,9 @@
         </p>
         <p>
           この記事がいう private evals は、企業が自分たちの業務成果に照らしてAIを評価する仕組みです。これがあると、モデル変更、プロンプト変更、エージェント設計変更、知識ベース更新が本当に良くなったのかを検証できます。
+        </p>
+        <p>
+          ここで重要なのは、evalが「採点表」ではなく、企業の暗黙知を明文化する装置になる点です。熟練者がなぜその案件を危ないと見たのか、なぜその顧客には別提案を選んだのか、なぜそのレビューを差し戻したのかを評価基準に落とすことで、社内ベテランの判断がAIシステムに残ります。
         </p>
         <div class="two-col">
           <div class="mini-card" data-review-target="eval-example-good" data-review-label="良い評価例">
@@ -589,6 +655,11 @@
         <p>
           重要なのは、改善が単発ではなく複利になる点です。より良いワークフローがより良いログを生み、より良いログがより良い評価と学習信号を生み、さらに良いAI支援を生む。これが企業固有の暗黙知を蓄積します。
         </p>
+        <div class="callout">
+          <p>
+            したがって、最初から大規模な強化学習を作る必要はありません。まずは「業務で使う」「結果を測る」「熟練者が直す」「修正理由を残す」「次回のワークフローに反映する」を回せることが、坂道登りマシンの最小形です。
+          </p>
+        </div>
       </section>
 
       <section data-review-target="political-economy" data-review-label="政治経済の論点">
@@ -653,6 +724,39 @@
             </tr>
           </tbody>
         </table>
+      </section>
+
+      <section data-review-target="implementation-roadmap" data-review-label="実践ロードマップ">
+        <h2>引用箇所を実践するロードマップ</h2>
+        <ol>
+          <li>
+            <strong>業務を一つ選ぶ。</strong> 全社AI基盤から始めず、成果が測れる業務を一つ選びます。例は、商談前リサーチ、提案書レビュー、問い合わせ一次回答、与信判断補助、コードレビューなどです。
+          </li>
+          <li>
+            <strong>成果指標を決める。</strong> 速度だけでなく、品質、正確性、差し戻し率、顧客反応、リスク低減など、ビジネスに近い指標を置きます。
+          </li>
+          <li>
+            <strong>社内ベテランの判断を採取する。</strong> 良い例、悪い例、例外、判断理由、よくある落とし穴を集めます。ここが人材資本をトークン資本へ変換する入口です。
+          </li>
+          <li>
+            <strong>知識ベースを作る。</strong> AIが参照すべき社内文書、過去案件、方針、FAQを整理し、出典付きで検索できるようにします。生成AIに記憶させるのではなく、企業側に組織記憶を持たせます。
+          </li>
+          <li>
+            <strong>private evalsを作る。</strong> 代表ケース、失敗ケース、境界ケースをテストセットにし、熟練者の採点基準でAI出力を評価します。
+          </li>
+          <li>
+            <strong>トレースを残す。</strong> AIの入力、参照情報、出力、人間の修正、最終結果を保存します。あとから改善できないAI利用は、学習ループになりません。
+          </li>
+          <li>
+            <strong>改善先を分ける。</strong> 失敗原因に応じて、プロンプト、ツール、検索対象、ワークフロー、承認フロー、モデルを直します。すべてをモデル性能のせいにしないことが重要です。
+          </li>
+          <li>
+            <strong>モデル差し替えテストを行う。</strong> 別モデルでも同じevalを通し、品質差と移行コストを測ります。これにより、自社の知識がモデル側に閉じ込められていないかを確認できます。
+          </li>
+          <li>
+            <strong>十分なトレースが貯まってから学習環境へ進む。</strong> 強化学習やファインチューニングは、ログ、評価、正解方針が揃ってからでよいです。順番を逆にすると、何を良くしているのか分からなくなります。
+          </li>
+        </ol>
       </section>
 
       <section data-review-target="caveats" data-review-label="注意点">
