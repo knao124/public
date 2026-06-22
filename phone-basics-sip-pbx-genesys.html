@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>電話基礎の step by step 解説</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --panel-soft: #f0f4f8;
+        --text: #1f2933;
+        --muted: #52616f;
+        --border: #d7dde5;
+        --accent: #0f766e;
+        --accent-strong: #0b5f59;
+        --accent-soft: #d9f0ed;
+        --note: #f59e0b;
+        --danger: #b91c1c;
+        --code-bg: #edf1f5;
+        --shadow: rgba(16, 24, 40, 0.08);
+        --comment-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='%230f766e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 8v6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E") 12 12, copy;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+        line-height: 1.75;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 40px 20px 96px;
+      }
+
+      header,
+      section,
+      article,
+      footer {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 24px var(--shadow);
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.35;
+        margin: 0 0 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+      }
+
+      h2 {
+        font-size: 1.45rem;
+        border-left: 5px solid var(--accent);
+        padding-left: 10px;
+      }
+
+      h3 {
+        font-size: 1.12rem;
+        margin-top: 20px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 8px 0 0;
+        padding-left: 1.35rem;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      code {
+        background: var(--code-bg);
+        border-radius: 6px;
+        padding: 0.1rem 0.35rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      pre {
+        overflow-x: auto;
+        background: var(--code-bg);
+        border-radius: 8px;
+        padding: 16px;
+        line-height: 1.55;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel-soft);
+        white-space: nowrap;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .lead {
+        font-size: 1.08rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+      }
+
+      .mini-card {
+        background: var(--panel-soft);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .term {
+        display: inline-block;
+        min-width: 7.5em;
+        font-weight: 700;
+        color: var(--accent-strong);
+      }
+
+      .flow {
+        display: grid;
+        gap: 8px;
+        margin: 14px 0;
+      }
+
+      .flow-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .node {
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+        font-weight: 700;
+      }
+
+      .node.accent {
+        background: var(--accent-soft);
+        border-color: #8acbc3;
+        color: #064e49;
+      }
+
+      .caption {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .callout {
+        border-left: 5px solid var(--note);
+        background: #fff8eb;
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin-top: 14px;
+      }
+
+      .danger {
+        border-left-color: var(--danger);
+        background: #fff1f2;
+      }
+
+      .steps {
+        counter-reset: step;
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .steps > li {
+        counter-increment: step;
+        position: relative;
+        padding-left: 46px;
+        margin-top: 14px;
+      }
+
+      .steps > li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0.1rem;
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+      }
+
+      [data-review-target] {
+        position: relative;
+      }
+
+      body.review-mode [data-review-target] {
+        outline: 2px dashed rgba(15, 118, 110, 0.55);
+        outline-offset: 4px;
+        cursor: var(--comment-cursor);
+      }
+
+      .review-toolbar {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .review-toolbar button,
+      .review-panel button,
+      .review-export button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .review-toolbar button.primary,
+      .review-export button.primary,
+      .review-panel button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .review-toolbar button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .review-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .review-pin {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--note);
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      }
+
+      body.review-mode .review-pin,
+      .review-pin.has-comments {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .review-panel,
+      .review-export {
+        position: fixed;
+        z-index: 30;
+        right: 16px;
+        top: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+      }
+
+      .review-panel textarea,
+      .review-export textarea {
+        width: 100%;
+        min-height: 120px;
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+
+      .review-export textarea {
+        min-height: 320px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .review-comment {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+
+      .review-comment p {
+        white-space: pre-wrap;
+      }
+
+      .review-comment-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+
+      .review-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 720px) {
+        main {
+          padding: 24px 12px 100px;
+        }
+
+        header,
+        section,
+        article,
+        footer {
+          padding: 18px;
+        }
+
+        th {
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header data-review-target="summary" data-review-label="全体サマリー">
+        <p class="muted">Generated: 2026-06-22 17:07:30 JST</p>
+        <h1>電話基礎の step by step 解説</h1>
+        <p class="lead">
+          SIP接続、内線、IP-PBX、SIP trunk、ISDN、SBC、Genesys連携を理解するための最短ルートは、電話を
+          <strong>信号制御</strong> と <strong>音声メディア</strong> に分けて見ることです。
+        </p>
+        <p class="muted">
+          この資料は特定ベンダーの詳細設定手順ではなく、PBX/コンタクトセンター/通信キャリア接続を読むための基礎地図です。
+        </p>
+      </header>
+
+      <section data-review-target="before-reading" data-review-label="読む前の前提">
+        <h2>読む前の前提</h2>
+        <div class="grid">
+          <div class="mini-card">
+            <p><span class="term">中心単位</span> 1本の通話</p>
+            <p>通話は「呼び出す、鳴らす、応答する、切る」という制御と、「声を運ぶ」というメディアに分かれます。</p>
+          </div>
+          <div class="mini-card">
+            <p><span class="term">主な登場人物</span> 端末、PBX、キャリア、SBC、Genesys</p>
+            <p>端末は電話機/ソフトフォン、PBXは社内交換機、キャリアは公衆電話網への入口です。</p>
+          </div>
+          <div class="mini-card">
+            <p><span class="term">章の順序</span> PBXからSIPへ</p>
+            <p>内線/PBX/トランク、ISDN、SIP/RTP、SIP trunk、SBC、Genesys、障害切り分けの順で読みます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="core-model" data-review-label="最重要モデル">
+        <h2>Step 1: 電話は「信号制御」と「音声メディア」に分ける</h2>
+        <p>
+          電話システムを理解するとき、最初に分けるべきなのは「誰に電話するか、鳴ったか、応答したか、切ったか」を扱う
+          <strong>信号制御</strong> と、実際の声を運ぶ <strong>音声メディア</strong> です。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>観点</th>
+              <th>役割</th>
+              <th>IP電話での代表例</th>
+              <th>障害時の見え方</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>信号制御</td>
+              <td>発信、着信、呼出、応答、切断、転送、保留</td>
+              <td>SIP</td>
+              <td>発信できない、着信しない、転送できない、番号が解決できない</td>
+            </tr>
+            <tr>
+              <td>音声メディア</td>
+              <td>声、DTMF、録音対象の音声ストリーム</td>
+              <td>RTP/SRTP</td>
+              <td>無音、片通話、音質劣化、遅延、ジッター</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <strong>ここが軸です。</strong> SIPが通っていてもRTPが通っていなければ、電話は鳴るのに声が聞こえません。
+          逆に音声経路が問題なくても、SIPの番号変換やルーティングが誤っていれば相手まで届きません。
+        </div>
+      </section>
+
+      <section data-review-target="pbx-extension-trunk" data-review-label="PBX・内線・トランク">
+        <h2>Step 2: PBX、内線、トランクを理解する</h2>
+        <p>
+          <strong>PBX</strong> は会社や組織の中にある電話交換機です。内線同士をつなぎ、外線に出る通話を通信キャリアへ流し、
+          外から来た通話を内線や部署へ振り分けます。IPで動くPBXを <strong>IP-PBX</strong> と呼びます。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>用語</th>
+              <th>意味</th>
+              <th>例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>内線</td>
+              <td>組織内だけで使う短い番号。公衆電話網の番号とは別物です。</td>
+              <td>101、2401、7000</td>
+            </tr>
+            <tr>
+              <td>外線</td>
+              <td>会社の外の電話番号へ出入りする通話です。</td>
+              <td>03番号、050番号、携帯番号、0120番号</td>
+            </tr>
+            <tr>
+              <td>トランク</td>
+              <td>PBXとキャリア、またはPBX同士をつなぐ共有の幹線です。</td>
+              <td>ISDN回線、SIP trunk</td>
+            </tr>
+            <tr>
+              <td>DID/DDI</td>
+              <td>外から特定の内線やキューへ直接着信させる番号割当です。</td>
+              <td>03-xxxx-1001を内線1001へ着信</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flow" aria-label="PBXの基本構造">
+          <div class="flow-row">
+            <div class="node">内線101</div>
+            <div class="node accent">PBX/IP-PBX</div>
+            <div class="node">内線102</div>
+          </div>
+          <div class="flow-row">
+            <div class="node">社内</div>
+            <div class="node accent">トランク</div>
+            <div class="node">通信キャリア/PSTN</div>
+          </div>
+        </div>
+        <p class="caption">内線同士はPBXの中で完結し、外線はトランクを通って公衆電話網へ出ます。</p>
+      </section>
+
+      <section data-review-target="isdn" data-review-label="ISDNの位置づけ">
+        <h2>Step 3: ISDNは「昔のデジタルなトランク」として見る</h2>
+        <p>
+          <strong>ISDN</strong> は、従来の公衆電話網で使われてきたデジタル回線です。回線交換型なので、1通話ごとに
+          音声用のチャネルを占有します。IPの世界でいう「何セッション同時に張れるか」に近い感覚ですが、実体は物理/回線サービスに強く結びついています。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>構成要素</th>
+              <th>役割</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Bチャネル</td>
+              <td>音声やデータを運ぶチャネル。1本の通話が基本的に1チャネルを使います。</td>
+            </tr>
+            <tr>
+              <td>Dチャネル</td>
+              <td>発信、着信、切断などの信号制御を運ぶチャネルです。</td>
+            </tr>
+            <tr>
+              <td>BRI/PRI</td>
+              <td>小規模向け/大規模向けの提供形態です。国やキャリアで呼び方やチャネル数が異なります。</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          ISDNを深く覚えるより、「PBXとキャリアをつなぐ旧来のデジタル幹線」「同時通話数がチャネル数で決まる」と押さえるのが先です。
+          SIP trunkはこの幹線をIP化したもの、と考えるとつながります。
+        </div>
+      </section>
+
+      <section data-review-target="sip-rtp" data-review-label="SIPとRTP">
+        <h2>Step 4: SIP接続は「通話を始めるための会話」</h2>
+        <p>
+          <strong>SIP</strong> は、IPネットワーク上で通話セッションを作るための信号制御プロトコルです。
+          SIP自体が声を運ぶわけではありません。SIPメッセージの中で、相手先、発信者番号、着信番号、使用するコーデック、音声を送るIPアドレス/ポートなどを調整します。
+        </p>
+        <pre data-review-target="sip-flow" data-review-label="SIPの基本フロー"><code>電話機A              IP-PBX/SBC              電話機B
+  | INVITE              |                       |
+  |-------------------->| INVITE                |
+  |                     |---------------------->|
+  |                     | 180 Ringing           |
+  | 180 Ringing         |<----------------------|
+  |<--------------------|                       |
+  |                     | 200 OK                |
+  | 200 OK              |<----------------------|
+  |<--------------------|                       |
+  | ACK                 | ACK                   |
+  |-------------------->|---------------------->|
+  |=========== RTP/SRTP 音声メディア ===========|
+  | BYE                 | BYE                   |
+  |-------------------->|---------------------->|</code></pre>
+        <table>
+          <thead>
+            <tr>
+              <th>SIP/RTP用語</th>
+              <th>意味</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>REGISTER</td>
+              <td>電話機やソフトフォンが「このユーザーは今このIPにいます」とPBXへ登録します。</td>
+            </tr>
+            <tr>
+              <td>INVITE</td>
+              <td>通話開始の依頼です。発信先、発信元、メディア条件を含みます。</td>
+            </tr>
+            <tr>
+              <td>SDP</td>
+              <td>SIPメッセージ内に入るメディア条件の記述です。IP、ポート、コーデックなどを示します。</td>
+            </tr>
+            <tr>
+              <td>RTP/SRTP</td>
+              <td>実際の音声を運ぶプロトコルです。SRTPは暗号化されたRTPです。</td>
+            </tr>
+            <tr>
+              <td>Codec</td>
+              <td>音声の符号化方式です。G.711、G.729、Opusなどがあります。両端で合う必要があります。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="sip-trunk" data-review-label="SIP trunk">
+        <h2>Step 5: SIP trunkは「IP化された外線幹線」</h2>
+        <p>
+          <strong>SIP trunk</strong> は、PBXやコンタクトセンター基盤と通信キャリア、または別の電話システムをIPで接続する幹線です。
+          物理的な回線チャネルではなく、契約や設備設定で決めた同時通話セッション数として扱われることが多いです。
+        </p>
+        <div class="flow" aria-label="SIP trunkの位置づけ">
+          <div class="flow-row">
+            <div class="node">電話機/Agent</div>
+            <div class="node accent">PBX/Genesys</div>
+            <div class="node accent">SBC</div>
+            <div class="node">通信キャリア</div>
+            <div class="node">PSTN/携帯網</div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>確認点</th>
+              <th>なぜ重要か</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>同時通話数</td>
+              <td>何本まで同時に外線通話できるかを決めます。</td>
+            </tr>
+            <tr>
+              <td>番号形式</td>
+              <td>+81形式、0ABJ形式、内線形式など、相手が期待する形式へ変換が必要です。</td>
+            </tr>
+            <tr>
+              <td>認証/接続元制限</td>
+              <td>ID/パスワード、IP許可リスト、TLS証明書などで接続元を確認します。</td>
+            </tr>
+            <tr>
+              <td>コーデック</td>
+              <td>合わないと通話できない、またはSBCで変換が必要になります。</td>
+            </tr>
+            <tr>
+              <td>メディア経路</td>
+              <td>RTPがどこを通るかで、片通話、録音、NAT越え、遅延の問題が変わります。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="sbc" data-review-label="SBCの役割">
+        <h2>Step 6: SBCは「SIP電話網の境界装置」</h2>
+        <p>
+          <strong>SBC</strong> は Session Border Controller の略で、SIP/RTPの境界に置く装置または機能です。
+          ファイアウォールだけでは足りない、SIP特有の制御、メディア、相互接続、セキュリティを処理します。
+        </p>
+        <div class="grid">
+          <div class="mini-card">
+            <h3>セキュリティ</h3>
+            <p>SIP攻撃の抑止、接続元制限、TLS/SRTP終端、トポロジ隠蔽を行います。</p>
+          </div>
+          <div class="mini-card">
+            <h3>NAT/メディア制御</h3>
+            <p>SIPのSDPに入るIP/ポートを書き換え、RTPを中継して片通話を避けます。</p>
+          </div>
+          <div class="mini-card">
+            <h3>相互接続</h3>
+            <p>ベンダーごとのSIP方言を吸収し、ヘッダー、番号形式、応答コード、コーデックを調整します。</p>
+          </div>
+          <div class="mini-card">
+            <h3>運用</h3>
+            <p>ルーティング、フェイルオーバー、同時通話制御、ログ取得、録音経路制御に関わります。</p>
+          </div>
+        </div>
+        <div class="callout">
+          SBCは「高機能なSIP用プロキシ」とだけ考えると不足します。音声メディアのアンカー、相互接続の翻訳、セキュリティ境界でもあります。
+        </div>
+      </section>
+
+      <section data-review-target="genesys" data-review-label="Genesysとの関係">
+        <h2>Step 7: Genesysは「顧客応対のルーティング基盤」として見る</h2>
+        <p>
+          Genesysはコンタクトセンターの通話、IVR、キュー、エージェントルーティング、録音、レポートなどを扱う基盤です。
+          構成によって、Genesys側が電話制御の中心になる場合も、既存IP-PBXとSIPで接続する場合もあります。
+        </p>
+        <p>
+          「Genesys IP-PBX」という言い方が現場で出てきた場合、実際には次のどれを指しているかを確認すると混乱が減ります。
+        </p>
+        <ol class="steps">
+          <li>
+            <strong>GenesysがPBX的に電話制御も担っている</strong><br />
+            エージェント端末やキャリア接続をGenesys側で扱う構成です。
+          </li>
+          <li>
+            <strong>既存IP-PBXとGenesysがSIP trunkで接続されている</strong><br />
+            会社の内線/PBXは別にあり、コンタクトセンター機能をGenesysへ渡す構成です。
+          </li>
+          <li>
+            <strong>SBC越しにGenesysとキャリアが接続されている</strong><br />
+            外線の出入りをGenesysへ直接寄せ、SBCで境界制御する構成です。
+          </li>
+        </ol>
+        <div class="flow" aria-label="Genesysの代表的な接続パターン">
+          <div class="flow-row">
+            <div class="node">顧客</div>
+            <div class="node">PSTN/携帯網</div>
+            <div class="node">キャリア</div>
+            <div class="node accent">SIP trunk</div>
+            <div class="node accent">SBC</div>
+            <div class="node accent">Genesys</div>
+            <div class="node">Agent</div>
+          </div>
+          <div class="flow-row">
+            <div class="node">社内内線</div>
+            <div class="node accent">IP-PBX</div>
+            <div class="node accent">SIP trunk</div>
+            <div class="node accent">Genesys Queue/IVR</div>
+            <div class="node">Agent</div>
+          </div>
+        </div>
+      </section>
+
+      <section data-review-target="call-scenarios" data-review-label="通話シナリオ">
+        <h2>Step 8: 代表的な通話フローでつなげる</h2>
+        <h3>内線101から内線102へ</h3>
+        <ol>
+          <li>電話機101と102がIP-PBXへREGISTERします。</li>
+          <li>101が102へ発信し、101からPBXへINVITEが送られます。</li>
+          <li>PBXは102の現在位置を見て、102へINVITEします。</li>
+          <li>102が鳴り、応答すると200 OK/ACKで通話成立します。</li>
+          <li>音声はRTPで流れます。構成により電話機同士で直接流れる場合と、PBX/SBCを経由する場合があります。</li>
+        </ol>
+        <h3>顧客がコンタクトセンターへ電話する</h3>
+        <ol>
+          <li>顧客が公開番号、0120番号、代表番号などへ発信します。</li>
+          <li>キャリアが番号に基づいてSIP trunkへ着信を流します。</li>
+          <li>SBCがSIPを受け、必要なら番号形式やヘッダーを整えます。</li>
+          <li>GenesysがIVRやキューに入れ、スキルや空き状況に応じてエージェントへ配信します。</li>
+          <li>応答後、RTP/SRTPの音声経路が張られ、必要なら録音や品質監視が入ります。</li>
+        </ol>
+        <h3>Genesysから社内内線へ転送する</h3>
+        <ol>
+          <li>Genesysが転送先内線を決めます。</li>
+          <li>GenesysまたはSBCがIP-PBXへSIPで転送/再発信します。</li>
+          <li>IP-PBXは内線番号を解決し、該当端末へ着信させます。</li>
+          <li>転送方式によって、Genesysが通話に残る場合と、通話経路から外れる場合があります。</li>
+        </ol>
+      </section>
+
+      <section data-review-target="term-map" data-review-label="用語マップ">
+        <h2>Step 9: 用語を混同しない</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>用語</th>
+              <th>一言でいうと</th>
+              <th>混同しやすい点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>電話番号</td>
+              <td>公衆電話網で到達するための番号</td>
+              <td>内線番号とは別です。番号変換で対応づけることはあります。</td>
+            </tr>
+            <tr>
+              <td>内線番号</td>
+              <td>組織内のPBXで解釈される短い番号</td>
+              <td>外から直接かけられるとは限りません。</td>
+            </tr>
+            <tr>
+              <td>SIP URI</td>
+              <td>SIP上の宛先表現</td>
+              <td>電話番号のように見えても、IPドメインやルーティング規則に依存します。</td>
+            </tr>
+            <tr>
+              <td>DTMF</td>
+              <td>プッシュ番号の信号</td>
+              <td>音声内、RTPイベント、SIP INFOなど方式差があります。IVR不具合の原因になります。</td>
+            </tr>
+            <tr>
+              <td>Caller ID/ANI</td>
+              <td>発信者番号情報</td>
+              <td>表示番号、課金番号、認証番号が同じとは限りません。</td>
+            </tr>
+            <tr>
+              <td>QoS</td>
+              <td>音声パケットを優先するネットワーク制御</td>
+              <td>SIPだけ優先しても音声RTPを優先しなければ音質は守れません。</td>
+            </tr>
+            <tr>
+              <td>NAT</td>
+              <td>プライベートIPとグローバルIPの変換</td>
+              <td>SIP/SDP内にIPアドレスが埋まるため、通常のHTTPより難しいです。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section data-review-target="troubleshooting" data-review-label="障害切り分け">
+        <h2>Step 10: 障害は症状から層を切り分ける</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>症状</th>
+              <th>まず疑う層</th>
+              <th>見るもの</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>発信できない/着信しない</td>
+              <td>SIP信号制御、番号ルーティング</td>
+              <td>INVITEの宛先、From/To、Request-URI、応答コード、SBC/PBXルート</td>
+            </tr>
+            <tr>
+              <td>電話は鳴るが無音</td>
+              <td>RTP、NAT、ファイアウォール、SDP</td>
+              <td>SDP内のc=行、m=行、RTPポート、片方向パケット有無</td>
+            </tr>
+            <tr>
+              <td>片通話</td>
+              <td>RTP経路、NAT、SBCメディアアンカー</td>
+              <td>どちら向きのRTPが欠けているか、SBCで中継しているか</td>
+            </tr>
+            <tr>
+              <td>音が途切れる/遅い</td>
+              <td>ネットワーク品質、QoS、コーデック</td>
+              <td>ジッター、遅延、パケットロス、帯域、トランスコード有無</td>
+            </tr>
+            <tr>
+              <td>IVRで番号入力が効かない</td>
+              <td>DTMF方式</td>
+              <td>RFC 4733方式か、SIP INFOか、音声内DTMFか、両端の設定差</td>
+            </tr>
+            <tr>
+              <td>転送/保留だけ失敗する</td>
+              <td>SIP機能差、Re-INVITE/REFER、SBC正規化</td>
+              <td>転送方式、SIPヘッダー、許可されるメソッド、相互接続条件</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout danger">
+          電話系の調査で一番危険なのは「SIPが成功したから電話は成功している」と見なすことです。
+          通話成立と音声疎通は別の確認項目です。
+        </div>
+      </section>
+
+      <section data-review-target="learning-path" data-review-label="学習順序">
+        <h2>おすすめの学習順</h2>
+        <ol class="steps">
+          <li><strong>PBX、内線、外線、トランク</strong> を図にできるようにする。</li>
+          <li><strong>ISDN</strong> を「旧来のデジタル外線幹線」として把握する。</li>
+          <li><strong>SIPは信号、RTPは音声</strong> という分離を覚える。</li>
+          <li><strong>SIP trunk</strong> を「PBX/GenesysとキャリアをつなぐIP幹線」として読む。</li>
+          <li><strong>SBC</strong> を「境界、NAT、相互接続、セキュリティ、メディア制御」として捉える。</li>
+          <li><strong>Genesys構成図</strong> で、キャリア、SBC、PBX、Agent、IVR、Queueのどこが責務を持つかを確認する。</li>
+          <li><strong>障害時</strong> は、信号制御、番号変換、メディア、ネットワーク品質の順に切り分ける。</li>
+        </ol>
+      </section>
+
+      <footer data-review-target="references" data-review-label="参考になる標準">
+        <h2>参考になる標準</h2>
+        <p>
+          SIPの基本はRFC 3261、RTPの基本はRFC 3550、DTMFイベントはRFC 4733が代表的です。
+          ただし実務では、標準だけでなく通信キャリア、PBX、SBC、Genesys側の相互接続仕様書が同じくらい重要です。
+        </p>
+        <ul>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc3261.html">RFC 3261: SIP</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc3550.html">RFC 3550: RTP</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc4733.html">RFC 4733: DTMF Events in RTP</a></li>
+        </ul>
+      </footer>
+    </main>
+
+    <div class="review-toolbar" aria-label="Review tools">
+      <button id="review-toggle" type="button" aria-pressed="false">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+          <path d="M12 8v6"></path>
+          <path d="M9 11h6"></path>
+        </svg>
+        <span>コメント</span>
+      </button>
+      <button id="review-export" class="primary" type="button">
+        <svg class="review-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect width="8" height="4" x="8" y="2" rx="1"></rect>
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+          <path d="M8 12h8"></path>
+          <path d="M8 16h5"></path>
+        </svg>
+        <span>改善プロンプト</span>
+      </button>
+    </div>
+
+    <aside id="review-panel" class="review-panel" hidden aria-live="polite">
+      <h2 id="review-panel-title">コメント</h2>
+      <p id="review-panel-target" class="muted"></p>
+      <div id="review-comment-list"></div>
+      <form id="review-form">
+        <textarea id="review-text" required placeholder="コメントを書く"></textarea>
+        <div class="review-actions">
+          <button id="review-close" type="button">閉じる</button>
+          <button id="review-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </aside>
+
+    <section id="review-export-panel" class="review-export" hidden aria-live="polite">
+      <h2>改善プロンプト</h2>
+      <textarea id="review-export-text" readonly></textarea>
+      <div class="review-actions">
+        <button id="review-export-close" type="button">閉じる</button>
+        <button id="review-copy" class="primary" type="button">コピー</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const storageKey = `codex-explain-comments:${location.pathname}:${document.title}`;
+        const targets = [...document.querySelectorAll("[data-review-target]")];
+        const byId = new Map(targets.map((el) => [el.dataset.reviewTarget, el]));
+        const $ = (selector) => document.querySelector(selector);
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+        const load = () => {
+          try {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+          } catch {
+            return [];
+          }
+        };
+        const normalize = (comment) => ({
+          id: comment.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          target: comment.target,
+          text: comment.text || "",
+          x: Number.isFinite(comment.x) ? comment.x : 92,
+          y: Number.isFinite(comment.y) ? comment.y : 14,
+        });
+        const state = { comments: load().map(normalize).filter((comment) => byId.has(comment.target)), activeCommentId: null, activeTarget: null, draft: null };
+        const save = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state.comments));
+          } catch {
+            // localStorageが使えない環境でも、その場のコメントUIは動かし続ける。
+          }
+        };
+        const labelFor = (el) => el?.dataset.reviewLabel || el?.querySelector("h1,h2,h3")?.textContent.trim() || el?.dataset.reviewTarget || "Target";
+        const pointFromEvent = (event, el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
+            y: clamp(((event.clientY - rect.top) / rect.height) * 100, 2, 98),
+          };
+        };
+        const activeComment = () => state.comments.find((comment) => comment.id === state.activeCommentId) || null;
+
+        const renderPins = () => {
+          document.querySelectorAll(".review-pin").forEach((pin) => pin.remove());
+          state.comments.forEach((comment, index) => {
+            const el = byId.get(comment.target);
+            if (!el) return;
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "review-pin has-comments";
+            pin.dataset.reviewComment = comment.id;
+            pin.style.left = `${comment.x}%`;
+            pin.style.top = `${comment.y}%`;
+            pin.setAttribute("aria-label", `${labelFor(el)} のコメント ${index + 1}`);
+            pin.textContent = String(index + 1);
+            el.appendChild(pin);
+          });
+        };
+
+        const renderPanel = () => {
+          const current = activeComment() || state.draft;
+          const targetEl = byId.get(current?.target);
+          $("#review-panel-title").textContent = current ? labelFor(targetEl) : "コメント";
+          $("#review-panel-target").textContent = current ? `${current.target} @ ${current.x.toFixed(1)}%, ${current.y.toFixed(1)}%` : "";
+          $("#review-text").value = current?.text || "";
+          $("#review-save").textContent = activeComment() ? "更新" : "保存";
+          const comments = state.comments.filter((comment) => comment.target === current?.target);
+          $("#review-comment-list").innerHTML = comments
+            .map(
+              (comment, index) =>
+                `<div class="review-comment"><div class="review-comment-meta">#${index + 1} @ ${comment.x.toFixed(1)}%, ${comment.y.toFixed(1)}%</div><p>${escapeHtml(comment.text)}</p><button type="button" data-edit-comment="${comment.id}">編集</button> <button type="button" data-delete-comment="${comment.id}">削除</button></div>`,
+            )
+            .join("");
+        };
+
+        const openDraft = (target, point) => {
+          state.activeCommentId = null;
+          state.activeTarget = target;
+          state.draft = { target, x: point.x, y: point.y, text: "" };
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        const openComment = (id) => {
+          const comment = state.comments.find((item) => item.id === id);
+          if (!comment) return;
+          state.activeCommentId = id;
+          state.activeTarget = comment.target;
+          state.draft = null;
+          $("#review-panel").hidden = false;
+          renderPanel();
+          $("#review-text").focus();
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-comment]");
+          if (editButton) {
+            openComment(editButton.dataset.editComment);
+            return;
+          }
+          const deleteButton = event.target.closest("[data-delete-comment]");
+          if (deleteButton) {
+            state.comments = state.comments.filter((comment) => comment.id !== deleteButton.dataset.deleteComment);
+            if (state.activeCommentId === deleteButton.dataset.deleteComment) {
+              state.activeCommentId = null;
+              state.draft = null;
+              $("#review-panel").hidden = true;
+            }
+            save();
+            renderPins();
+            if (!$("#review-panel").hidden) renderPanel();
+            return;
+          }
+          const pin = event.target.closest("[data-review-comment]");
+          if (pin) {
+            openComment(pin.dataset.reviewComment);
+            return;
+          }
+          const targetEl = event.target.closest("[data-review-target]");
+          const ignored = event.target.closest("a,button,textarea,input,select,.review-panel,.review-export,.review-toolbar");
+          if (document.body.classList.contains("review-mode") && targetEl && !ignored) {
+            event.preventDefault();
+            openDraft(targetEl.dataset.reviewTarget, pointFromEvent(event, targetEl));
+          }
+        });
+
+        const setReviewMode = (enabled) => {
+          document.body.classList.toggle("review-mode", enabled);
+          $("#review-toggle").setAttribute("aria-pressed", String(enabled));
+        };
+
+        $("#review-toggle").addEventListener("click", () => {
+          setReviewMode(!document.body.classList.contains("review-mode"));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setReviewMode(false);
+        });
+        $("#review-close").addEventListener("click", () => {
+          $("#review-panel").hidden = true;
+          state.activeCommentId = null;
+          state.draft = null;
+        });
+        $("#review-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = $("#review-text").value.trim();
+          const current = activeComment() || state.draft;
+          if (!text || !current) return;
+          const nextDraft = { target: current.target, x: current.x, y: current.y, text: "" };
+          if (state.activeCommentId) {
+            const comment = activeComment();
+            comment.text = text;
+          } else {
+            const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            state.comments.push({ id, target: current.target, x: current.x, y: current.y, text });
+          }
+          state.activeCommentId = null;
+          state.activeTarget = nextDraft.target;
+          state.draft = nextDraft;
+          save();
+          renderPins();
+          renderPanel();
+        });
+
+        const buildPrompt = () => {
+          if (state.comments.length === 0) return "このHTML解説には、まだ改善コメントがありません。";
+          const usedTargets = [...new Set(state.comments.map((comment) => comment.target))]
+            .map((target) => `${target}=${labelFor(byId.get(target))}`)
+            .join("; ");
+          const rows = state.comments.map((comment, index) => {
+            const compactText = comment.text.replace(/\s+/g, " ").trim();
+            return `${index + 1}. t=${comment.target} xy=${comment.x.toFixed(1)},${comment.y.toFixed(1)} c=${compactText}`;
+          });
+          return [
+            "以下のHTML解説を改善してください。HTML内のdata-review-targetとxy(%)で対象位置を特定してください。",
+            `targets: ${usedTargets}`,
+            ...rows,
+          ].join("\n");
+        };
+
+        $("#review-export").addEventListener("click", () => {
+          $("#review-export-text").value = buildPrompt();
+          $("#review-export-panel").hidden = false;
+          $("#review-export-text").focus();
+          $("#review-export-text").select();
+        });
+        $("#review-export-close").addEventListener("click", () => {
+          $("#review-export-panel").hidden = true;
+        });
+        $("#review-copy").addEventListener("click", async () => {
+          $("#review-export-text").select();
+          try {
+            await navigator.clipboard.writeText($("#review-export-text").value);
+          } catch {
+            document.execCommand("copy");
+          }
+        });
+
+        renderPins();
+      })();
+    </script>
+  </body>
+</html>
