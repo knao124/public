@@ -188,6 +188,118 @@
         color: #064e49;
       }
 
+      .diagram {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #f8fafc;
+        padding: 16px;
+        margin: 16px 0;
+        overflow-x: auto;
+      }
+
+      .diagram-title {
+        margin: 0 0 10px;
+        font-weight: 700;
+        color: var(--accent-strong);
+      }
+
+      .diagram-row {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .diagram-node {
+        flex: 1 1 130px;
+        min-width: 120px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+        text-align: center;
+      }
+
+      .diagram-node strong {
+        display: block;
+        color: var(--text);
+        line-height: 1.35;
+      }
+
+      .diagram-node span {
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.45;
+      }
+
+      .diagram-node.accent {
+        background: var(--accent-soft);
+        border-color: #8acbc3;
+      }
+
+      .diagram-arrow {
+        flex: 0 0 28px;
+        display: grid;
+        place-items: center;
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .diagram-lanes {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .lane-row {
+        display: grid;
+        grid-template-columns: minmax(130px, 180px) 1fr;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .lane-label {
+        display: grid;
+        align-content: center;
+        border-radius: 8px;
+        background: #e8eef5;
+        padding: 10px;
+        font-weight: 700;
+        color: #26323f;
+      }
+
+      .lane-content {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+      }
+
+      .lane-content strong {
+        color: var(--accent-strong);
+      }
+
+      .inline-glossary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        margin: 12px 0;
+      }
+
+      .glossary-item {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+      }
+
+      .glossary-item strong {
+        color: var(--accent-strong);
+      }
+
       .caption {
         font-size: 0.92rem;
         color: var(--muted);
@@ -390,17 +502,28 @@
         th {
           white-space: normal;
         }
+
+        .diagram-row,
+        .lane-row {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+
+        .diagram-arrow {
+          min-height: 18px;
+          transform: rotate(90deg);
+        }
       }
     </style>
   </head>
   <body>
     <main>
       <header data-review-target="summary" data-review-label="全体サマリー">
-        <p class="muted">Generated: 2026-06-22 17:07:30 JST</p>
+        <p class="muted">Generated: 2026-06-22 17:07:30 JST / Updated: 2026-06-22 17:32:32 JST</p>
         <h1>電話基礎の step by step 解説</h1>
         <p class="lead">
           SIP接続、内線、IP-PBX、SIP trunk、ISDN、SBC、Genesys連携を理解するための最短ルートは、電話を
-          <strong>信号制御</strong> と <strong>音声メディア</strong> に分けて見ることです。
+          <strong>呼び出しの流れ</strong> と <strong>声の流れ</strong> に分けて見ることです。
         </p>
         <p class="muted">
           この資料は特定ベンダーの詳細設定手順ではなく、PBX/コンタクトセンター/通信キャリア接続を読むための基礎地図です。
@@ -426,38 +549,62 @@
       </section>
 
       <section data-review-target="core-model" data-review-label="最重要モデル">
-        <h2>Step 1: 電話は「信号制御」と「音声メディア」に分ける</h2>
+        <h2>Step 1: 電話は「呼び出しの流れ」と「声の流れ」に分ける</h2>
         <p>
-          電話システムを理解するとき、最初に分けるべきなのは「誰に電話するか、鳴ったか、応答したか、切ったか」を扱う
-          <strong>信号制御</strong> と、実際の声を運ぶ <strong>音声メディア</strong> です。
+          ここではまだ専門用語を覚えなくて大丈夫です。まず、1本の電話の中に
+          <strong>「呼び出しや切断を決める流れ」</strong> と <strong>「声そのものが流れる道」</strong> の2つがある、と見てください。
         </p>
+        <figure class="diagram" data-review-target="core-model-diagram" data-review-label="通話を2本線で見る図">
+          <p class="diagram-title">1本の通話を2本線で見る</p>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">呼び出しの流れ</div>
+              <div class="lane-content">
+                <strong>誰にかけるか、相手が鳴ったか、出たか、切ったか</strong>を決める流れです。
+                交換台に「101番を呼んでください」と頼むイメージです。
+              </div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">声の流れ</div>
+              <div class="lane-content">
+                <strong>話している声そのもの</strong>が相手へ届く流れです。
+                呼び出しが成功しても、この道が詰まると無音や片通話になります。
+              </div>
+            </div>
+          </div>
+          <div class="diagram-row" aria-label="電話の基本フロー">
+            <div class="diagram-node"><strong>あなた</strong><span>101番へ電話したい</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>電話システム</strong><span>101番を探して鳴らす</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>相手</strong><span>出る、話す、切る</span></div>
+          </div>
+        </figure>
         <table>
           <thead>
             <tr>
-              <th>観点</th>
-              <th>役割</th>
-              <th>IP電話での代表例</th>
+              <th>まずの呼び方</th>
+              <th>何をしているか</th>
               <th>障害時の見え方</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>信号制御</td>
-              <td>発信、着信、呼出、応答、切断、転送、保留</td>
-              <td>SIP</td>
+              <td>呼び出しの流れ</td>
+              <td>発信、着信、呼出、応答、切断、転送、保留を決めます。</td>
               <td>発信できない、着信しない、転送できない、番号が解決できない</td>
             </tr>
             <tr>
-              <td>音声メディア</td>
-              <td>声、DTMF、録音対象の音声ストリーム</td>
-              <td>RTP/SRTP</td>
+              <td>声の流れ</td>
+              <td>声、プッシュ番号、録音対象になる音声を運びます。</td>
               <td>無音、片通話、音質劣化、遅延、ジッター</td>
             </tr>
           </tbody>
         </table>
         <div class="callout">
-          <strong>ここが軸です。</strong> SIPが通っていてもRTPが通っていなければ、電話は鳴るのに声が聞こえません。
-          逆に音声経路が問題なくても、SIPの番号変換やルーティングが誤っていれば相手まで届きません。
+          <strong>ここが軸です。</strong> 電話が鳴ることと、声が聞こえることは別です。
+          だから「鳴るけど無音」「出られるけど片方だけ聞こえる」という障害が起きます。
+          正式な名前はStep 4で出します。
         </div>
       </section>
 
@@ -498,18 +645,25 @@
             </tr>
           </tbody>
         </table>
-        <div class="flow" aria-label="PBXの基本構造">
-          <div class="flow-row">
-            <div class="node">内線101</div>
-            <div class="node accent">PBX/IP-PBX</div>
-            <div class="node">内線102</div>
+        <figure class="diagram" data-review-target="pbx-routing-diagram" data-review-label="PBXの交換台図">
+          <p class="diagram-title">PBXは社内の交換台</p>
+          <div class="diagram-row" aria-label="内線同士の通話">
+            <div class="diagram-node"><strong>内線101</strong><span>社内の電話</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>PBX/IP-PBX</strong><span>番号を見て接続先を決める</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>内線102</strong><span>社内の電話</span></div>
           </div>
-          <div class="flow-row">
-            <div class="node">社内</div>
-            <div class="node accent">トランク</div>
-            <div class="node">通信キャリア/PSTN</div>
+          <div class="diagram-row" aria-label="外線通話">
+            <div class="diagram-node"><strong>社内の電話</strong><span>外へかけたい</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>PBX/IP-PBX</strong><span>外線へ出す</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>トランク</strong><span>外へ出る幹線</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>通信キャリア</strong><span>公衆電話網へ接続</span></div>
           </div>
-        </div>
+        </figure>
         <p class="caption">内線同士はPBXの中で完結し、外線はトランクを通って公衆電話網へ出ます。</p>
       </section>
 
@@ -519,6 +673,26 @@
           <strong>ISDN</strong> は、従来の公衆電話網で使われてきたデジタル回線です。回線交換型なので、1通話ごとに
           音声用のチャネルを占有します。IPの世界でいう「何セッション同時に張れるか」に近い感覚ですが、実体は物理/回線サービスに強く結びついています。
         </p>
+        <figure class="diagram" data-review-target="isdn-channel-diagram" data-review-label="ISDNのチャネル図">
+          <p class="diagram-title">ISDNは幹線の中に「操作用」と「通話用」の枠がある</p>
+          <div class="diagram-row" aria-label="ISDN幹線の位置づけ">
+            <div class="diagram-node"><strong>PBX</strong><span>社内の交換台</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>ISDN回線</strong><span>昔からあるデジタル幹線</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>通信キャリア</strong><span>外の電話網へ</span></div>
+          </div>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">Dチャネル</div>
+              <div class="lane-content">呼び出し、応答、切断などを伝える操作用の通り道です。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">Bチャネル</div>
+              <div class="lane-content">実際の通話で使う枠です。1本の通話が基本的に1枠を使います。</div>
+            </div>
+          </div>
+        </figure>
         <table>
           <thead>
             <tr>
@@ -550,9 +724,33 @@
       <section data-review-target="sip-rtp" data-review-label="SIPとRTP">
         <h2>Step 4: SIP接続は「通話を始めるための会話」</h2>
         <p>
-          <strong>SIP</strong> は、IPネットワーク上で通話セッションを作るための信号制御プロトコルです。
-          SIP自体が声を運ぶわけではありません。SIPメッセージの中で、相手先、発信者番号、着信番号、使用するコーデック、音声を送るIPアドレス/ポートなどを調整します。
+          ここで初めて正式名を貼ります。Step 1の「呼び出しの流れ」にあたる代表的な仕組みが <strong>SIP</strong> です。
+          SIP自体が声を運ぶわけではありません。SIPは、相手先、発信者番号、着信番号、使う音声方式、声を送る場所を決めるための会話です。
         </p>
+        <figure class="diagram" data-review-target="sip-rtp-two-lane-diagram" data-review-label="SIPとRTPの2本線図">
+          <p class="diagram-title">Step 1の2本線に正式名を貼る</p>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">呼び出しの流れ = SIP</div>
+              <div class="lane-content">
+                「電話を始めたい」「相手を鳴らした」「相手が出た」「切る」を伝えます。
+              </div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">声の流れ = RTP/SRTP</div>
+              <div class="lane-content">
+                実際の声を運びます。SRTPは暗号化された声の流れです。
+              </div>
+            </div>
+          </div>
+        </figure>
+        <div class="inline-glossary" data-review-target="sip-message-glossary" data-review-label="SIPメッセージの読み替え">
+          <div class="glossary-item"><strong>INVITE</strong><br />電話を始めたい</div>
+          <div class="glossary-item"><strong>180 Ringing</strong><br />相手を鳴らしている</div>
+          <div class="glossary-item"><strong>200 OK</strong><br />相手が出た</div>
+          <div class="glossary-item"><strong>ACK</strong><br />了解、通話を始める</div>
+          <div class="glossary-item"><strong>BYE</strong><br />電話を切る</div>
+        </div>
         <pre data-review-target="sip-flow" data-review-label="SIPの基本フロー"><code>電話機A              IP-PBX/SBC              電話機B
   | INVITE              |                       |
   |-------------------->| INVITE                |
@@ -606,15 +804,18 @@
           <strong>SIP trunk</strong> は、PBXやコンタクトセンター基盤と通信キャリア、または別の電話システムをIPで接続する幹線です。
           物理的な回線チャネルではなく、契約や設備設定で決めた同時通話セッション数として扱われることが多いです。
         </p>
-        <div class="flow" aria-label="SIP trunkの位置づけ">
-          <div class="flow-row">
-            <div class="node">電話機/Agent</div>
-            <div class="node accent">PBX/Genesys</div>
-            <div class="node accent">SBC</div>
-            <div class="node">通信キャリア</div>
-            <div class="node">PSTN/携帯網</div>
+        <figure class="diagram" data-review-target="sip-trunk-diagram" data-review-label="SIP trunkの幹線図">
+          <p class="diagram-title">SIP trunkは外線幹線をIP化したもの</p>
+          <div class="diagram-row" aria-label="SIP trunkの位置づけ">
+            <div class="diagram-node"><strong>Agent/電話機</strong><span>通話する人</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>PBX/Genesys</strong><span>通話をさばく</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>SIP trunk</strong><span>IPの外線幹線</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>通信キャリア</strong><span>外の電話網へ</span></div>
           </div>
-        </div>
+        </figure>
         <table>
           <thead>
             <tr>
@@ -653,6 +854,26 @@
           <strong>SBC</strong> は Session Border Controller の略で、SIP/RTPの境界に置く装置または機能です。
           ファイアウォールだけでは足りない、SIP特有の制御、メディア、相互接続、セキュリティを処理します。
         </p>
+        <figure class="diagram" data-review-target="sbc-border-diagram" data-review-label="SBCの境界図">
+          <p class="diagram-title">SBCは境界で通話を整える</p>
+          <div class="diagram-row" aria-label="SBC境界">
+            <div class="diagram-node"><strong>社内/PBX/Genesys</strong><span>内側の電話システム</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>SBC</strong><span>守る、翻訳する、声を中継する</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>キャリア/外部</strong><span>外側の電話網</span></div>
+          </div>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">呼び出し側</div>
+              <div class="lane-content">番号形式、ヘッダー、応答コード、認証、接続元を調整します。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">声の通り道</div>
+              <div class="lane-content">音声のIP/ポートを中継し、片通話やNAT問題を避けます。</div>
+            </div>
+          </div>
+        </figure>
         <div class="grid">
           <div class="mini-card">
             <h3>セキュリティ</h3>
@@ -685,6 +906,23 @@
         <p>
           「Genesys IP-PBX」という言い方が現場で出てきた場合、実際には次のどれを指しているかを確認すると混乱が減ります。
         </p>
+        <figure class="diagram" data-review-target="genesys-role-diagram" data-review-label="Genesysの役割確認図">
+          <p class="diagram-title">Genesysは「どこまで電話を持つか」を確認する</p>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">Genesysが中心</div>
+              <div class="lane-content">キャリア接続、IVR、キュー、エージェント配信までGenesys側で扱います。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">既存PBXと連携</div>
+              <div class="lane-content">社内内線は既存PBX、顧客応対のルーティングはGenesys、という分担です。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">SBC越しに接続</div>
+              <div class="lane-content">外線の境界をSBCに置き、Genesysとキャリアの間を安全につなぎます。</div>
+            </div>
+          </div>
+        </figure>
         <ol class="steps">
           <li>
             <strong>GenesysがPBX的に電話制御も担っている</strong><br />
@@ -699,28 +937,50 @@
             外線の出入りをGenesysへ直接寄せ、SBCで境界制御する構成です。
           </li>
         </ol>
-        <div class="flow" aria-label="Genesysの代表的な接続パターン">
-          <div class="flow-row">
-            <div class="node">顧客</div>
-            <div class="node">PSTN/携帯網</div>
-            <div class="node">キャリア</div>
-            <div class="node accent">SIP trunk</div>
-            <div class="node accent">SBC</div>
-            <div class="node accent">Genesys</div>
-            <div class="node">Agent</div>
+        <figure class="diagram" data-review-target="genesys-call-path-diagram" data-review-label="Genesys接続パターン図">
+          <p class="diagram-title">代表的な接続パターン</p>
+          <div class="diagram-row" aria-label="外線からGenesysへ">
+            <div class="diagram-node"><strong>顧客</strong><span>外から電話</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>キャリア</strong><span>番号を運ぶ</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>SBC</strong><span>境界制御</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>Genesys</strong><span>IVR/Queue/配信</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>Agent</strong><span>応対する人</span></div>
           </div>
-          <div class="flow-row">
-            <div class="node">社内内線</div>
-            <div class="node accent">IP-PBX</div>
-            <div class="node accent">SIP trunk</div>
-            <div class="node accent">Genesys Queue/IVR</div>
-            <div class="node">Agent</div>
+          <div class="diagram-row" aria-label="既存PBXとGenesys連携">
+            <div class="diagram-node"><strong>社内内線</strong><span>既存の電話</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>IP-PBX</strong><span>内線を管理</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>Genesys</strong><span>顧客応対を管理</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>Agent</strong><span>応対する人</span></div>
           </div>
-        </div>
+        </figure>
       </section>
 
       <section data-review-target="call-scenarios" data-review-label="通話シナリオ">
         <h2>Step 8: 代表的な通話フローでつなげる</h2>
+        <figure class="diagram" data-review-target="scenario-overview-diagram" data-review-label="通話シナリオの全体図">
+          <p class="diagram-title">3つの通話シナリオを同じ型で見る</p>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">内線同士</div>
+              <div class="lane-content">電話機 → PBX → 電話機。社内の番号解決が中心です。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">顧客から着信</div>
+              <div class="lane-content">顧客 → キャリア → SBC → Genesys → Agent。外線とキュー配信が中心です。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">社内へ転送</div>
+              <div class="lane-content">Genesys → SBCまたはPBX → 社内内線。転送方式と通話経路が中心です。</div>
+            </div>
+          </div>
+        </figure>
         <h3>内線101から内線102へ</h3>
         <ol>
           <li>電話機101と102がIP-PBXへREGISTERします。</li>
@@ -748,6 +1008,18 @@
 
       <section data-review-target="term-map" data-review-label="用語マップ">
         <h2>Step 9: 用語を混同しない</h2>
+        <figure class="diagram" data-review-target="number-name-diagram" data-review-label="番号と宛先名の違い">
+          <p class="diagram-title">番号は「どの世界で解釈されるか」が違う</p>
+          <div class="diagram-row" aria-label="番号の世界">
+            <div class="diagram-node"><strong>電話番号</strong><span>外の電話網で届く名前</span></div>
+            <div class="diagram-arrow">↔</div>
+            <div class="diagram-node accent"><strong>番号変換</strong><span>PBX/SBC/Genesysで整える</span></div>
+            <div class="diagram-arrow">↔</div>
+            <div class="diagram-node"><strong>内線番号</strong><span>社内PBXで届く名前</span></div>
+            <div class="diagram-arrow">↔</div>
+            <div class="diagram-node"><strong>SIP URI</strong><span>SIP上の宛先名</span></div>
+          </div>
+        </figure>
         <table>
           <thead>
             <tr>
@@ -798,6 +1070,23 @@
 
       <section data-review-target="troubleshooting" data-review-label="障害切り分け">
         <h2>Step 10: 障害は症状から層を切り分ける</h2>
+        <figure class="diagram" data-review-target="troubleshooting-decision-diagram" data-review-label="障害切り分け図">
+          <p class="diagram-title">症状から見る場所を決める</p>
+          <div class="diagram-lanes">
+            <div class="lane-row">
+              <div class="lane-label">そもそも鳴らない</div>
+              <div class="lane-content">呼び出しの流れ、番号ルート、認証、接続元制限を見ます。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">鳴るが聞こえない</div>
+              <div class="lane-content">声の流れ、IP/ポート、NAT、ファイアウォール、SBC中継を見ます。</div>
+            </div>
+            <div class="lane-row">
+              <div class="lane-label">聞こえるが品質が悪い</div>
+              <div class="lane-content">遅延、ジッター、パケットロス、帯域、QoS、コーデックを見ます。</div>
+            </div>
+          </div>
+        </figure>
         <table>
           <thead>
             <tr>
@@ -847,6 +1136,20 @@
 
       <section data-review-target="learning-path" data-review-label="学習順序">
         <h2>おすすめの学習順</h2>
+        <figure class="diagram" data-review-target="learning-path-diagram" data-review-label="学習順の図">
+          <p class="diagram-title">この順に積むと迷いにくい</p>
+          <div class="diagram-row" aria-label="学習順">
+            <div class="diagram-node"><strong>PBX</strong><span>内線と外線</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>ISDN</strong><span>旧来の幹線</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>SIP/RTP</strong><span>呼び出しと声</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node accent"><strong>SBC</strong><span>境界制御</span></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-node"><strong>Genesys</strong><span>顧客応対</span></div>
+          </div>
+        </figure>
         <ol class="steps">
           <li><strong>PBX、内線、外線、トランク</strong> を図にできるようにする。</li>
           <li><strong>ISDN</strong> を「旧来のデジタル外線幹線」として把握する。</li>
